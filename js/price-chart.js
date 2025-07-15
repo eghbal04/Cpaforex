@@ -1,674 +1,301 @@
-// Price Chart Module with Chart.js Line Charts
-let priceChartInterval = null;
-let contractStatsInterval = null;
-let priceHistory = {
-    lvlUsd: [],
-    lvlPol: [],
-    polUsd: []
-};
-let chartInstance = null;
-let currentTimePeriod = '1D';
-let timePeriods = {
-    '1D': { label: '24 ساعت', hours: 24, interval: 5000 },
-    '7D': { label: '7 روز', hours: 168, interval: 30000 },
-    '1M': { label: '1 ماه', hours: 720, interval: 300000 },
-    '1Y': { label: '1 سال', hours: 8760, interval: 900000 }
-};
-let updateIntervals = [];
-
-// Initialize price chart
-async function initializePriceChart() {
-    try {
-        // Initialize the chart
-        initializeChart();
-        
-        // Setup time period buttons
-        setupTimePeriodButtons();
-        
-        // Load initial prices
-        await fetchContractStats();
-        await updatePriceChart();
-        
-        // Start auto-update with current period interval
-        startChartIntervals();
-        
-    } catch (error) {
-        showPriceChartError('خطا در راه‌اندازی چارت قیمت');
+// Price Chart Implementation - Simple Line Only
+class PriceChart {
+    constructor() {
+        this.chart = null;
+        this.priceHistory = [];
+        this.currentTimePeriod = 'day';
+        this.timePeriods = {
+            day: { points: 24, interval: 3600000, label: 'Hour' }, // 24 hours, 1 hour intervals
+            week: { points: 7, interval: 86400000, label: 'Day' }, // 7 days, 1 day intervals
+            month: { points: 30, interval: 86400000, label: 'Day' }, // 30 days, 1 day intervals
+            year: { points: 12, interval: 2592000000, label: 'Month' } // 12 months, 1 month intervals
+        };
+        this.init();
     }
-}
 
-// Setup time period filter buttons
-function setupTimePeriodButtons() {
-    const container = document.getElementById('price-chart-time-filters');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    Object.entries(timePeriods).forEach(([period, config]) => {
-        const button = document.createElement('button');
-        button.className = `time-period-btn ${period === currentTimePeriod ? 'active' : ''}`;
-        button.textContent = config.label;
-        button.onclick = () => changeTimePeriod(period);
-        container.appendChild(button);
-    });
-}
+    init() {
 
-// Change time period
-async function changeTimePeriod(period) {
-    try {
-        if (!timePeriods[period]) {
-            return;
+        this.initializeChart();
+        this.setupTimePeriodButtons();
+        this.startPriceUpdates();
+
+    }
+
+    setupTimePeriodButtons() {
+        const select = document.getElementById('token-period-select');
+        if (select) {
+            select.addEventListener('change', (e) => {
+                const period = e.target.value;
+                this.switchTimePeriod(period);
+            });
         }
-        
-        currentTimePeriod = period;
-        updateTimePeriodButtons();
-        
-        // به‌روزرسانی نمودار با داده‌های فیلتر شده
-        if (chartInstance && priceHistory.lvlUsd.length > 0) {
-            const timestamp = Date.now();
-            const periodHours = timePeriods[period].hours;
-            const periodCutoff = timestamp - (periodHours * 60 * 60 * 1000);
-            
-            const filteredLvlUsd = priceHistory.lvlUsd.filter(item => item.time >= periodCutoff);
-            const filteredLvlPol = priceHistory.lvlPol.filter(item => item.time >= periodCutoff);
-            const filteredPolUsd = priceHistory.polUsd.filter(item => item.time >= periodCutoff);
-            
-            // نمایش مختصر تاریخ/ساعت
-            let labels;
-            if (period === '1D') {
-                labels = filteredLvlUsd.map(item => {
-                    const d = new Date(item.time);
-                    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-                });
-            } else {
-                labels = filteredLvlUsd.map(item => {
-                    const d = new Date(item.time);
-                    return (d.getMonth()+1).toString().padStart(2, '0') + '/' + d.getDate().toString().padStart(2, '0');
+    }
+    switchTimePeriod(period) {
+        this.currentTimePeriod = period;
+        // Update select value
+        const select = document.getElementById('token-period-select');
+        if (select) select.value = period;
+        this.generateTimePeriodData();
+        if (typeof updatePriceStats === 'function') updatePriceStats();
+    }
+
+    generateTimePeriodData() {
+        const period = this.currentTimePeriod;
+        const now = new Date();
+        let dataPoints = [];
+        const realPrices = window.priceHistoryManager ? 
+            window.priceHistoryManager.getRealPricesUpToNow('token', period) : 
+            Array(period === 'day' ? 24 : period === 'week' ? 7 : period === 'month' ? 30 : 12).fill(0);
+        if (period === 'day') {
+            const currentHour = now.getHours();
+            for (let i = 0; i < 24; i++) {
+                const hour = new Date(now);
+                hour.setHours(i, 0, 0, 0);
+                dataPoints.push({
+                    time: hour.getTime(),
+                    price: (i <= currentHour) ? (realPrices[i] || 0) : null
                 });
             }
-            chartInstance.data.labels = labels;
-            chartInstance.data.datasets[0].data = filteredLvlUsd.map(item => item.value);
-            chartInstance.data.datasets[1].data = filteredLvlPol.map(item => item.value);
-            chartInstance.data.datasets[2].data = filteredPolUsd.map(item => item.value);
-            
-            chartInstance.update();
+        } else if (period === 'week') {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - dayOfWeek + i);
+                d.setHours(12, 0, 0, 0);
+                dataPoints.push({
+                    time: d.getTime(),
+                    price: (i <= dayOfWeek) ? (realPrices[i] || 0) : null
+                });
+            }
+        } else if (period === 'month') {
+            const today = new Date();
+            const currentDay = today.getDate();
+            for (let i = 0; i < 30; i++) {
+                const d = new Date(today);
+                d.setDate(i + 1);
+                d.setHours(12, 0, 0, 0);
+                dataPoints.push({
+                    time: d.getTime(),
+                    price: (i < currentDay) ? (realPrices[i] || 0) : null
+                });
+            }
+        } else if (period === 'year') {
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            for (let i = 0; i < 12; i++) {
+                const d = new Date(today);
+                d.setMonth(i);
+                d.setDate(15);
+                d.setHours(12, 0, 0, 0);
+                dataPoints.push({
+                    time: d.getTime(),
+                    price: (i <= currentMonth) ? (realPrices[i] || 0) : null
+                });
+            }
         }
-        
-    } catch (error) {
+        this.priceHistory = dataPoints;
+        this.updateChart();
     }
-}
 
-// Update time period button states
-function updateTimePeriodButtons() {
-    const buttons = document.querySelectorAll('.time-period-btn');
-    buttons.forEach(button => {
-        button.classList.remove('active');
-        if (button.textContent === timePeriods[currentTimePeriod].label) {
-            button.classList.add('active');
-        }
-    });
-    
-    // Update current period display
-    const currentPeriodElement = document.getElementById('chart-current-period');
-    if (currentPeriodElement) {
-        currentPeriodElement.textContent = timePeriods[currentTimePeriod].label;
+    generateSimulatedPrice(timestamp) {
+        // Return 0 for simulated prices - will be replaced with real data
+        return 0;
     }
-}
 
-// Start auto-update with current period interval
-function startChartIntervals() {
-    // پاک کردن interval های قبلی
-    updateIntervals.forEach(interval => clearInterval(interval));
-    updateIntervals = [];
-    
-    // شروع interval های جدید
-    const priceUpdateInterval = setInterval(updatePriceChart, 5000); // هر 5 ثانیه
-    const contractUpdateInterval = setInterval(async () => {
-        try {
-            await updatePriceChart();
-        } catch (error) {
-        }
-    }, 300000); // هر 5 دقیقه
-    
-    updateIntervals.push(priceUpdateInterval, contractUpdateInterval);
-}
+    initializeChart() {
+        const ctx = document.getElementById('price-chart-canvas');
+        if (!ctx) return;
 
-// Load Chart.js dynamically
-async function loadChartJS() {
-    if (window.Chart) {
-        return;
-    }
-    
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
-        script.onload = () => {
-            resolve();
-        };
-        script.onerror = () => {
-            reject(new Error('Failed to load Chart.js'));
-        };
-        document.head.appendChild(script);
-    });
-}
-
-// Initialize the line chart
-function initializeChart() {
-    const ctx = document.getElementById('price-chart-canvas');
-    if (!ctx) {
-        return;
-    }
-    
-    // Destroy existing chart if any
-    if (chartInstance) {
-        chartInstance.destroy();
-    }
-    
-    chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [
-                {
-                    label: ' LVL (USD)',
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'CPA',
                     data: [],
                     borderColor: '#00ff88',
                     backgroundColor: 'rgba(0, 255, 136, 0.1)',
-                    borderWidth: 2,
-                    fill: false,
+                    borderWidth: 3,
+                    fill: true,
                     tension: 0.4,
                     pointRadius: 3,
-                    pointHoverRadius: 6
-                },
-                {
-                    label: ' LVL (POL)',
-                    data: [],
-                    borderColor: '#00ccff',
-                    backgroundColor: 'rgba(0, 204, 255, 0.1)',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    pointHoverRadius: 6
-                },
-                {
-                    label: ' POL (USD)',
-                    data: [],
-                    borderColor: '#ff6b6b',
-                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    pointHoverRadius: 6
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: 'index'
+                    pointBackgroundColor: '#00ff88',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#00ff88',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2
+                }]
             },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        color: '#ffffff',
-                        font: {
-                            size: 12,
-                            family: 'Tahoma, Arial, sans-serif'
-                        },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#00ff88',
-                    borderWidth: 1,
-                    cornerRadius: 8,
-                    displayColors: true,
-                    callbacks: {
-                        title: function(context) {
-                            const date = new Date(context[0].parsed.x);
-                            return date.toLocaleString('fa-IR', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
-                        },
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#00ff88',
+                        bodyColor: '#fff',
+                        borderColor: '#00ff88',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(context) {
+                                const dataIndex = context[0].dataIndex;
+                                const period = window.priceChart?.currentTimePeriod || 'day';
+                                const timestamp = window.priceChart?.priceHistory?.[dataIndex]?.time;
+                                
+                                if (timestamp) {
+                                    const date = new Date(timestamp);
+                                    if (period === 'day') {
+                                        return '•';
+                                    } else if (period === 'week') {
+                                        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                        return days[dataIndex] || '•';
+                                    } else if (period === 'month') {
+                                        return '•';
+                                    } else if (period === 'year') {
+                                        return '•';
+                                    }
+                                }
+                                return '•';
+                            },
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                if (value < 0.000001) {
+                                    return `Price: ${value.toExponential(6)}`;
+                                }
+                                return `Price: ${value.toFixed(6)}`;
                             }
-                            if (context.parsed.y !== null) {
-                                label += new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 6,
-                                    maximumFractionDigits: 6
-                                }).format(context.parsed.y);
-                            }
-                            return label;
                         }
                     }
-                }
-            },
-            scales: {
-                x: {
-                    display: true,
-                    title: {
+                },
+                scales: {
+                    x: {
                         display: true,
-                        text: 'زمان',
-                        color: '#ffffff',
-                        font: {
-                            size: 12,
-                            family: 'Tahoma, Arial, sans-serif'
-                        }
-                    },
-                    ticks: {
-                        color: '#cccccc',
-                        maxTicksLimit: 8,
-                        callback: function(value, index, values) {
-                            const date = new Date(this.getLabelForValue(value));
-                            const period = currentTimePeriod;
-                            
-                            if (period === '24h') {
-                                return date.toLocaleTimeString('fa-IR', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                });
-                            } else if (period === '7d') {
-                                return date.toLocaleDateString('fa-IR', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit'
-                                });
-                            } else if (period === '1m') {
-                                return date.toLocaleDateString('fa-IR', {
-                                    month: 'short',
-                                    day: 'numeric'
-                                });
-                            } else {
-                                return date.toLocaleDateString('fa-IR', {
-                                    year: 'numeric',
-                                    month: 'short'
-                                });
+                        grid: {
+                            display: true,
+                            color: 'rgba(0, 255, 136, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#00ff88',
+                            font: {
+                                size: 10,
+                                family: 'monospace'
+                            },
+                            callback: function(value, index) {
+                                const period = window.priceChart?.currentTimePeriod || 'day';
+                                if (period === 'week') {
+                                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                    return days[index] || '';
+                                } else if (period === 'day') {
+                                    return index + 1;
+                                } else if (period === 'month') {
+                                    return index + 1;
+                                } else if (period === 'year') {
+                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    return months[index] || '';
+                                }
+                                return '';
                             }
                         }
                     },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
+                    y: {
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            color: 'rgba(0, 255, 136, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#00ff88',
+                            font: {
+                                size: 10,
+                                family: 'monospace'
+                            },
+                            callback: function(value) {
+                                if (value < 0.000001) {
+                                    return value.toExponential(3);
+                                }
+                                return value.toFixed(6);
+                            }
+                        }
                     }
                 },
-                y: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: 'قیمت',
-                        color: '#ffffff',
-                        font: {
-                            size: 12,
-                            family: 'Tahoma, Arial, sans-serif'
-                        }
-                    },
-                    ticks: {
-                        color: '#cccccc',
-                        callback: function(value, index, values) {
-                            return new Intl.NumberFormat('en-US', {
-                                minimumFractionDigits: 6,
-                                maximumFractionDigits: 6
-                            }).format(value);
-                        }
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
+                elements: {
+                    point: {
+                        radius: 3
                     }
-                }
-            },
-            elements: {
-                point: {
-                    hoverBackgroundColor: '#ffffff'
                 }
             }
-        }
-    });
-}
-
-// Helper to show/hide price chart UI
-function setPriceChartVisibility(visible) {
-    const ids = [
-        'chart-lvl-usd', 'chart-lvl-pol', 'chart-pol-usd',
-        'chart-lvl-usd-change', 'chart-lvl-pol-change', 'chart-pol-usd-change',
-        'price-chart-last-update', 'price-chart-canvas'
-    ];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.visibility = visible ? 'visible' : 'hidden';
-    });
-}
-
-// Hide by default on load
-setPriceChartVisibility(false);
-
-// Update price chart data
-async function updatePriceChart() {
-    try {
-        // دریافت قیمت‌ها از تابع مرکزی
-        const prices = await window.getPrices();
-        // اعتبارسنجی قیمت‌ها (همه باید بزرگتر از صفر باشند)
-        const valid = prices &&
-            parseFloat(prices.lvlPriceUSD) > 0 &&
-            parseFloat(prices.lvlPricePol) > 0 &&
-            parseFloat(prices.polPrice) > 0;
-        if (!valid) {
-            // به جای مخفی کردن، آخرین قیمت معتبر را نمایش بده
-            if (priceHistory.lvlUsd.length > 0 && priceHistory.lvlPol.length > 0 && priceHistory.polUsd.length > 0) {
-                const last = {
-                    lvlUsd: priceHistory.lvlUsd[priceHistory.lvlUsd.length-1].value,
-                    lvlPol: priceHistory.lvlPol[priceHistory.lvlPol.length-1].value,
-                    polUsd: priceHistory.polUsd[priceHistory.polUsd.length-1].value
-                };
-                updatePriceCards(last);
-                updateChartData(last);
-            }
-            return;
-        }
-        setPriceChartVisibility(true);
-        // تبدیل قیمت‌ها به اعداد
-        const priceData = {
-            lvlPol: parseFloat(prices.lvlPricePol),
-            lvlUsd: parseFloat(prices.lvlPriceUSD),
-            polUsd: parseFloat(prices.polPrice)
-        };
-        // به‌روزرسانی کارت‌های قیمت
-        updatePriceCards(priceData);
-        // به‌روزرسانی نمودار
-        updateChartData(priceData);
-    } catch (error) {
-        // در صورت خطا، آخرین قیمت معتبر را نمایش بده
-        if (priceHistory.lvlUsd.length > 0 && priceHistory.lvlPol.length > 0 && priceHistory.polUsd.length > 0) {
-            const last = {
-                lvlUsd: priceHistory.lvlUsd[priceHistory.lvlUsd.length-1].value,
-                lvlPol: priceHistory.lvlPol[priceHistory.lvlPol.length-1].value,
-                polUsd: priceHistory.polUsd[priceHistory.polUsd.length-1].value
-            };
-            updatePriceCards(last);
-            updateChartData(last);
-        }
-    }
-}
-
-// Update chart data
-function updateChartData(prices) {
-    if (!chartInstance) return;
-    
-    try {
-        const timestamp = Date.now();
-        
-        // اضافه کردن داده‌های جدید به تاریخچه
-        priceHistory.lvlUsd.push({ time: timestamp, value: prices.lvlUsd });
-        priceHistory.lvlPol.push({ time: timestamp, value: prices.lvlPol });
-        priceHistory.polUsd.push({ time: timestamp, value: prices.polUsd });
-        
-        // نگهداری حداکثر 1 سال داده
-        const cutoff = timestamp - (365 * 24 * 60 * 60 * 1000);
-        priceHistory.lvlUsd = priceHistory.lvlUsd.filter(item => item.time >= cutoff);
-        priceHistory.lvlPol = priceHistory.lvlPol.filter(item => item.time >= cutoff);
-        priceHistory.polUsd = priceHistory.polUsd.filter(item => item.time >= cutoff);
-        
-        // فیلتر کردن داده‌ها بر اساس دوره زمانی انتخاب شده
-        const periodHours = timePeriods[currentTimePeriod]?.hours || 24;
-        const periodCutoff = timestamp - (periodHours * 60 * 60 * 1000);
-        
-        const filteredLvlUsd = priceHistory.lvlUsd.filter(item => item.time >= periodCutoff);
-        const filteredLvlPol = priceHistory.lvlPol.filter(item => item.time >= periodCutoff);
-        const filteredPolUsd = priceHistory.polUsd.filter(item => item.time >= periodCutoff);
-        
-        // به‌روزرسانی داده‌های نمودار
-        chartInstance.data.labels = filteredLvlUsd.map(item => new Date(item.time).toLocaleTimeString('fa-IR'));
-        chartInstance.data.datasets[0].data = filteredLvlUsd.map(item => item.value);
-        chartInstance.data.datasets[1].data = filteredLvlPol.map(item => item.value);
-        chartInstance.data.datasets[2].data = filteredPolUsd.map(item => item.value);
-        
-        chartInstance.update('none');
-        
-    } catch (error) {
-    }
-}
-
-// Update price cards
-function updatePriceCards(prices) {
-    try {
-        // Format prices
-        const lvlUsdFormatted = formatPrice(prices.lvlUsd, 8);
-        const lvlPolFormatted = formatPrice(prices.lvlPol, 8);
-        const polUsdFormatted = formatPrice(prices.polUsd, 8);
-        
-        // Update chart price cards (کارت‌های نمودار)
-        updateElement('lvl-usd-price', lvlUsdFormatted, '$');
-        updateElement('lvl-pol-price', lvlPolFormatted, '', ' POL');
-        updateElement('pol-usd-price', polUsdFormatted, '$');
-        
-        // Update bottom price cards (کارت‌های پایین صفحه)
-        updateElement('chart-lvl-usd', lvlUsdFormatted, '$');
-        updateElement('chart-lvl-pol', lvlPolFormatted);
-        updateElement('chart-pol-usd', polUsdFormatted, '$');
-        
-        // Calculate and display price changes
-        updatePriceChanges();
-        
-        // Update last update time
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('fa-IR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
         });
-        updateElement('price-chart-last-update', timeString);
-        
-    } catch (error) {
     }
-}
 
-// Calculate and display price changes
-function updatePriceChanges() {
-    try {
-        // Calculate changes for LVL/USD
-        const lvlUsdChange = calculatePriceChange(priceHistory.lvlUsd);
-        updatePriceChangeElement('chart-lvl-usd-change', lvlUsdChange);
-        
-        // Calculate changes for LVL/POL
-        const lvlPolChange = calculatePriceChange(priceHistory.lvlPol);
-        updatePriceChangeElement('chart-lvl-pol-change', lvlPolChange);
-        
-        // Calculate changes for POL/USD
-        const polUsdChange = calculatePriceChange(priceHistory.polUsd);
-        updatePriceChangeElement('chart-pol-usd-change', polUsdChange);
-        
-    } catch (error) {
-    }
-}
+    async startPriceUpdates() {
 
-// Calculate price change percentage
-function calculatePriceChange(priceArray) {
-    if (priceArray.length < 2) return 0;
+        // Generate initial data for current time period
+        this.generateTimePeriodData();
+        
+        // Update price every 30 seconds
+        setInterval(async () => {
     
-    const current = priceArray[priceArray.length - 1].value;
-    const previous = priceArray[priceArray.length - 2].value;
-    
-    if (previous === 0) return 0;
-    
-    return ((current - previous) / previous) * 100;
-}
-
-// Update price change element with color coding
-function updatePriceChangeElement(elementId, changePercent) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    const changeText = changePercent >= 0 ? 
-        `+${changePercent.toFixed(2)}%` : 
-        `${changePercent.toFixed(2)}%`;
-    
-    element.textContent = changeText;
-    
-    // Remove existing classes
-    element.classList.remove('price-up', 'price-down', 'price-neutral');
-    
-    // Add appropriate class
-    if (changePercent > 0) {
-        element.classList.add('price-up');
-    } else if (changePercent < 0) {
-        element.classList.add('price-down');
-    } else {
-        element.classList.add('price-neutral');
+            await this.updatePrice();
+        }, 30000);
     }
-}
 
-// Format price with specified decimals
-function formatPrice(price, decimals = 4) {
-    try {
-        const num = parseFloat(price);
-        if (isNaN(num)) return '0';
-        
-        return num.toFixed(decimals);
-    } catch (error) {
-        return '0';
-    }
-}
-
-// Update element helper function
-function updateElement(id, value, prefix = '', suffix = '') {
-    const element = document.getElementById(id);
-    if (element) {
-        element.textContent = prefix + value + suffix;
-    }
-}
-
-// Show price chart error
-function showPriceChartError(message) {
-    const errorElement = document.getElementById('price-chart-error');
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-        
-        // Hide error after 5 seconds
-        setTimeout(() => {
-            errorElement.style.display = 'none';
-        }, 5000);
-    }
-}
-
-// Show price chart success
-function showPriceChartSuccess(message) {
-    const successElement = document.getElementById('price-chart-success');
-    if (successElement) {
-        successElement.textContent = message;
-        successElement.style.display = 'block';
-        
-        // Hide success after 3 seconds
-        setTimeout(() => {
-            successElement.style.display = 'none';
-        }, 3000);
-    }
-}
-
-// Stop price chart updates
-function stopPriceChart() {
-    try {
-        // پاک کردن همه interval ها
-        updateIntervals.forEach(interval => clearInterval(interval));
-        updateIntervals = [];
-        
-        // پاک کردن نمودار
-        if (chartInstance) {
-            chartInstance.destroy();
-            chartInstance = null;
-        }
-        
-        // پاک کردن تاریخچه
-        priceHistory = {
-            lvlUsd: [],
-            lvlPol: [],
-            polUsd: []
-        };
-        
-    } catch (error) {
-    }
-}
-
-async function fetchContractStats() {
-    try {
-        const { contract, provider } = await window.connectWallet();
-        
-        // دریافت آمار قرارداد
-        const [
-            totalSupply, 
-            pointValue
-        ] = await Promise.all([
-            contract.totalSupply().catch(() => 0n),
-            contract.getPointValue().catch(() => 0n)
-        ]);
-        
-        // دریافت totalClaimableBinaryPoints به صورت جداگانه (متغیر state)
-        let totalClaimableBinaryPoints = 0n;
+    async updatePrice() {
         try {
-            totalClaimableBinaryPoints = await contract.totalClaimableBinaryPoints;
-        } catch (e) {
-            totalClaimableBinaryPoints = 0n;
+            if (window.priceHistoryManager) {
+                await window.priceHistoryManager.updateTokenPrice();
+                this.generateTimePeriodData();
+            }
+        } catch (error) {
+            console.error('Error updating token price:', error);
         }
-        
-        // استفاده از totalClaimableBinaryPoints به جای توابع ناموجود
-        const binaryPool = totalClaimableBinaryPoints;
-        const totalPoints = totalClaimableBinaryPoints;
-        
-        // محاسبه circulatingSupply
-        let circulatingSupply = totalSupply;
-        try {
-            const contractBalance = await contract.balanceOf(contract.target);
-            circulatingSupply = totalSupply - contractBalance;
-        } catch (e) {
-            circulatingSupply = totalSupply;
-        }
-        
-        // دریافت موجودی POL قرارداد
-        let polBalance = 0n;
-        try {
-            polBalance = await provider.getBalance(contract.target);
-        } catch (e) {
-            // خطا را نادیده بگیر
-        }
-        
-        return {
-            totalSupply: totalSupply.toString(),
-            binaryPool: binaryPool.toString(),
-            totalPoints: totalPoints.toString(),
-            totalClaimableBinaryPoints: totalClaimableBinaryPoints.toString(),
-            pointValue: pointValue.toString(),
-            circulatingSupply: ethers.formatUnits(circulatingSupply, 18),
-            polBalance: ethers.formatEther(polBalance)
-        };
-        
-    } catch (error) {
-        return null;
     }
+
+    updateChart() {
+        if (!this.chart || this.priceHistory.length === 0) return;
+
+        const labels = this.priceHistory.map((_, index) => index);
+        const prices = this.priceHistory.map(item => item.price);
+
+        this.chart.data.labels = labels;
+        this.chart.data.datasets[0].data = prices;
+        this.chart.update('none');
+    }
+
+    // Helper function to format price in scientific notation
+    formatPriceScientific(price) {
+        if (price === 0) return '0';
+        if (price < 0.000001) {
+            return price.toExponential(6);
+        }
+        return price.toFixed(6);
+    }
+
+
 }
 
-// Export functions for global use
-window.priceChart = {
-    initialize: initializePriceChart,
-    stop: stopPriceChart,
-    update: updatePriceChart,
-    changeTimePeriod: changeTimePeriod
-};
+// Initialize chart when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
 
-async function fetchPolUsdPriceForChart() {
-    // استفاده از تابع کمکی سراسری
-    return await window.fetchPolUsdPrice();
+    window.priceChart = new PriceChart();
+
+});
+
+// Export for use in other files
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = PriceChart;
 } 

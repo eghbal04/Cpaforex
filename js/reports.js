@@ -178,9 +178,7 @@ function shortenTransactionHash(hash) {
             // Activated
             let activatedEvents = [];
             try {
-                activatedEvents = await window.retryRpcOperation(async () => {
-                    return await contract.queryFilter(contract.filters.Activated(), fromBlock, currentBlock);
-                });
+                activatedEvents = await window.safeQueryEvents(contract, contract.filters.Activated(), fromBlock, currentBlock);
             } catch (e) {
                 console.warn('Failed to fetch Activated events:', e);
                 activatedEvents = [];
@@ -202,9 +200,7 @@ function shortenTransactionHash(hash) {
             // PurchaseKind
             let purchaseEvents = [];
             try {
-                purchaseEvents = await window.retryRpcOperation(async () => {
-                    return await contract.queryFilter(contract.filters.PurchaseKind(), fromBlock, currentBlock);
-                });
+                purchaseEvents = await window.safeQueryEvents(contract, contract.filters.PurchaseKind(), fromBlock, currentBlock);
             } catch (e) {
                 console.warn('Failed to fetch PurchaseKind events:', e);
                 purchaseEvents = [];
@@ -226,7 +222,7 @@ function shortenTransactionHash(hash) {
             // TokensBought
             let buyEvents = [];
             try {
-                buyEvents = await contract.queryFilter(contract.filters.TokensBought(), fromBlock, currentBlock);
+                buyEvents = await window.safeQueryEvents(contract, contract.filters.TokensBought(), fromBlock, currentBlock);
             } catch (e) {}
                 buyEvents.forEach(event => {
                 if (event.args.buyer.toLowerCase() === address.toLowerCase()) {
@@ -245,7 +241,7 @@ function shortenTransactionHash(hash) {
             // TokensSold
             let sellEvents = [];
             try {
-                sellEvents = await contract.queryFilter(contract.filters.TokensSold(), fromBlock, currentBlock);
+                sellEvents = await window.safeQueryEvents(contract, contract.filters.TokensSold(), fromBlock, currentBlock);
             } catch (e) {}
                 sellEvents.forEach(event => {
                 if (event.args.seller.toLowerCase() === address.toLowerCase()) {
@@ -264,7 +260,7 @@ function shortenTransactionHash(hash) {
             // BinaryPointsUpdated
             let binaryEvents = [];
             try {
-                binaryEvents = await contract.queryFilter(contract.filters.BinaryPointsUpdated(), fromBlock, currentBlock);
+                binaryEvents = await window.safeQueryEvents(contract, contract.filters.BinaryPointsUpdated(), fromBlock, currentBlock);
             } catch (e) {}
                 binaryEvents.forEach(event => {
                 if (event.args.user.toLowerCase() === address.toLowerCase()) {
@@ -283,7 +279,7 @@ function shortenTransactionHash(hash) {
             // BinaryRewardDistributed
             let binaryRewardEvents = [];
             try {
-                binaryRewardEvents = await contract.queryFilter(contract.filters.BinaryRewardDistributed(), fromBlock, currentBlock);
+                binaryRewardEvents = await window.safeQueryEvents(contract, contract.filters.BinaryRewardDistributed(), fromBlock, currentBlock);
             } catch (e) {}
             binaryRewardEvents.forEach(event => {
                 if (event.args.claimer.toLowerCase() === address.toLowerCase()) {
@@ -302,7 +298,7 @@ function shortenTransactionHash(hash) {
             // TreeStructureUpdated
             let treeEvents = [];
             try {
-                treeEvents = await contract.queryFilter(contract.filters.TreeStructureUpdated(), fromBlock, currentBlock);
+                treeEvents = await window.safeQueryEvents(contract, contract.filters.TreeStructureUpdated(), fromBlock, currentBlock);
             } catch (e) {}
             treeEvents.forEach(event => {
                 if ([event.args.user, event.args.parent, event.args.referrer].map(a=>a.toLowerCase()).includes(address.toLowerCase())) {
@@ -405,7 +401,7 @@ function shortenTransactionHash(hash) {
         }
     
         const reportsHTML = filteredReports.map(report => {
-            const { type, title, amount, timestamp, blockNumber, address } = report;
+            const { type, title, amount, timestamp, blockNumber, address, usdcAmount } = report;
             // حذف دکمه کپی
             const reportHTML = `
                 <div class="report-item">
@@ -424,6 +420,7 @@ function shortenTransactionHash(hash) {
                             <span class="report-details-label">مقدار:</span>
                             <span class="report-details-value">${amount}</span>
                         </div>
+                        ${usdcAmount ? `<div class="report-details-row"><span class="report-details-label">مقدار USDC:</span><span class="report-details-value">${Number(usdcAmount).toLocaleString('en-US', {maximumFractionDigits: 2})} USDC</span></div>` : ''}
                     </div>
                 </div>
             `;
@@ -447,20 +444,11 @@ function shortenTransactionHash(hash) {
     
     // تابع بارگذاری گزارشات
     async function loadReports() {
-    const refreshButton = document.getElementById('refresh-reports');
     if (isReportsLoading) {
-        if (refreshButton) {
-            refreshButton.disabled = true;
-            refreshButton.textContent = 'در حال بارگذاری...';
-        }
         return;
     }
     
     isReportsLoading = true;
-    if (refreshButton) {
-        refreshButton.disabled = true;
-        refreshButton.textContent = 'در حال بارگذاری...';
-    }
     
     try {
         const { contract, address } = await connectWallet();
@@ -478,10 +466,6 @@ function shortenTransactionHash(hash) {
         showReportsError("خطا در بارگذاری گزارشات");
     } finally {
         isReportsLoading = false;
-        if (refreshButton) {
-            refreshButton.disabled = false;
-            refreshButton.textContent = 'به‌روزرسانی';
-        }
     }
 }
 
@@ -519,12 +503,7 @@ function showReportsError(message) {
     
 // تابع راه‌اندازی فیلترها
 function setupFilters() {
-    const refreshButton = document.getElementById('refresh-reports');
     const reportTypeFilter = document.getElementById('report-type-filter');
-    
-    if (refreshButton) {
-        refreshButton.addEventListener('click', loadReports);
-    }
     
     if (reportTypeFilter) {
         reportTypeFilter.addEventListener('change', () => {

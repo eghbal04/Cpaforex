@@ -1,476 +1,13 @@
+const CONTRACT_LOTARY = '0x0000000000000000000000000000000000000000';
+const deepseek_api ='sk-6074908ce7954bd89d494d57651392a8';
+
+
 // تنظیمات قرارداد LevelUp
-const CONTRACT_ADDRESS = '0xA388311768B164024e5FbfB7A17643875d2469c9';
-const CONTRACT_LOTARY = '0xd6DFb59c7Ad94c7fFA8EE68f12B71f950C55967d';
-const LOTARI_ABI =[
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "groupId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "approveMemberForGroupDraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_memberCount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_amountPerUser",
-				"type": "uint256"
-			}
-		],
-		"name": "createGroupDraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_memberCount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_amountPerUser",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_winnersCount",
-				"type": "uint256"
-			}
-		],
-		"name": "createLottery",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "tokenAddress",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "creator",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "memberCount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amountPerUser",
-				"type": "uint256"
-			}
-		],
-		"name": "GroupDrawCreated",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "GroupDrawJoinRequested",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "GroupDrawJoined",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "round",
-				"type": "uint256"
-			}
-		],
-		"name": "GroupDrawPaid",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "winner",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "round",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "reward",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "deployerShare",
-				"type": "uint256"
-			}
-		],
-		"name": "GroupDrawWinner",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "lotteryId",
-				"type": "uint256"
-			}
-		],
-		"name": "joinLottery",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "creator",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "memberCount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amountPerUser",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "winnersCount",
-				"type": "uint256"
-			}
-		],
-		"name": "LotteryCreated",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "LotteryJoined",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address[]",
-				"name": "winners",
-				"type": "address[]"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "rewardPerWinner",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "deployerShare",
-				"type": "uint256"
-			}
-		],
-		"name": "LotteryWinners",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "groupId",
-				"type": "uint256"
-			}
-		],
-		"name": "payGroupDrawInstallment",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "groupId",
-				"type": "uint256"
-			}
-		],
-		"name": "requestJoinGroupDraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "deployer",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "groupDraws",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "creator",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "memberCount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amountPerUser",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "round",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "isActive",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "lotteries",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "creator",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "memberCount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amountPerUser",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "winnersCount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "isActive",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "nextGroupDrawId",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "nextLotteryId",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "token",
-		"outputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
-const LEVELUP_ABI =[
+
+const CONTRACT_ADDRESS = '0x0973BaBB6b9DAd3476a0e4Def6b35c919b1355AA';
+
+const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'; // Polygon USDC
+const USDC_ABI =[
 	{
 		"inputs": [
 			{
@@ -492,13 +29,6 @@ const LEVELUP_ABI =[
 				"type": "bool"
 			}
 		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "claim",
-		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -591,6 +121,11 @@ const LEVELUP_ABI =[
 			}
 		],
 		"name": "ERC20InvalidSpender",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "ReentrancyGuardReentrantCall",
 		"type": "error"
 	},
 	{
@@ -725,10 +260,23 @@ const LEVELUP_ABI =[
 		"type": "event"
 	},
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "usdcAmount",
+				"type": "uint256"
+			}
+		],
 		"name": "buyTokens",
 		"outputs": [],
-		"stateMutability": "payable",
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "claim",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -744,23 +292,29 @@ const LEVELUP_ABI =[
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "sender",
+				"name": "previousOwner",
 				"type": "address"
 			},
 			{
-				"indexed": false,
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
 				"internalType": "uint256",
-				"name": "amount",
+				"name": "index",
 				"type": "uint256"
 			},
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "newTokenPrice",
+				"name": "timestamp",
 				"type": "uint256"
 			}
 		],
-		"name": "DirectMATICReceived",
+		"name": "IndexTransferred",
 		"type": "event"
 	},
 	{
@@ -819,19 +373,6 @@ const LEVELUP_ABI =[
 		"type": "function"
 	},
 	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "newPrice",
-				"type": "uint256"
-			}
-		],
-		"name": "RegistrationPriceUpdated",
-		"type": "event"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -856,7 +397,7 @@ const LEVELUP_ABI =[
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "maticAmount",
+				"name": "usdcAmount",
 				"type": "uint256"
 			},
 			{
@@ -887,7 +428,7 @@ const LEVELUP_ABI =[
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "maticAmount",
+				"name": "usdcAmount",
 				"type": "uint256"
 			}
 		],
@@ -973,6 +514,19 @@ const LEVELUP_ABI =[
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferIndexOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -1008,10 +562,6 @@ const LEVELUP_ABI =[
 		],
 		"name": "TreeStructureUpdated",
 		"type": "event"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
 	},
 	{
 		"inputs": [
@@ -1125,7 +675,7 @@ const LEVELUP_ABI =[
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "maticAmount",
+				"name": "usdcAmount",
 				"type": "uint256"
 			}
 		],
@@ -1161,7 +711,20 @@ const LEVELUP_ABI =[
 	},
 	{
 		"inputs": [],
-		"name": "getContractMaticBalance",
+		"name": "getContractTokenBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getContractUSDCBalance",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -1256,6 +819,19 @@ const LEVELUP_ABI =[
 				"internalType": "address",
 				"name": "",
 				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getRegPrice",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -1392,19 +968,6 @@ const LEVELUP_ABI =[
 	},
 	{
 		"inputs": [],
-		"name": "INITIAL_REGISTRATION_PRICE",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "MAX_BINARY_POINT_CAP",
 		"outputs": [
 			{
@@ -1432,19 +995,6 @@ const LEVELUP_ABI =[
 	{
 		"inputs": [],
 		"name": "REFERRAL_FEE_PERCENT",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "regprice",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -1508,6 +1058,19 @@ const LEVELUP_ABI =[
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "usdcToken",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -1545,6 +1108,11 @@ const LEVELUP_ABI =[
 			{
 				"internalType": "uint256",
 				"name": "totalPurchasedKind",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "upgradeTime",
 				"type": "uint256"
 			},
 			{
@@ -1600,7 +1168,1167 @@ const LEVELUP_ABI =[
 		"type": "function"
 	}
 ];
-
+const LEVELUP_ABI =[
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "allowance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "needed",
+				"type": "uint256"
+			}
+		],
+		"name": "ERC20InsufficientAllowance",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "balance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "needed",
+				"type": "uint256"
+			}
+		],
+		"name": "ERC20InsufficientBalance",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "approver",
+				"type": "address"
+			}
+		],
+		"name": "ERC20InvalidApprover",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "receiver",
+				"type": "address"
+			}
+		],
+		"name": "ERC20InvalidReceiver",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "ERC20InvalidSender",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			}
+		],
+		"name": "ERC20InvalidSpender",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "ReentrancyGuardReentrantCall",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amountCPA",
+				"type": "uint256"
+			}
+		],
+		"name": "Activated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Approval",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newPoints",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newCap",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "BinaryPointsUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newPoolSize",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "addedAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "BinaryPoolUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "claimer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "totalDistributed",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "claimerReward",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "BinaryRewardDistributed",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "usdcAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "buyTokens",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "claim",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "claimMonthlyReward",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "IndexTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amountCPA",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "payout",
+				"type": "uint256"
+			}
+		],
+		"name": "purchase",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amountCPA",
+				"type": "uint256"
+			}
+		],
+		"name": "PurchaseKind",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "referrer",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "newUser",
+				"type": "address"
+			}
+		],
+		"name": "registerAndActivate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "sellTokens",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "usdcAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokenAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "TokensBought",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokenAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "usdcAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "TokensSold",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferIndexOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "parent",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "referrer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "position",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "TreeStructureUpdated",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			}
+		],
+		"name": "allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cashback",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cashBack",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "contractTotalSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "decimals",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "deployer",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "usdcAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "estimateBuy",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "estimateSell",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getContractTokenBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getContractUSDCBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getLeftAddress",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getLeftChild",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getParent",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getPointValue",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getReferrer",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getRegPrice",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getRightAddress",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getRightChild",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTokenPrice",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserTree",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "left",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "right",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "activated",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "binaryPoints",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "binaryPointCap",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "depositedAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastMonthlyClaim",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalMonthlyRewarded",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "refclimed",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "indexToAddress",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MAX_BINARY_POINT_CAP",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "REFERRAL_FEE_PERCENT",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalClaimableBinaryPoints",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalClaimablePoints",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "usdcToken",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "users",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "binaryPoints",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "binaryPointCap",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "binaryPointsClaimed",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "activated",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalPurchasedKind",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "upgradeTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastClaimTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "leftPoints",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rightPoints",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastMonthlyClaim",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalMonthlyRewarded",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "refclimed",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "depositedAmount",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "wallets",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
 // مدیریت درخواست‌های همزمان
 let isInitializing = false;
 let initializationPromise = null;
@@ -1982,6 +2710,8 @@ window.clearConnectionCache = function() {
     debounceTimers.clear();
 };
 
+
+
 // تنظیم event listeners برای MetaMask
 if (typeof window.ethereum !== 'undefined') {
     // پاک کردن کش هنگام تغییر حساب
@@ -2002,6 +2732,31 @@ if (typeof window.ethereum !== 'undefined') {
         window.clearConnectionCache();
     });
 }
+
+// Global error handler for unhandled promise rejections
+window.addEventListener('unhandledrejection', function(event) {
+    const error = event.reason;
+    
+    // Handle RPC errors gracefully
+    if (error && (error.message || error.code)) {
+        const errorType = window.handleRpcError(error, 'unhandled');
+        
+        if (errorType === null) {
+            // Error was handled and should be ignored
+            event.preventDefault();
+            return;
+        }
+        
+        if (errorType === 'retry' || errorType === 'wait') {
+            // Error was handled and will be retried
+            event.preventDefault();
+            return;
+        }
+    }
+    
+    // Log other unhandled errors
+    console.warn('Unhandled promise rejection:', event.reason);
+});
 
 // تابع جلوگیری از فراخوانی همزمان توابع
 const functionCallCache = new Map();
@@ -2111,17 +2866,15 @@ window.cleanupNetworkIntervals = function() {
 
 // تابع مرکزی دریافت پروفایل کاربر
 window.getUserProfile = async function() {
+    let address = null;
     return await preventConcurrentCalls('getUserProfile', async () => {
         try {
             const connection = await window.connectWallet();
             if (!connection || !connection.contract || !connection.address) {
                 throw new Error('No wallet connection available');
             }
-            
-            const { contract, address, provider, signer } = connection;
-            if (!address) {
-                throw new Error('No wallet address available');
-            }
+            const { contract, address: addr, provider, signer } = connection;
+            address = addr;
             
             // بررسی cache برای جلوگیری از فراخوانی مکرر
             const cacheKey = `userProfile_${address}`;
@@ -2142,29 +2895,15 @@ window.getUserProfile = async function() {
                 user = await contract.users(address);
             } catch (error) {
                 console.error('Profile: Error fetching user data:', error);
-                // اگر کاربر ثبت‌نام نشده باشد، اطلاعات پیش‌فرض برگردان
-                return {
-                    address: address,
-                    referrer: null,
-                    activated: false,
-                    binaryPoints: "0",
-                    binaryPointCap: 0,
-                    totalPurchasedMATIC: "0",
-                    totalPurchasedKind: "0",
-                    polBalance: "0",
-                    maticBalance: "0",
-                    lvlBalance: "0",
-                    polValueUSD: "0",
-                    lvlValueUSD: "0",
-                    registered: false,
-                    index: "0"
-                };
+                throw new Error('User data not available');
             }
+            
             // دریافت موجودی‌ها با مدیریت خطا
             const balanceProvider = provider || signer.provider;
             if (!balanceProvider) {
                 throw new Error('No provider available for balance check');
             }
+            
             let polBalance = 0n;
             let lvlBalance = 0n;
             try {
@@ -2174,30 +2913,42 @@ window.getUserProfile = async function() {
                 ]);
             } catch (error) {
                 console.error('Profile: Error fetching balances:', error);
+                throw new Error('Balance data not available');
             }
+            
             // دریافت قیمت‌ها برای محاسبه ارزش دلاری
             let lvlPriceMatic = 0n;
             let polPriceUSD = 0;
             try {
-                [lvlPriceMatic, polPriceUSD] = await Promise.all([
-                    contract.getTokenPrice().catch(() => ethers.parseUnits("0.0012", 18)),
-                    window.fetchPolUsdPrice()
-                ]);
+                lvlPriceMatic = await contract.getTokenPrice();
             } catch (error) {
                 console.error('Profile: Error fetching prices:', error);
+                throw new Error('Price data not available');
             }
+            
             // محاسبه ارزش دلاری
             let lvlValueUSD = 0;
             if (lvlBalance && lvlPriceMatic && lvlBalance > 0n && lvlPriceMatic > 0n) {
-                const lvlPriceMaticFormatted = ethers.formatUnits(lvlPriceMatic, 18);
-                const lvlPriceUSD = parseFloat(lvlPriceMaticFormatted) * parseFloat(polPriceUSD);
-                lvlValueUSD = parseFloat(ethers.formatUnits(lvlBalance, 18)) * lvlPriceUSD;
+                const lvlPriceFormatted = ethers.formatUnits(lvlPriceMatic, 18);
+                lvlValueUSD = parseFloat(ethers.formatUnits(lvlBalance, 18)) * parseFloat(lvlPriceFormatted);
             }
-            // محاسبه ارزش دلاری کل POL
+            
+            // محاسبه ارزش دلاری کل POL (POL همیشه 1 دلار است)
             let polValueUSD = 0;
-            if (polBalance && polPriceUSD && polBalance > 0n && polPriceUSD > 0) {
-                polValueUSD = parseFloat(ethers.formatEther(polBalance)) * parseFloat(polPriceUSD);
+            if (polBalance && polBalance > 0n) {
+                polValueUSD = parseFloat(ethers.formatEther(polBalance));
             }
+            
+            // دریافت موجودی USDC
+            let usdcBalance = '0';
+            try {
+                const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider);
+                const usdcRaw = await usdcContract.balanceOf(address);
+                usdcBalance = (Number(usdcRaw) / 1e6).toFixed(2);
+            } catch (e) {
+                usdcBalance = '0';
+            }
+            
             // فرمت‌دهی خروجی و جلوگیری از undefined
             const safeFormat = (val, decimals = 8) => {
                 try {
@@ -2213,6 +2964,7 @@ window.getUserProfile = async function() {
                     return '0'; 
                 }
             };
+            
             // === محاسبه referrer بر اساس index ===
             let referrer = null;
             try {
@@ -2235,6 +2987,11 @@ window.getUserProfile = async function() {
                 console.warn('Failed to load network stats:', error);
             });
             
+            // مدیریت دکمه ثبت‌نام اصلی
+            if (typeof window.manageMainRegistrationButton === 'function') {
+                window.manageMainRegistrationButton();
+            }
+            
             const profile = {
                 address: address,
                 referrer: referrer,
@@ -2249,6 +3006,7 @@ window.getUserProfile = async function() {
                 lvlBalance: ethers.formatUnits(lvlBalance || 0n, 18),
                 polValueUSD: safeFormat(polValueUSD, 8),
                 lvlValueUSD: safeFormat(lvlValueUSD, 8),
+                usdcBalance: usdcBalance,
                 registered: user.activated || false,
                 index: user.index ? user.index.toString() : '0',
                 refclimed: user.refclimed ? user.refclimed.toString() : '0',
@@ -2273,36 +3031,7 @@ window.getUserProfile = async function() {
             return profile;
         } catch (error) {
             console.error('Central: Error fetching user profile:', error);
-            
-            // در صورت خطا، اطلاعات پیش‌فرض برگردان
-            const defaultProfile = {
-                address: address || null,
-                referrer: null,
-                activated: false,
-                binaryPoints: "0",
-                binaryPointCap: 0,
-                totalPurchasedMATIC: "0",
-                totalPurchasedKind: "0",
-                polBalance: "0",
-                maticBalance: "0",
-                lvlBalance: "0",
-                polValueUSD: "0",
-                lvlValueUSD: "0",
-                registered: false,
-                index: "0"
-            };
-            
-            // ذخیره در cache حتی در صورت خطا
-            try {
-                sessionStorage.setItem(cacheKey, JSON.stringify({
-                    data: defaultProfile,
-                    timestamp: Date.now()
-                }));
-            } catch (e) {
-                console.warn('Could not cache default profile:', e);
-            }
-            
-            return defaultProfile;
+            throw error; // خطا را به بالا پاس بده، نه اطلاعات پیش‌فرض
         }
     });
 };
@@ -2311,37 +3040,27 @@ window.getUserProfile = async function() {
 window.getPrices = async function() {
     return await preventConcurrentCalls('getPrices', async () => {
         try {
-            const connection = await window.connectWallet();
-            if (!connection || !connection.contract) {
-                throw new Error('No wallet connection available');
+            let contract = null;
+            try {
+                const connection = await window.connectWallet();
+                if (connection && connection.contract) {
+                    contract = connection.contract;
+                }
+            } catch (e) {}
+
+            let cpaPriceUSD = null;
+            if (contract && typeof contract.getTokenPrice === 'function') {
+                try {
+                    const price = await contract.getTokenPrice();
+                    cpaPriceUSD = window.formatTokenPrice ? window.formatTokenPrice(price) : ethers.formatUnits(price, 18);
+                } catch (e) {
+                    console.error('Error getting token price:', e);
+                }
             }
-            const { contract } = connection;
-            // دریافت قیمت LVL/MATIC از قرارداد و قیمت MATIC/USD از API
-            const [lvlPriceMatic, polPrice] = await Promise.all([
-                contract.getTokenPrice().catch(() => ethers.parseUnits("0.0012", 18)),
-                window.fetchPolUsdPrice()
-            ]);
-            let lvlPriceMaticFormatted = ethers.formatUnits(lvlPriceMatic, 18);
-            let polPriceValid = (polPrice !== null && polPrice !== undefined && !isNaN(Number(polPrice)));
-            if (!polPriceValid) {
-                // مقدار پیش‌فرض اگر API قطع بود
-                lvlPriceMaticFormatted = "0.0012";
-            }
-            // قیمت LVL/USD = (LVL/MATIC) * (MATIC/USD)
-            let lvlPriceUSD = polPriceValid ? (parseFloat(lvlPriceMaticFormatted) * parseFloat(polPrice)) : (parseFloat(lvlPriceMaticFormatted) * 0.38);
-            return {
-                lvlPriceUSD: lvlPriceUSD.toFixed(6),
-                lvlPricePol: lvlPriceMaticFormatted,
-                polPrice: polPriceValid ? Number(polPrice).toFixed(6) : "0.380000"
-            };
+            return { cpaPriceUSD };
         } catch (error) {
-            console.error('Central: Error fetching prices:', error);
-            // مقادیر پیش‌فرض اگر هیچ قیمتی نبود
-            return {
-                lvlPriceUSD: "0.000456",
-                lvlPricePol: "0.0012",
-                polPrice: "0.380000"
-            };
+            console.error('Error in getPrices:', error);
+            return { cpaPriceUSD: null };
         }
     });
 };
@@ -2363,8 +3082,8 @@ window.getContractStats = async function() {
                 totalSupply,
                 pointValue
             ] = await Promise.all([
-                window.retryRpcOperation(() => contract.totalSupply(), 2).catch(() => 0n),
-                window.retryRpcOperation(() => contract.getPointValue(), 2).catch(() => 0n)
+                window.retryRpcOperation(() => contract.totalSupply(), 2),
+                window.retryRpcOperation(() => contract.getPointValue(), 2)
             ]);
             
             // دریافت wallets به صورت جداگانه (متغیر state)
@@ -2377,7 +3096,7 @@ window.getContractStats = async function() {
                 }
             } catch (e) {
                 console.warn('Could not fetch wallets:', e);
-                wallets = 0n;
+                throw new Error('Wallets data not available');
             }
             
             // دریافت totalClaimableBinaryPoints به صورت جداگانه (متغیر state)
@@ -2390,7 +3109,7 @@ window.getContractStats = async function() {
                 }
             } catch (e) {
                 console.warn('Could not fetch totalClaimableBinaryPoints:', e);
-                totalClaimableBinaryPoints = 0n;
+                throw new Error('Total claimable binary points data not available');
             }
             
             return { totalSupply, pointValue, wallets, totalClaimableBinaryPoints };
@@ -2399,17 +3118,7 @@ window.getContractStats = async function() {
         // استفاده از retry mechanism
         const stats = await window.retryRpcOperation(getStatsWithRetry, 2);
         if (!stats) {
-            // اگر retry موفق نبود، مقادیر پیش‌فرض برگردان
-            return {
-                totalSupply: "0",
-                circulatingSupply: "0",
-                binaryPool: "0",
-                totalPoints: "0",
-                totalClaimableBinaryPoints: "0",
-                pointValue: "0",
-                rewardPool: "0",
-                contractTokenBalance: "0"
-            };
+            throw new Error('Contract stats not available');
         }
         
         const { totalSupply, pointValue, wallets, totalClaimableBinaryPoints } = stats;
@@ -2437,7 +3146,7 @@ window.getContractStats = async function() {
                 try {
                     contractTokenBalance = await contract.balanceOf(contract.target);
                 } catch (e) {
-                    contractTokenBalance = 0n;
+                    throw new Error('Contract token balance not available');
                 }
                 circulatingSupply = totalSupply - contractTokenBalance;
             } else {
@@ -2461,21 +3170,13 @@ window.getContractStats = async function() {
             pointValue: ethers.formatUnits(pointValue, 18),
             rewardPool: ethers.formatEther(contractBalance), // استخر پاداش = موجودی POL قرارداد (نه توکن)
             contractTokenBalance: ethers.formatUnits(contractTokenBalance, 18) // موجودی توکن قرارداد
+            
         };
         
         return result;
     } catch (error) {
         console.error('Central: Error fetching contract stats:', error);
-        return {
-            totalSupply: "0",
-            circulatingSupply: "0",
-            binaryPool: "0",
-            totalPoints: "0",
-            totalClaimableBinaryPoints: "0",
-            pointValue: "0",
-            rewardPool: "0",
-            contractTokenBalance: "0"
-        };
+        throw error; // خطا را به بالا پاس بده، نه اطلاعات پیش‌فرض
     }
 };
 
@@ -2571,17 +3272,6 @@ async function loadNetworkStats(contract) {
         // فقط از توابع موجود استفاده کن
         const totalClaimableBinaryPoints = await contract.totalClaimableBinaryPoints().catch(() => 0n);
         
-        // به‌روزرسانی عناصر UI
-        const updateElement = (id, value) => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.textContent = value.toString();
-            }
-        };
-        
-        updateElement('network-points', parseInt(totalClaimableBinaryPoints.toString()));
-        updateElement('network-rewards', parseInt(totalClaimableBinaryPoints.toString()));
-        
         console.log('Network stats loaded successfully');
         return {
             totalClaimableBinaryPoints
@@ -2628,91 +3318,152 @@ window.claimMonthlyReward = async function() {
     }
 };
 
-// تابع دریافت قیمت MATIC (POL) به دلار از API
+// تابع دریافت قیمت USDC - همیشه 1 دلار
 window.fetchPolUsdPrice = async function() {
-    // کش کردن قیمت برای جلوگیری از درخواست‌های مکرر
-    if (window.cachedPolPrice && window.cachedPolPrice.timestamp && 
-        (Date.now() - window.cachedPolPrice.timestamp) < 300000) { // 5 دقیقه کش
-        return window.cachedPolPrice.price;
+    return 1.0; // USDC همیشه 1 دلار است
+};
+
+// تابع نمایش تاریخچه قیمت‌ها
+window.showPriceHistory = function() {
+    if (!window.priceHistoryManager) {
+        console.log('❌ Price history manager not available');
+        return;
     }
-
-    // لیست API های جایگزین
-    const apiEndpoints = [
-        {
-            name: 'Binance',
-            url: 'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
-            parser: (data) => parseFloat(data.price)
-        },
-        {
-            name: 'CoinGecko',
-            url: 'https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd',
-            parser: (data) => data['matic-network']?.usd
-        },
-        {
-            name: 'CoinCap',
-            url: 'https://api.coincap.io/v2/assets/polygon',
-            parser: (data) => parseFloat(data.data.priceUsd)
-        }
-    ];
-
-    // تلاش با هر API
-    for (const api of apiEndpoints) {
-        try {
-            console.log(`Trying ${api.name} API...`);
-            
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 ثانیه timeout
-            
-            const response = await fetch(api.url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'User-Agent': 'LevelUp-DApp/1.0'
-                },
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                const data = await response.json();
-                const price = api.parser(data);
-                
-                if (price && !isNaN(price) && price > 0) {
-                    console.log(`${api.name} API success: ${price}`);
-                    // ذخیره در کش
-                    window.cachedPolPrice = {
-                        price: price,
-                        timestamp: Date.now(),
-                        source: api.name
-                    };
-                    return price;
-                }
-            } else if (response.status === 429) {
-                console.warn(`${api.name} API rate limited, trying next...`);
-                continue;
-            }
-        } catch (e) {
-            console.warn(`${api.name} API failed:`, e.message);
-            continue;
-        }
-    }
-
-    // اگر همه API ها شکست خوردند، از قیمت کش شده استفاده کن
-    if (window.cachedPolPrice && window.cachedPolPrice.price) {
-        console.log('Using cached price due to API failures');
-        return window.cachedPolPrice.price;
-    }
-
-    // Fallback نهایی - قیمت ثابت
-    const fallbackPrice = 0.85; // قیمت تقریبی MATIC
-    console.log('Using fallback price');
-    window.cachedPolPrice = {
-        price: fallbackPrice,
-        timestamp: Date.now(),
-        source: 'fallback'
+    
+    console.log('📊 === PRICE HISTORY ===');
+    console.log('Token Price History:', window.priceHistoryManager.tokenHistory);
+    console.log('Point Price History:', window.priceHistoryManager.pointHistory);
+    
+    // نمایش آمار
+    const tokenStats = window.priceHistoryManager.getHistoryStats('token', 'day');
+    const pointStats = window.priceHistoryManager.getHistoryStats('point', 'day');
+    
+    console.log('📈 Token Price Stats (24h):', tokenStats);
+    console.log('📈 Point Price Stats (24h):', pointStats);
+    
+    return {
+        tokenHistory: window.priceHistoryManager.tokenHistory,
+        pointHistory: window.priceHistoryManager.pointHistory,
+        tokenStats,
+        pointStats
     };
-    return fallbackPrice;
+};
+
+// تابع پاک کردن تاریخچه قیمت‌ها
+window.clearPriceHistory = function() {
+    if (!window.priceHistoryManager) {
+        console.log('❌ Price history manager not available');
+        return;
+    }
+    
+    window.priceHistoryManager.clearHistory();
+    console.log('🗑️ Price history cleared');
+};
+
+// تابع نمایش تاریخچه قیمت‌ها به صورت جدول
+window.displayPriceHistoryTable = function() {
+    if (!window.priceHistoryManager) {
+        console.log('❌ Price history manager not available');
+        return;
+    }
+    
+    console.log('📊 === PRICE HISTORY TABLE ===');
+    
+    // نمایش آخرین 10 قیمت توکن
+    console.log('🪙 Last 10 Token Prices:');
+    const lastTokenPrices = window.priceHistoryManager.tokenHistory.slice(-10);
+    lastTokenPrices.forEach((entry, index) => {
+        const date = new Date(entry.timestamp).toLocaleString('fa-IR');
+        console.log(`${index + 1}. ${entry.price} USDC - ${date}`);
+    });
+    
+    // نمایش آخرین 10 قیمت پوینت
+    console.log('💎 Last 10 Point Prices:');
+    const lastPointPrices = window.priceHistoryManager.pointHistory.slice(-10);
+    lastPointPrices.forEach((entry, index) => {
+        const date = new Date(entry.timestamp).toLocaleString('fa-IR');
+        console.log(`${index + 1}. ${entry.price} CPA - ${date}`);
+    });
+    
+    // نمایش آمار
+    const tokenStats = window.priceHistoryManager.getHistoryStats('token', 'day');
+    const pointStats = window.priceHistoryManager.getHistoryStats('point', 'day');
+    
+    console.log('📈 24h Statistics:');
+    console.log('Token - Min:', tokenStats.min, 'Max:', tokenStats.max, 'Avg:', tokenStats.avg.toFixed(6));
+    console.log('Point - Min:', pointStats.min, 'Max:', pointStats.max, 'Avg:', pointStats.avg.toFixed(6));
+};
+
+// تابع export تاریخچه قیمت‌ها
+window.exportPriceHistory = function() {
+    if (!window.priceHistoryManager) {
+        console.log('❌ Price history manager not available');
+        return;
+    }
+    
+    const exportData = {
+        tokenHistory: window.priceHistoryManager.tokenHistory,
+        pointHistory: window.priceHistoryManager.pointHistory,
+        exportDate: new Date().toISOString(),
+        totalTokenEntries: window.priceHistoryManager.tokenHistory.length,
+        totalPointEntries: window.priceHistoryManager.pointHistory.length
+    };
+    
+    const jsonString = JSON.stringify(exportData, null, 2);
+    
+    // ایجاد فایل برای دانلود
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `price-history-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    console.log('📤 Price history exported successfully');
+    return exportData;
+};
+
+// تابع نمایش آمار تاریخچه قیمت‌ها
+window.showPriceHistoryStats = function() {
+    if (!window.priceHistoryManager) {
+        console.log('❌ Price history manager not available');
+        return;
+    }
+    
+    const tokenCount = window.priceHistoryManager.tokenHistory.length;
+    const pointCount = window.priceHistoryManager.pointHistory.length;
+    
+    console.log('📊 === PRICE HISTORY STATISTICS ===');
+    console.log(`🪙 Token Prices: ${tokenCount} entries`);
+    console.log(`💎 Point Prices: ${pointCount} entries`);
+    
+    if (tokenCount > 0) {
+        const lastToken = window.priceHistoryManager.tokenHistory[tokenCount - 1];
+        const firstToken = window.priceHistoryManager.tokenHistory[0];
+        const tokenTimeSpan = new Date(lastToken.timestamp) - new Date(firstToken.timestamp);
+        const tokenHours = Math.round(tokenTimeSpan / (1000 * 60 * 60));
+        console.log(`🪙 Token History: ${tokenHours} hours of data`);
+        console.log(`🪙 Latest Token Price: ${lastToken.price} USDC`);
+    }
+    
+    if (pointCount > 0) {
+        const lastPoint = window.priceHistoryManager.pointHistory[pointCount - 1];
+        const firstPoint = window.priceHistoryManager.pointHistory[0];
+        const pointTimeSpan = new Date(lastPoint.timestamp) - new Date(firstPoint.timestamp);
+        const pointHours = Math.round(pointTimeSpan / (1000 * 60 * 60));
+        console.log(`💎 Point History: ${pointHours} hours of data`);
+        console.log(`💎 Latest Point Price: ${lastPoint.price} CPA`);
+    }
+    
+    return {
+        tokenCount,
+        pointCount,
+        tokenHistory: window.priceHistoryManager.tokenHistory,
+        pointHistory: window.priceHistoryManager.pointHistory
+    };
 };
 
 (async () => {
@@ -2740,6 +3491,12 @@ window.handleRpcError = function(error, operation = 'unknown') {
     // اگر خطای eth_getLogs بود، آن را نادیده بگیر
     if (error.message && error.message.includes('eth_getLogs')) {
         console.warn('Ignoring eth_getLogs error - this is common on some RPC endpoints');
+        return null;
+    }
+    
+    // Handle "could not coalesce error" - این خطا معمولاً قابل نادیده گرفتن است
+    if (error.message && error.message.includes('could not coalesce error')) {
+        console.warn('Coalesce error - ignoring...');
         return null;
     }
     
@@ -2787,12 +3544,6 @@ window.handleRpcError = function(error, operation = 'unknown') {
         return 'retry';
     }
     
-    // Handle "could not coalesce error" - این خطا معمولاً قابل نادیده گرفتن است
-    if (error.message && error.message.includes('could not coalesce error')) {
-        console.warn('Coalesce error - ignoring...');
-        return null;
-    }
-    
     // سایر خطاها
     return 'error';
 };
@@ -2803,28 +3554,27 @@ window.retryRpcOperation = async function(operation, maxRetries = 3) {
         try {
             return await operation();
         } catch (error) {
-            const errorType = window.handleRpcError(error, 'retry operation');
+            // Handle specific error types
+            const errorType = window.handleRpcError(error, 'retry');
             
             if (errorType === null) {
-                // خطا نادیده گرفته شد
-                return null;
-            } else if (errorType === 'retry' && i < maxRetries - 1) {
-                // انتظار کوتاه قبل از retry با exponential backoff
-                const delay = Math.min(2000 * Math.pow(2, i), 10000); // حداکثر 10 ثانیه
-                console.log(`Retrying operation in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                continue;
-            } else if (errorType === 'wait' && i < maxRetries - 1) {
-                // انتظار طولانی‌تر برای rate limit یا MetaMask processing
-                const delay = Math.min(5000 * Math.pow(2, i), 15000); // حداکثر 15 ثانیه
-                console.log(`Waiting before retry: ${delay}ms (attempt ${i + 1}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                continue;
-            } else {
-                // خطای نهایی
-                console.error(`Operation failed after ${maxRetries} attempts:`, error);
+                // Error should be ignored, don't retry
                 throw error;
             }
+            
+            if (errorType === 'wait') {
+                // Wait longer before retry
+                await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+                continue;
+            }
+            
+            if (i === maxRetries - 1) {
+                // Last attempt, throw the error
+                throw error;
+            }
+            
+            // Default retry delay
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
         }
     }
 };
@@ -2870,119 +3620,50 @@ window.handleMetaMaskError = function(error) {
     };
 };
 
-// تابع تست اتصال و قرارداد
-window.testConnection = async function() {
+
+
+// تابع امن برای query کردن events
+window.safeQueryEvents = async function(contract, eventFilter, fromBlock = 'latest', toBlock = 'latest') {
     try {
-        console.log('=== Testing Connection ===');
+        // اگر fromBlock برابر 'latest' است، فقط آخرین block را query کن
+        if (fromBlock === 'latest') {
+            const currentBlock = await contract.provider.getBlockNumber();
+            fromBlock = currentBlock;
+            toBlock = currentBlock;
+        }
         
-        // Test concurrent calls
-        console.log('Testing concurrent connection calls...');
-        const promises = [
-            window.connectWallet(),
-            window.connectWallet(),
-            window.connectWallet(),
-            window.getUserProfile(),
-            window.getPrices(),
-            window.checkConnection()
-        ];
+        // اگر fromBlock برابر 0 است، از آخرین 1000 block شروع کن
+        if (fromBlock === 0 || fromBlock === '0x0') {
+            const currentBlock = await contract.provider.getBlockNumber();
+            fromBlock = Math.max(0, currentBlock - 1000);
+            toBlock = currentBlock;
+        }
         
-        const results = await Promise.allSettled(promises);
-        console.log('Concurrent call results:', results);
+        return await contract.queryFilter(eventFilter, fromBlock, toBlock);
+    } catch (error) {
+        const errorType = window.handleRpcError(error, 'event_query');
         
-        // تست اتصال کیف پول
-        const connection = await window.checkConnection();
-        console.log('Connection status:', connection);
+        if (errorType === null) {
+            // Error should be ignored
+            return [];
+        }
         
-        if (connection.connected) {
-            // تست قرارداد
-            const { contract } = await window.connectWallet();
-            console.log('Contract address:', contract.target);
-            
-            // تست توابع ساده
+        if (errorType === 'retry' || errorType === 'wait') {
+            // Retry with a smaller block range
             try {
-                const totalSupply = await contract.totalSupply();
-                console.log('Total supply:', ethers.formatUnits(totalSupply, 18));
-            } catch (e) {
-                console.error('Error calling totalSupply:', e);
-            }
-            
-            try {
-                const pointValue = await contract.getPointValue();
-                console.log('Point value:', ethers.formatUnits(pointValue, 18));
-            } catch (e) {
-                console.error('Error calling getPointValue:', e);
-            }
-            
-            try {
-                const wallets = await contract.wallets();
-                console.log('Wallets:', wallets.toString());
-            } catch (e) {
-                console.error('Error calling wallets:', e);
-            }
-            
-            try {
-                const totalPoints = await contract.totalClaimableBinaryPoints;
-                console.log('Total points:', ethers.formatUnits(totalPoints, 18));
-            } catch (e) {
-                console.error('Error calling totalClaimableBinaryPoints:', e);
+                const currentBlock = await contract.provider.getBlockNumber();
+                const smallerFromBlock = Math.max(0, currentBlock - 100);
+                return await contract.queryFilter(eventFilter, smallerFromBlock, currentBlock);
+            } catch (retryError) {
+                console.warn('Event query retry failed:', retryError);
+                return [];
             }
         }
         
-        return connection;
-    } catch (error) {
-        console.error('Test connection error:', error);
-        return { connected: false, error: error.message };
+        throw error;
     }
 };
 
-// تابع تست API قیمت‌ها
-window.testPriceAPI = async function() {
-    try {
-        console.log('=== Testing Price API ===');
-        
-        const polPrice = await window.fetchPolUsdPrice();
-        console.log('POL/USD price:', polPrice);
-        
-        const prices = await window.getPrices();
-        console.log('All prices:', prices);
-        
-        return { polPrice, prices };
-    } catch (error) {
-        console.error('Test price API error:', error);
-        return { error: error.message };
-    }
-};
-
-// تابع تست آمار قرارداد
-window.testContractStats = async function() {
-    try {
-        console.log('=== Testing Contract Stats ===');
-        
-        const stats = await window.getContractStats();
-        console.log('Contract stats:', stats);
-        
-        return stats;
-    } catch (error) {
-        console.error('Test contract stats error:', error);
-        return { error: error.message };
-    }
-};
-
-// تابع تست کامل
-window.runFullTest = async function() {
-    console.log('=== Running Full Test ===');
-    
-    const connection = await window.testConnection();
-    const priceTest = await window.testPriceAPI();
-    const statsTest = await window.testContractStats();
-    
-    console.log('=== Test Results ===');
-    console.log('Connection:', connection);
-    console.log('Price API:', priceTest);
-    console.log('Contract Stats:', statsTest);
-    
-    return { connection, priceTest, statsTest };
-};
 
 function setupViewerMode() {
     // شبیه‌سازی اتصال به استریم
@@ -3032,115 +3713,7 @@ window.handleWalletConnectionError = function(error) {
     };
 };
 
-// تابع تست و عیب‌یابی شبکه
-window.testNetworkConnection = async function() {
-    try {
-        console.log('=== Testing Network Connection ===');
-        
-        const { contract, provider, address } = await window.connectWallet();
-        
-        // تست اتصال شبکه
-        console.log('Testing network connection...');
-        const network = await window.retryRpcOperation(() => provider.getNetwork(), 2);
-        console.log('Network:', network);
-        
-        // تست موجودی کیف پول
-        console.log('Testing wallet balance...');
-        const balance = await window.retryRpcOperation(() => provider.getBalance(address), 2);
-        console.log('Wallet balance:', ethers.formatEther(balance));
-        
-        // تست قرارداد
-        console.log('Testing contract connection...');
-        const totalSupply = await window.retryRpcOperation(() => contract.totalSupply(), 2);
-        console.log('Contract total supply:', ethers.formatUnits(totalSupply, 18));
-        
-        // تست اطلاعات کاربر
-        console.log('Testing user data...');
-        const user = await window.retryRpcOperation(() => contract.users(address), 2);
-        console.log('User data:', {
-            activated: user.activated,
-            index: user.index ? user.index.toString() : '0',
-            binaryPoints: user.binaryPoints ? user.binaryPoints.toString() : '0'
-        });
-        
-        return {
-            success: true,
-            network: network.name,
-            chainId: network.chainId,
-            balance: ethers.formatEther(balance),
-            totalSupply: ethers.formatUnits(totalSupply, 18),
-            userActivated: user.activated
-        };
-        
-    } catch (error) {
-        console.error('Network test failed:', error);
-        return {
-            success: false,
-            error: error.message,
-            code: error.code
-        };
-    }
-};
 
-// تابع تست ثبت‌نام
-window.testRegistration = async function() {
-    try {
-        console.log('=== Testing Registration ===');
-        
-        const { contract, address } = await window.connectWallet();
-        
-        // بررسی وضعیت ثبت‌نام
-        const user = await window.retryRpcOperation(() => contract.users(address), 2);
-        
-        if (user.activated) {
-            console.log('User is already registered and activated');
-            return {
-                registered: true,
-                activated: true,
-                message: 'کاربر قبلاً ثبت‌نام شده است'
-            };
-        }
-        
-        // بررسی قیمت ثبت‌نام
-        const regPrice = await window.retryRpcOperation(() => contract.regprice(), 2);
-        console.log('Registration price:', ethers.formatEther(regPrice));
-        
-        // بررسی موجودی کیف پول
-        const { provider } = await window.connectWallet();
-        const balance = await window.retryRpcOperation(() => provider.getBalance(address), 2);
-        console.log('Wallet balance:', ethers.formatEther(balance));
-        
-        if (balance < regPrice) {
-            return {
-                registered: false,
-                activated: false,
-                canRegister: false,
-                message: 'موجودی کافی برای ثبت‌نام نیست',
-                required: ethers.formatEther(regPrice),
-                available: ethers.formatEther(balance)
-            };
-        }
-        
-        return {
-            registered: false,
-            activated: false,
-            canRegister: true,
-            message: 'امکان ثبت‌نام وجود دارد',
-            required: ethers.formatEther(regPrice),
-            available: ethers.formatEther(balance)
-        };
-        
-    } catch (error) {
-        console.error('Registration test failed:', error);
-        return {
-            registered: false,
-            activated: false,
-            canRegister: false,
-            error: error.message,
-            code: error.code
-        };
-    }
-};
 
 
 
@@ -3155,3 +3728,544 @@ window.addEventListener('beforeunload', function() {
     window.cleanupNetworkIntervals();
 });
 
+async function refreshTotalSupply() {
+  try {
+    const { contract } = await window.connectWallet();
+    const totalSupply = await contract.totalSupply();
+    const contractBalance = await contract.balanceOf(contract.target); // contract.target = address(this)
+    const tokenPrice = await contract.getTokenPrice();
+
+    const totalSupplyNum = Number(ethers.formatUnits(totalSupply, 18));
+    const contractBalanceNum = Number(ethers.formatUnits(contractBalance, 18));
+    const tokenPriceNum = Number(ethers.formatUnits(tokenPrice, 6)); // قیمت با 6 رقم اعشار (USDC)
+
+    const elTotalSupply = document.getElementById('total-supply');
+    if (elTotalSupply) elTotalSupply.innerText = totalSupplyNum.toLocaleString('en-US', {maximumFractionDigits: 4}) + ' CPA';
+    const elContractBalance = document.getElementById('contract-balance');
+    if (elContractBalance) elContractBalance.innerText = contractBalanceNum.toLocaleString('en-US', {maximumFractionDigits: 4}) + ' CPA';
+    document.getElementById('supply-diff').innerText = (totalSupplyNum - contractBalanceNum).toLocaleString('en-US', {maximumFractionDigits: 4}) + ' CPA';
+    document.getElementById('total-supply-value').innerText = (totalSupplyNum * tokenPriceNum).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' USDC';
+  } catch (e) {
+    document.getElementById('total-supply').innerText = 'خطا';
+    document.getElementById('contract-balance').innerText = 'خطا';
+    document.getElementById('supply-diff').innerText = 'خطا';
+    document.getElementById('total-supply-value').innerText = 'خطا';
+  }
+}
+
+// Make updateDashboardStats globally accessible
+window.updateDashboardStats = async function() {
+  // Prevent multiple simultaneous calls
+  if (window._dashboardUpdateInProgress) {
+    console.log('⏳ Dashboard update already in progress, skipping...');
+    return;
+  }
+  
+  window._dashboardUpdateInProgress = true;
+  
+  try {
+    console.log('🔄 Starting dashboard stats update...');
+    
+    // Ensure we have a valid connection
+    let contract;
+    if (!window.contractConfig || !window.contractConfig.contract) {
+      console.log('📡 Connecting wallet for dashboard stats...');
+      const connection = await window.connectWallet();
+      contract = connection.contract;
+    } else {
+      contract = window.contractConfig.contract;
+    }
+    
+    if (!contract) {
+      throw new Error('No contract available');
+    }
+    
+    console.log('✅ Contract connection established for dashboard stats');
+    
+    // Check if contract has required functions
+    console.log('🔍 Checking contract functions...');
+    const hasTotalSupply = typeof contract.totalSupply === 'function';
+    const hasTotalPoints = typeof contract.totalClaimableBinaryPoints === 'function';
+    const hasWallets = typeof contract.wallets === 'function';
+    const hasGetTokenPrice = typeof contract.getTokenPrice === 'function';
+    const hasGetPointValue = typeof contract.getPointValue === 'function';
+    
+    console.log('📋 Contract function availability:', {
+      totalSupply: hasTotalSupply,
+      totalClaimableBinaryPoints: hasTotalPoints,
+      wallets: hasWallets,
+      getTokenPrice: hasGetTokenPrice,
+      getPointValue: hasGetPointValue
+    });
+    
+    // Test basic contract call
+    try {
+      console.log('🧪 Testing basic contract call...');
+      const symbol = await contract.symbol();
+      console.log('✅ Basic contract call successful, symbol:', symbol);
+    } catch (e) {
+      console.error('❌ Basic contract call failed:', e);
+    }
+
+    // Helper function to safely update element
+    const safeUpdate = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.innerText = value;
+        console.log(`✅ Updated ${id}: ${value}`);
+      } else {
+        console.warn(`⚠️ Element with id '${id}' not found`);
+      }
+    };
+
+    // Update blockchain information cards
+    
+
+    // Show loading state
+    const loadingElements = ['circulating-supply', 'total-points', 'contract-token-balance', 'dashboard-cashback-value', 'dashboard-usdc-balance', 'dashboard-wallets-count', 'dashboard-registration-price'];
+    loadingElements.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = 'Loading...';
+    });
+
+    // TOTAL SUPPLY (circulating supply)
+    try {
+      console.log('📊 Fetching total supply...');
+      
+      // Add timeout protection
+      const totalSupplyPromise = contract.totalSupply();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Total supply fetch timeout')), 10000)
+      );
+      
+      const totalSupply = await Promise.race([totalSupplyPromise, timeoutPromise]);
+      const formattedSupply = parseFloat(ethers.formatUnits(totalSupply, 18)).toLocaleString('en-US', {maximumFractionDigits: 2});
+      safeUpdate('circulating-supply', formattedSupply + ' CPA');
+      console.log('✅ Total supply updated:', formattedSupply + ' CPA');
+
+    } catch (e) {
+      console.error('❌ Error fetching total supply:', e);
+      console.error('❌ Error details:', {
+        message: e.message,
+        code: e.code,
+        stack: e.stack
+      });
+      safeUpdate('circulating-supply', 'Error');
+    }
+
+    // TOTAL POINTS
+    try {
+      console.log('🎯 Fetching total points...');
+      const totalPoints = await contract.totalClaimableBinaryPoints();
+      const formattedPoints = parseFloat(ethers.formatUnits(totalPoints, 18)).toLocaleString('en-US', {maximumFractionDigits: 2});
+      safeUpdate('total-points', formattedPoints);
+      console.log('✅ Total points updated:', formattedPoints);
+
+    } catch (e) {
+      console.error('❌ Error fetching total points:', e);
+      safeUpdate('total-points', 'Error');
+    }
+
+    // CPA BALANCE (contract's own token balance)
+    try {
+      console.log('🏦 Fetching contract token balance...');
+      const contractTokenBalance = await contract.balanceOf(contract.target);
+      const formattedBalance = parseFloat(ethers.formatUnits(contractTokenBalance, 18)).toLocaleString('en-US', {maximumFractionDigits: 2});
+      safeUpdate('contract-token-balance', formattedBalance + ' CPA');
+      console.log('✅ Contract token balance updated:', formattedBalance + ' CPA');
+
+    } catch (e) {
+      console.error('❌ Error fetching contract token balance:', e);
+      safeUpdate('contract-token-balance', 'Error');
+    }
+
+    // HELP FUND (cashback)
+    try {
+      console.log('💝 Fetching cashback...');
+      let cashback;
+      
+      // Try different possible function names
+      if (typeof contract.cashBack === 'function') {
+        cashback = await contract.cashBack();
+      } else if (typeof contract.cashback === 'function') {
+        cashback = await contract.cashback();
+      } else {
+        // If no cashback function exists, use 0
+        cashback = 0n;
+      }
+      
+      const formattedCashback = parseFloat(ethers.formatUnits(cashback, 18)).toLocaleString('en-US', {maximumFractionDigits: 2});
+      safeUpdate('dashboard-cashback-value', formattedCashback + ' CPA');
+      console.log('✅ Cashback updated:', formattedCashback + ' CPA');
+
+    } catch (e) {
+      console.error('❌ Error fetching cashback:', e);
+      safeUpdate('dashboard-cashback-value', 'N/A');
+    }
+
+    // USDC CONTRACT BALANCE - Using contract's getContractUSDCBalance function
+    try {
+      console.log('💵 Fetching USDC contract balance...');
+      let usdcBalance;
+      
+      // Try different possible function names
+      if (typeof contract.getContractUSDCBalance === 'function') {
+        usdcBalance = await contract.getContractUSDCBalance();
+      } else {
+        // Fallback to direct USDC contract call
+        if (typeof USDC_ADDRESS !== 'undefined' && typeof USDC_ABI !== 'undefined') {
+          const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, contract.provider);
+          usdcBalance = await usdcContract.balanceOf(contract.target);
+        } else {
+          usdcBalance = 0n;
+        }
+      }
+      
+      const formattedUsdc = parseFloat(ethers.formatUnits(usdcBalance, 6)).toLocaleString('en-US', {maximumFractionDigits: 2});
+      safeUpdate('dashboard-usdc-balance', formattedUsdc + ' USDC');
+      console.log('✅ USDC contract balance updated:', formattedUsdc + ' USDC');
+
+    } catch (e) {
+      console.error('❌ Error fetching USDC balance:', e);
+      safeUpdate('dashboard-usdc-balance', 'N/A');
+    }
+
+    // Update last update timestamp
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('fa-IR', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+    safeUpdate('blockchain-last-update', timeString);
+
+    // POINT VALUE (ارزش هر پوینت)
+    try {
+      console.log('💎 Fetching point value...');
+      const pointValue = await contract.getPointValue();
+      const pointValueNum = parseFloat(ethers.formatUnits(pointValue, 18));
+      const formattedPointValue = pointValueNum.toLocaleString('en-US', {maximumFractionDigits: 6});
+      safeUpdate('dashboard-point-value', formattedPointValue + ' CPA');
+      console.log('✅ Point value updated:', formattedPointValue + ' CPA');
+      
+      // Save point price to history
+      if (window.priceHistoryManager) {
+        await window.priceHistoryManager.addPointPrice(pointValueNum);
+        console.log('📊 Point price saved to history');
+      }
+    } catch (e) {
+      console.error('❌ Error fetching point value:', e);
+      safeUpdate('dashboard-point-value', 'Error');
+    }
+
+    // TOKEN PRICE (قیمت توکن CPA)
+    try {
+      console.log('💲 Fetching token price...');
+      const tokenPrice = await contract.getTokenPrice();
+      const tokenPriceNum = parseFloat(ethers.formatUnits(tokenPrice, 18));
+      let formattedTokenPrice;
+      if (tokenPriceNum < 0.0001) {
+        formattedTokenPrice = tokenPriceNum.toExponential(2);
+      } else {
+        formattedTokenPrice = tokenPriceNum.toLocaleString('en-US', {maximumFractionDigits: 6});
+      }
+      safeUpdate('dashboard-token-price', formattedTokenPrice + ' USDC');
+      console.log('✅ Token price updated:', formattedTokenPrice + ' USDC');
+      
+      // Save token price to history
+      if (window.priceHistoryManager) {
+        await window.priceHistoryManager.addTokenPrice(tokenPriceNum);
+        console.log('📊 Token price saved to history');
+      }
+    } catch (e) {
+      console.error('❌ Error fetching token price:', e);
+      safeUpdate('dashboard-token-price', 'Error');
+    }
+
+    // WALLET COUNT (تعداد ولت‌های متصل)
+    try {
+      console.log('👛 Fetching wallets count...');
+      const walletsCount = await contract.wallets();
+      safeUpdate('dashboard-wallets-count', walletsCount.toString());
+      console.log('✅ Wallets count updated:', walletsCount.toString());
+    } catch (e) {
+      console.error('❌ Error fetching wallets count:', e);
+      safeUpdate('dashboard-wallets-count', 'Error');
+    }
+
+    // REGISTRATION PRICE (قیمت ثبت‌نام)
+    try {
+      console.log('🎫 Fetching registration price...');
+      const registrationPrice = await window.getRegPrice(contract);
+      const formattedRegPrice = parseFloat(ethers.formatUnits(registrationPrice, 18)).toLocaleString('en-US', {maximumFractionDigits: 0});
+      safeUpdate('dashboard-registration-price', formattedRegPrice + ' CPA');
+      console.log('✅ Registration price updated:', formattedRegPrice + ' CPA');
+    } catch (e) {
+      console.error('❌ Error fetching registration price:', e);
+      safeUpdate('dashboard-registration-price', 'Error');
+    }
+
+    console.log('🎉 Dashboard stats update completed successfully!');
+    
+    // نمایش خلاصه تاریخچه قیمت‌ها
+    if (window.priceHistoryManager) {
+      const tokenCount = window.priceHistoryManager.tokenHistory.length;
+      const pointCount = window.priceHistoryManager.pointHistory.length;
+      console.log(`📊 Price History Summary: ${tokenCount} token prices, ${pointCount} point prices stored`);
+    }
+
+  } catch (e) {
+    console.error('❌ Error updating dashboard stats:', e);
+    // اگر خطا داشتیم، همه را Error بگذار
+    const elements = ['circulating-supply', 'total-points', 'contract-token-balance', 'dashboard-cashback-value', 'dashboard-usdc-balance', 'dashboard-wallets-count', 'dashboard-registration-price'];
+    elements.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = 'Error';
+    });
+  } finally {
+    // Always clear the progress flag
+    window._dashboardUpdateInProgress = false;
+    console.log('🏁 Dashboard update process finished');
+  }
+}
+
+// اجرا در ابتدای بارگذاری صفحه
+document.addEventListener('DOMContentLoaded', function() {
+  // Initial update after 2 seconds
+  setTimeout(async () => {
+    try {
+      const connection = await window.connectWallet();
+      await updateDashboardStats();
+    } catch (error) {
+      console.error('❌ Error in initial setup:', error);
+      // Show error in UI
+      const elements = ['circulating-supply', 'total-points', 'contract-token-balance', 'dashboard-cashback-value', 'dashboard-usdc-balance', 'dashboard-wallets-count', 'dashboard-registration-price'];
+      elements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = 'Connection Error';
+      });
+    }
+  }, 2000);
+  
+  // Set up interval for blockchain info updates (every 30 seconds)
+  if (!window._blockchainInfoIntervalSet) {
+    setInterval(async () => {
+      try {
+        await updateDashboardStats();
+      } catch (error) {
+        console.error('❌ Error in scheduled update:', error);
+      }
+    }, 30000); // 30 seconds
+    window._blockchainInfoIntervalSet = true;
+  }
+});
+
+
+
+
+
+// Example for all assignments:
+const elChartLvlUsd = document.getElementById('chart-lvl-usd');
+if (elChartLvlUsd) elChartLvlUsd.textContent = '';
+const elChartLvlUsdChange = document.getElementById('chart-lvl-usd-change');
+if (elChartLvlUsdChange) elChartLvlUsdChange.textContent = '';
+const elPriceChartLastUpdate = document.getElementById('price-chart-last-update');
+if (elPriceChartLastUpdate) elChartLvlUsdChange.textContent = '';
+// ... repeat for all similar assignments ...
+// For removed elements, comment out or remove the line:
+// const elRemoved = document.getElementById('removed-id');
+// if (elRemoved) elRemoved.textContent = '';
+// ... existing code ...
+
+async function updatePriceChart() {
+    try {
+        // نمایش حالت لودینگ
+        if (elChartLvlUsd) elChartLvlUsd.textContent = 'در حال دریافت...';
+        // ... سایر المنت‌ها
+
+        const prices = await window.getPrices();
+        if (!prices || !prices.cpaPriceUSD || parseFloat(prices.cpaPriceUSD) <= 0) {
+            if (elChartLvlUsd) elChartLvlUsd.textContent = 'در حال دریافت...';
+            return;
+        }
+        if (elChartLvlUsd) elChartLvlUsd.textContent = prices.cpaPriceUSD;
+        // ... سایر المنت‌ها
+    } catch (e) {
+        if (elChartLvlUsd) elChartLvlUsd.textContent = 'در حال دریافت...';
+    }
+}
+
+// Returns the USDC balance of the main contract (CONTRACT_ADDRESS) as a string in USDC units (6 decimals)
+async function getContractUSDCBalance() {
+  if (typeof ethers === 'undefined') throw new Error('ethers.js not loaded');
+  const provider = (window.contractConfig && window.contractConfig.contract && window.contractConfig.contract.provider)
+    ? window.contractConfig.contract.provider
+    : (window.contractConfig && window.contractConfig.provider)
+      ? window.contractConfig.provider
+      : (window.ethereum ? new ethers.BrowserProvider(window.ethereum) : null);
+  if (!provider) throw new Error('No provider');
+  const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider);
+  const balanceRaw = await usdcContract.balanceOf(CONTRACT_ADDRESS);
+  return ethers.formatUnits(balanceRaw, 6); // returns as string, e.g. '123.456789'
+}
+
+// ... existing code ...
+// Returns the raw totalClaimableBinaryPoints value (BigInt)
+async function getTotalClaimableBinaryPoints() {
+  if (typeof ethers === 'undefined') throw new Error('ethers.js not loaded');
+  const provider = (window.contractConfig && window.contractConfig.contract && window.contractConfig.contract.provider)
+    ? window.contractConfig.contract.provider
+    : (window.contractConfig && window.contractConfig.provider)
+      ? window.contractConfig.provider
+      : (window.ethereum ? new ethers.BrowserProvider(window.ethereum) : null);
+  if (!provider) throw new Error('No provider');
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, LEVELUP_ABI, provider);
+  const pointsRaw = await contract.totalClaimableBinaryPoints();
+  return pointsRaw; // BigInt or string
+}
+// Returns the integer value (no decimals)
+async function getTotalClaimableBinaryPointsInteger() {
+  const pointsRaw = await getTotalClaimableBinaryPoints();
+  return (BigInt(pointsRaw) / 10n ** 18n).toString();
+}
+// ... existing code ...
+
+
+
+// ... existing code ...
+// Returns the CPA token balance of the contract using balanceOf(CONTRACT_ADDRESS)
+async function getContractTokenBalance() {
+  if (typeof ethers === 'undefined') throw new Error('ethers.js not loaded');
+  const provider = (window.contractConfig && window.contractConfig.contract && window.contractConfig.contract.provider)
+    ? window.contractConfig.contract.provider
+    : (window.contractConfig && window.contractConfig.provider)
+      ? window.contractConfig.provider
+      : (window.ethereum ? new ethers.BrowserProvider(window.ethereum) : null);
+  if (!provider) throw new Error('No provider');
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, LEVELUP_ABI, provider);
+  const tokenRaw = await contract.balanceOf(CONTRACT_ADDRESS);
+  return ethers.formatUnits(tokenRaw, 18); // returns as string, e.g. '123.456789012345678901'
+}
+// ... existing code ...
+
+// Global cache for public contract stats
+window.contractStats = {
+  totalPoints: null,
+  usdcBalance: null,
+  tokenBalance: null,
+  wallets: null,
+  totalSupply: null,
+  lastUpdate: 0
+};
+
+// Update all public contract stats in one network call
+async function updateContractStats() {
+  try {
+    const provider = (window.contractConfig && window.contractConfig.contract && window.contractConfig.contract.provider)
+      ? window.contractConfig.contract.provider
+      : (window.contractConfig && window.contractConfig.provider)
+        ? window.contractConfig.provider
+        : (window.ethereum ? new ethers.BrowserProvider(window.ethereum) : null);
+    if (!provider) throw new Error('No provider');
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, LEVELUP_ABI, provider);
+    // Total Points (integer, no decimals)
+    window.contractStats.totalPoints = (await contract.totalClaimableBinaryPoints()).toString();
+    // USDC Balance (calls helper)
+    window.contractStats.usdcBalance = await getContractUSDCBalance();
+    // Token Balance (calls helper)
+    window.contractStats.tokenBalance = await getContractTokenBalance();
+    // Wallets count
+    window.contractStats.wallets = (await contract.wallets()).toString();
+    // Total Supply (as string, 18 decimals)
+    window.contractStats.totalSupply = (await contract.totalSupply()).toString();
+    // Timestamp
+    window.contractStats.lastUpdate = Date.now();
+  } catch (e) {
+    console.error('Error updating contractStats:', e);
+  }
+}
+
+// تابع نمایش قیمت با اعشار کامل
+window.formatTokenPrice = function(priceWei) {
+  if (!priceWei || priceWei === '0') return '0';
+  let priceString = priceWei.toString();
+  while (priceString.length < 18) priceString = '0' + priceString;
+  if (priceString.length > 18) priceString = priceString.slice(-18);
+  const result = '0.' + priceString;
+  const numResult = parseFloat(result);
+  if (numResult < 0.000001) {
+    return numResult.toExponential(6);
+  }
+  return result;
+}
+
+// تابع بروزرسانی نمایش قیمت
+async function updateTokenPriceDisplay() {
+  try {
+    if (!window.contractConfig || !window.contractConfig.contract) {
+      await window.connectWallet();
+      if (!window.contractConfig || !window.contractConfig.contract) {
+        const el = document.getElementById('chart-lvl-usd');
+        if (el) el.textContent = 'اتصال ناموفق';
+        return;
+      }
+    }
+    const contract = window.contractConfig.contract;
+    const tokenPrice = await contract.getTokenPrice();
+    const priceFormatted = window.formatTokenPrice(tokenPrice);
+    const el = document.getElementById('chart-lvl-usd');
+    if (el) el.textContent = priceFormatted;
+    // بروزرسانی point-value از قرارداد
+    try {
+      const pointValue = await contract.getPointValue();
+      const pointValueNum = parseFloat(ethers.formatUnits(pointValue, 18));
+      const pointValueFormatted = pointValueNum < 0.000001 ? pointValueNum.toExponential(6) : pointValueNum.toFixed(2);
+      const el2 = document.getElementById('point-value');
+      if (el2) el2.textContent = pointValueFormatted + ' CPA';
+    } catch (error) {
+      // ...
+    }
+  } catch (error) {
+    const el = document.getElementById('chart-lvl-usd');
+    if (el) el.textContent = 'خطا در بارگذاری';
+  }
+}
+
+
+// Set up interval for token price updates
+if (!window._dashboardIntervalSet) {
+  setInterval(() => {
+    updateTokenPriceDisplay();
+  }, 30000);
+  window._dashboardIntervalSet = true;
+}
+
+function unlockHamburgerMenuItems() {
+    console.log('>>> unlockHamburgerMenuItems CALLED');
+    // ... ادامه کد ...
+}
+
+// ... existing code ...
+
+// تابع global برای دریافت قیمت ثبت‌نام از قرارداد
+window.getRegPrice = async function(contract) {
+  try {
+    if (!contract) {
+      if (window.contractConfig && window.contractConfig.contract) {
+        contract = window.contractConfig.contract;
+      } else {
+        const connection = await window.connectWallet();
+        contract = connection.contract;
+      }
+    }
+    if (typeof contract.getRegPrice === 'function') {
+      return await contract.getRegPrice();
+    } else {
+      // fallback value
+      return ethers.parseUnits('100', 18);
+    }
+  } catch (e) {
+    return ethers.parseUnits('100', 18);
+  }
+};
+// ... existing code ...

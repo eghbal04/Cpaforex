@@ -1,365 +1,342 @@
-// --- Swap Logic ---
-const swapForm = document.getElementById('swapForm');
-const swapDirection = document.getElementById('swapDirection');
-const swapAmount = document.getElementById('swapAmount');
-const swapInfo = document.getElementById('swapInfo');
-const swapButton = document.getElementById('swapButton');
-const swapStatus = document.getElementById('swapStatus');
+// swap.js - اصولی و حرفه‌ای برای سواپ USDC ↔ CPA
 
-let userMaticBalance = 0;
-let userCpaBalance = 0;
-
-// دکمه سواپ در ابتدا غیرفعال باشد
-if (swapButton) {
-    swapButton.disabled = true;
-    swapButton.textContent = 'مقدار را وارد کنید';
-}
-
-// تابع بررسی اتصال کیف پول
-async function checkConnection() {
-    try {
-        const result = await window.checkConnection();
-        if (!result.connected) {
-            showSwapError('لطفاً ابتدا کیف پول خود را متصل کنید');
-            return false;
-        }
-        return true;
-    } catch (error) {
-        showSwapError('خطا در بررسی اتصال کیف پول');
-        return false;
+class SwapManager {
+    constructor() {
+        this.tokenPrice = null;
+        this.userBalances = { usdc: 0, cpa: 0 };
+        this.isSwapping = false;
+        this.initializeSwap();
     }
-}
 
-// تابع به‌روزرسانی اطلاعات نرخ تبدیل
-async function updateRateInfo() {
-    try {
-        const amount = document.getElementById('swapAmount').value;
-        const direction = document.getElementById('swapDirection').value;
-        
-        if (!amount || parseFloat(amount) <= 0) {
-            document.getElementById('swapInfo').textContent = 'نرخ تبدیل: -';
-            return;
-        }
-        
-        const walletConfig = await window.connectWallet();
-        
-        if (!walletConfig || !walletConfig.contract) {
-            document.getElementById('swapInfo').textContent = 'نرخ تبدیل: اتصال نشده';
-            return;
-        }
-        
-        const { contract } = walletConfig;
-        
-        if (direction === 'matic-to-lvl') {
-            const estimated = await contract.estimateBuy(ethers.parseEther(amount));
-            const estimatedFormatted = ethers.formatUnits(estimated, 18);
-            document.getElementById('swapInfo').textContent = `نرخ تبدیل: ${amount} POL = ${estimatedFormatted} CPA`;
-        } else {
-            const estimated = await contract.estimateSell(ethers.parseUnits(amount, 18));
-            const estimatedFormatted = ethers.formatEther(estimated);
-            document.getElementById('swapInfo').textContent = `نرخ تبدیل: ${amount} CPA = ${estimatedFormatted} POL`;
-        }
-        
-    } catch (error) {
-        document.getElementById('swapInfo').textContent = 'خطا در محاسبه نرخ تبدیل';
+    async initializeSwap() {
+        this.setupEventListeners();
+        await this.loadSwapData();
     }
-}
 
-// تابع بارگذاری موجودی‌ها
-async function loadBalances() {
-    try {
-        const walletConfig = await window.connectWallet();
-        if (!walletConfig || !walletConfig.contract || !walletConfig.address || !walletConfig.provider) {
-            document.getElementById('maticBalance').textContent = 'POL: اتصال نشده';
-            document.getElementById('lvlBalance').textContent = 'CPA: اتصال نشده';
-            userMaticBalance = 0;
-            userCpaBalance = 0;
-            validateSwapAmount(); // وضعیت دکمه را به‌روز کن
-            return;
-        }
-        const { contract, address, provider } = walletConfig;
-        // دریافت موجودی‌ها
-        const [maticBalance, cpaBalance] = await Promise.all([
-            provider.getBalance(address),
-            contract.balanceOf(address)
-        ]);
-        // فرمت کردن موجودی‌ها
-        const formattedMatic = ethers.formatEther(maticBalance);
-        const formattedCpa = ethers.formatUnits(cpaBalance, 18);
-        // ذخیره موجودی‌ها برای اعتبارسنجی
-        userMaticBalance = parseFloat(formattedMatic);
-        userCpaBalance = parseFloat(formattedCpa);
-        // به‌روزرسانی UI
-        document.getElementById('maticBalance').textContent = `POL: ${userMaticBalance.toFixed(4)}`;
-        document.getElementById('lvlBalance').textContent = `CPA: ${userCpaBalance.toFixed(2)}`;
-        // نمایش قیمت‌ها
-        await displaySwapPrices();
-        validateSwapAmount(); // وضعیت دکمه را به‌روز کن
-    } catch (error) {
-        document.getElementById('maticBalance').textContent = 'POL: خطا';
-        document.getElementById('lvlBalance').textContent = 'CPA: خطا';
-        userMaticBalance = 0;
-        userCpaBalance = 0;
-        validateSwapAmount(); // وضعیت دکمه را به‌روز کن
-    }
-}
-
-// تابع اعتبارسنجی مقدار تبدیل
-function validateSwapAmount() {
-    const amount = document.getElementById('swapAmount').value;
-    const submitBtn = document.getElementById('swapButton');
-    if (!amount || parseFloat(amount) <= 0) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'مقدار را وارد کنید';
-        return false;
-    }
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'تبدیل';
-    return true;
-}
-
-// تابع تنظیم حداکثر مقدار
-async function setMaxAmount() {
-    try {
-        const direction = document.getElementById('swapDirection').value;
-        const walletConfig = await window.connectWallet();
-        
-        if (!walletConfig || !walletConfig.contract || !walletConfig.address || !walletConfig.provider) {
-            showSwapError('لطفاً ابتدا کیف پول را متصل کنید');
-            return;
-        }
-        
-        const { contract, address, provider } = walletConfig;
-        
-        let maxAmount;
-        
-        if (direction === 'matic-to-lvl') {
-            // برای تبدیل POL به CPA، حداکثر موجودی POL
-            const maticBalance = await provider.getBalance(address);
-            maxAmount = ethers.formatEther(maticBalance);
-        } else {
-                    // برای تبدیل CPA به POL، حداکثر موجودی CPA
-        const cpaBalance = await contract.balanceOf(address);
-        maxAmount = ethers.formatUnits(cpaBalance, 18);
-        }
-        
-        // کسر کمی برای کارمزد تراکنش
-        const adjustedAmount = parseFloat(maxAmount) * 0.99;
-        document.getElementById('swapAmount').value = adjustedAmount.toFixed(6);
-        
-        // به‌روزرسانی اطلاعات نرخ تبدیل
-        await updateRateInfo();
-        
-    } catch (error) {
-        showSwapError('خطا در تنظیم حداکثر مقدار');
-    }
-}
-
-// تابع نمایش خطای swap
-function showSwapError(message) {
-    const statusElement = document.getElementById('swapStatus');
-    if (statusElement) {
-        statusElement.textContent = message;
-        statusElement.className = 'swap-status error';
-        
-        setTimeout(() => {
-            statusElement.textContent = '';
-            statusElement.className = 'swap-status';
-        }, 5000);
-    }
-}
-
-// تابع نمایش موفقیت swap
-function showSwapSuccess(message) {
-    const statusElement = document.getElementById('swapStatus');
-    if (statusElement) {
-        statusElement.textContent = message;
-        statusElement.className = 'swap-status success';
-        
-        setTimeout(() => {
-            statusElement.textContent = '';
-            statusElement.className = 'swap-status';
-        }, 5000);
-    }
-}
-
-// تابع نمایش قیمت‌های مختلف
-async function displaySwapPrices() {
-    try {
-        const walletConfig = await window.connectWallet();
-        if (!walletConfig || !walletConfig.contract) {
-            return;
-        }
-        const { contract } = walletConfig;
-        // دریافت قیمت CPA/MATIC از قرارداد و قیمت MATIC/USD از API
-        const [tokenPriceMatic, maticPriceUSD, registrationPrice] = await Promise.all([
-            contract.getTokenPrice().catch(() => ethers.parseUnits("0.0012", 18)),
-            window.fetchPolUsdPrice(),
-            contract.regprice().catch(() => ethers.parseUnits("1000", 18))
-        ]);
-        const tokenPriceMaticFormatted = ethers.formatUnits(tokenPriceMatic, 18);
-        // قیمت CPA/USD = (CPA/MATIC) * (MATIC/USD)
-        const tokenPriceUSD = parseFloat(tokenPriceMaticFormatted) * parseFloat(maticPriceUSD);
-        const tokenPriceUSDFormatted = tokenPriceUSD.toFixed(6);
-        const maticPriceUSDFormatted = parseFloat(maticPriceUSD).toFixed(6);
-        const registrationPriceFormatted = ethers.formatUnits(registrationPrice, 18);
-        // محاسبه مقدار توکن برای 1 سنت و ...
-        const oneCentInUSD = 0.01;
-        const oneCentInMatic = (oneCentInUSD * 1e18) / parseFloat(maticPriceUSDFormatted);
-        const oneCentInTokens = (oneCentInMatic * 1e18) / parseFloat(tokenPriceMaticFormatted);
-        const oneCentInTokensFormatted = oneCentInTokens.toFixed(6);
-        const tenCentsInUSD = 0.1;
-        const tenCentsInMatic = (tenCentsInUSD * 1e18) / parseFloat(maticPriceUSDFormatted);
-        const tenCentsInTokens = (tenCentsInMatic * 1e18) / parseFloat(tokenPriceMaticFormatted);
-        const tenCentsInTokensFormatted = tenCentsInTokens.toFixed(6);
-        const twelveCentsInUSD = 0.12;
-        const twelveCentsInMatic = (twelveCentsInUSD * 1e18) / parseFloat(maticPriceUSDFormatted);
-        const twelveCentsInTokens = (twelveCentsInMatic * 1e18) / parseFloat(tokenPriceMaticFormatted);
-        const twelveCentsInTokensFormatted = twelveCentsInTokens.toFixed(6);
-        // نمایش فقط مقدار توکن ثبت‌نام
-        const priceInfoContainer = document.getElementById('swap-price-info');
-        if (priceInfoContainer) {
-            const priceHTML = `
-                <div style="background: rgba(0, 0, 0, 0.6); border-radius: 8px; padding: 1rem; margin: 1rem 0; border-left: 3px solid #00ccff;">
-                    <h4 style="color: #00ccff; margin-bottom: 0.8rem;">💱 اطلاعات قیمت سواپ</h4>
-                    <div style="display: grid; gap: 0.5rem; font-size: 0.9rem;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #ccc;">مقدار توکن مورد نیاز برای ثبت‌نام:</span>
-                            <span style="color: #a786ff; font-weight: bold;">${registrationPriceFormatted} CPA</span>
-                        </div>
-                    </div>
-                    <div style="font-size: 0.8rem; color: #ccc; margin-top: 0.5rem;">
-                        <strong>نکته:</strong> مقدار بالا، مقدار توکن مورد نیاز برای ثبت‌نام در قرارداد است.
-                    </div>
-                </div>
-            `;
-            priceInfoContainer.innerHTML = priceHTML;
-        }
-    } catch (error) {
-        console.error('Error displaying swap prices:', error);
-    }
-}
-
-// راه‌اندازی event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    const swapForm = document.getElementById('swapForm');
-    const swapDirection = document.getElementById('swapDirection');
-    const swapAmount = document.getElementById('swapAmount');
-    const maxButton = document.getElementById('maxButton');
-    const swapButton = document.getElementById('swapButton');
-    
-    if (swapForm) {
-        swapForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            try {
-                // بررسی اتصال
-                if (!await checkConnection()) {
-                    return;
-                }
-                
-                const direction = swapDirection.value;
-                const amount = swapAmount.value;
-                
-                if (!validateSwapAmount()) {
-                    return;
-                }
-                
-                // نمایش وضعیت loading
-                swapButton.disabled = true;
-                swapButton.textContent = 'در حال پردازش...';
-                showSwapSuccess('در حال پردازش تراکنش...');
-                
-                const walletConfig = await window.connectWallet();
-                
-                if (!walletConfig || !walletConfig.contract) {
-                    showSwapError('لطفاً ابتدا کیف پول را متصل کنید');
-                    return;
-                }
-                
-                const { contract } = walletConfig;
-                let tx;
-                if (direction === 'matic-to-lvl') {
-                    const maticWei = ethers.parseEther(amount);
-                    tx = await contract.buyTokens({ value: maticWei });
+    async updateSwapLimitInfo() {
+        const infoDiv = document.getElementById('swapLimitInfo');
+        if (!infoDiv) return;
+        const direction = document.getElementById('swapDirection');
+        if (!direction) return;
+        let html = '';
+        try {
+            const contract = window.contractConfig.contract;
+            const address = window.contractConfig.address;
+            const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
+            const USDC_ABI = ["function balanceOf(address) view returns (uint256)"];
+            const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, window.contractConfig.signer);
+            const usdcBalance = await usdcContract.balanceOf(contract.target);
+            const usdcBalanceNum = parseFloat(ethers.formatUnits(usdcBalance, 6));
+            if (direction.value === 'usdc-to-cpa') {
+                // Buy limits
+                let maxBuy;
+                if (usdcBalanceNum <= 100000) {
+                    maxBuy = 1000;
                 } else {
-                            // تبدیل CPA به POL
-        const cpaWei = ethers.parseUnits(amount, 18);
-        tx = await contract.sellTokens(cpaWei);
+                    maxBuy = usdcBalanceNum * 0.01;
                 }
-                
-                await tx.wait();
-                
-                showSwapSuccess('تراکنش با موفقیت انجام شد!');
-                
-                // به‌روزرسانی موجودی‌ها
-                await loadBalances();
-                
-            } catch (error) {
-                let userMessage = 'خطا در انجام تبدیل. لطفاً دوباره تلاش کنید.';
-
-                if (
-                    error.code === 4001 ||
-                    (typeof error.message === 'string' && (
-                        error.message.toLowerCase().includes('user denied') ||
-                        error.message.toLowerCase().includes('user rejected') ||
-                        error.message.toLowerCase().includes('rejected by user')
-                    ))
-                ) {
-                    userMessage = 'تراکنش توسط کاربر لغو شد.';
-                } else if (typeof error.message === 'string') {
-                    if (error.message.toLowerCase().includes('insufficient funds')) {
-                        userMessage = 'موجودی شما کافی نیست.';
-                    } else if (error.message.toLowerCase().includes('insufficient contract matic')) {
-                        userMessage = 'موجودی MATIC قرارداد کافی نیست. لطفاً ابتدا MATIC به قرارداد ارسال کنید یا منتظر بمانید.';
-                    } else if (error.message.toLowerCase().includes('execution reverted')) {
-                        // بررسی خطاهای خاص قرارداد
-                        if (error.message.toLowerCase().includes('insufficient contract matic')) {
-                            userMessage = 'موجودی MATIC قرارداد کافی نیست. لطفاً ابتدا MATIC به قرارداد ارسال کنید.';
-                        } else if (error.message.toLowerCase().includes('insufficient balance')) {
-                            userMessage = 'موجودی توکن شما کافی نیست.';
-                        } else if (error.message.toLowerCase().includes('amount too small')) {
-                            userMessage = 'مقدار وارد شده خیلی کم است.';
-                        } else if (error.message.toLowerCase().includes('amount too large')) {
-                            userMessage = 'مقدار وارد شده خیلی زیاد است.';
-                        } else {
-                            userMessage = 'تراکنش توسط قرارداد رد شد. مقدار یا شرایط را بررسی کنید.';
-                        }
-                    } else if (error.message.toLowerCase().includes('replacement transaction underpriced')) {
-                        userMessage = 'کارمزد تراکنش کافی نیست. لطفاً کارمزد را افزایش دهید.';
-                    } else if (error.message.toLowerCase().includes('nonce too low')) {
-                        userMessage = 'شماره تراکنش قدیمی است. لطفاً دوباره تلاش کنید.';
-                    } else if (error.message.toLowerCase().includes('gas required exceeds allowance')) {
-                        userMessage = 'کارمزد تراکنش کافی نیست. لطفاً کارمزد را افزایش دهید.';
-                    }
+                html += `حداقل خرید: ۱ USDC`;
+                html += `<br>سقف خرید فعلی: ${maxBuy.toLocaleString('en-US', {maximumFractionDigits:2})} USDC`;
+                html += `<br>کارمزد خرید: ۲٪ (۰.۵٪ توسعه‌دهنده، ۰.۵٪ معرف، ۱٪ پشتوانه)`;
+                html += `<br>سهم شما: ۹۸٪ از مبلغ خرید به توکن تبدیل می‌شود.`;
+            } else if (direction.value === 'cpa-to-usdc') {
+                // Sell limits
+                const totalSupply = await contract.totalSupply();
+                const totalSupplyNum = parseFloat(ethers.formatUnits(totalSupply, 18));
+                let maxSell;
+                if (usdcBalanceNum >= 500) {
+                    maxSell = totalSupplyNum * 0.01;
+                } else {
+                    maxSell = totalSupplyNum * 0.5;
                 }
-
-                showSwapError(userMessage);
-            } finally {
-                swapButton.disabled = false;
-                swapButton.textContent = 'تبدیل';
+                html += `حداقل فروش: ۱ توکن`;
+                html += `<br>سقف فروش فعلی: ${maxSell.toLocaleString('en-US', {maximumFractionDigits:2})} توکن`;
+                html += `<br>کارمزد فروش: ۲٪ (۰.۵٪ توسعه‌دهنده، ۰.۵٪ معرف، ۱٪ پشتوانه)`;
+                html += `<br>سهم شما: ۹۸٪ از مقدار فروش به USDC تبدیل می‌شود.`;
             }
-        });
+        } catch (e) {
+            html = 'در حال دریافت اطلاعات محدودیت‌ها...';
+        }
+        infoDiv.innerHTML = html;
     }
-    
-    if (swapDirection) {
-        swapDirection.addEventListener('change', function() {
-            validateSwapAmount();
-            updateRateInfo();
-        });
+
+    // Call updateSwapLimitInfo on direction/amount change
+    setupEventListeners() {
+        const swapForm = document.getElementById('swapForm');
+        const swapDirection = document.getElementById('swapDirection');
+        const swapAmount = document.getElementById('swapAmount');
+        const maxBtn = document.getElementById('maxBtn');
+
+        if (swapForm) {
+            swapForm.addEventListener('submit', (e) => this.handleSwap(e));
+        }
+        if (swapDirection) {
+            swapDirection.addEventListener('change', async () => {
+                this.updateSwapRate();
+                await this.updateSwapPreview();
+                this.updateMaxAmount();
+                await this.updateSwapLimitInfo();
+            });
+        }
+        if (swapAmount) {
+            swapAmount.addEventListener('input', async () => {
+                await this.updateSwapPreview();
+                await this.updateSwapLimitInfo();
+            });
+        }
+        if (maxBtn) {
+            maxBtn.addEventListener('click', async () => {
+                await this.setMaxAmount();
+                await this.updateSwapLimitInfo();
+            });
+        }
     }
-    
-    if (swapAmount) {
-        swapAmount.addEventListener('input', function() {
-            validateSwapAmount();
-            updateRateInfo();
-        });
+
+    async loadSwapData() {
+        try {
+            if (!window.contractConfig || !window.contractConfig.contract) return;
+            const contract = window.contractConfig.contract;
+            const address = window.contractConfig.address;
+            if (!address) return;
+
+            // نرخ توکن از کانترکت
+            const tokenPrice = await contract.getTokenPrice();
+            this.tokenPrice = ethers.formatUnits(tokenPrice, 18);
+
+            // موجودی CPA
+            const cpaBalance = await contract.balanceOf(address);
+            const cpaBalanceFormatted = ethers.formatUnits(cpaBalance, 18);
+
+            // موجودی USDC
+            const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
+            const USDC_ABI = ["function balanceOf(address) view returns (uint256)"];
+            const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, window.contractConfig.signer);
+            const usdcBalance = await usdcContract.balanceOf(address);
+            const usdcBalanceFormatted = ethers.formatUnits(usdcBalance, 6);
+
+            // نمایش موجودی‌ها
+            const cpaBalanceEl = document.getElementById('cpaBalance');
+            const usdcBalanceEl = document.getElementById('usdcBalance');
+            if (cpaBalanceEl) cpaBalanceEl.textContent = `${Number(cpaBalanceFormatted).toLocaleString('en-US', {maximumFractionDigits: 6})} CPA`;
+            if (usdcBalanceEl) usdcBalanceEl.textContent = `${Number(usdcBalanceFormatted).toLocaleString('en-US', {maximumFractionDigits: 6})} USDC`;
+
+            // ذخیره برای max
+            this.userBalances = {
+                cpa: parseFloat(cpaBalanceFormatted),
+                usdc: parseFloat(usdcBalanceFormatted)
+            };
+            this.updateSwapRate();
+            await this.updateSwapLimitInfo();
+        } catch (error) {
+            this.tokenPrice = null;
+            this.updateSwapRate();
+        }
     }
-    
-    if (maxButton) {
-        maxButton.addEventListener('click', setMaxAmount);
+
+    updateSwapRate() {
+        const direction = document.getElementById('swapDirection');
+        const rateDisplay = document.getElementById('swapRate');
+        if (direction && rateDisplay) {
+            if (this.tokenPrice && !isNaN(this.tokenPrice) && Number(this.tokenPrice) > 0) {
+                if (direction.value === 'usdc-to-cpa') {
+                    const cpaPerUsdc = 1 / Number(this.tokenPrice);
+                    rateDisplay.textContent = `نرخ تبدیل: 1 USDC = ${cpaPerUsdc.toFixed(6)} CPA`;
+                } else if (direction.value === 'cpa-to-usdc') {
+                    rateDisplay.textContent = `نرخ تبدیل: 1 CPA = ${Number(this.tokenPrice).toFixed(6)} USDC`;
+                }
+            } else {
+                rateDisplay.textContent = 'قیمت در دسترس نیست';
+            }
+        }
     }
-    
-    // بارگذاری اولیه
-    loadBalances();
-}); 
+
+    async updateSwapPreview() {
+        const amount = document.getElementById('swapAmount');
+        const direction = document.getElementById('swapDirection');
+        const preview = document.getElementById('swapPreview');
+        if (amount && direction && preview && this.tokenPrice && Number(this.tokenPrice) > 0) {
+            const value = parseFloat(amount.value) || 0;
+            let result = 0;
+            if (direction.value === 'usdc-to-cpa') {
+                result = value / Number(this.tokenPrice);
+                preview.textContent = `${value} USDC = ${result.toFixed(6)} CPA`;
+            } else if (direction.value === 'cpa-to-usdc') {
+                result = value * Number(this.tokenPrice);
+                preview.textContent = `${value} CPA = ${result.toFixed(6)} USDC`;
+            }
+        } else if (preview) {
+            preview.textContent = 'قیمت در دسترس نیست';
+        }
+    }
+
+    updateMaxAmount() {
+        const direction = document.getElementById('swapDirection');
+        const maxBtn = document.getElementById('maxBtn');
+        if (direction && maxBtn && this.userBalances) {
+            if (direction.value === 'usdc-to-cpa') {
+                maxBtn.textContent = `حداکثر (${this.userBalances.usdc} USDC)`;
+            } else {
+                maxBtn.textContent = `حداکثر (${this.userBalances.cpa} CPA)`;
+            }
+        }
+    }
+
+    async setMaxAmount() {
+        const amount = document.getElementById('swapAmount');
+        const direction = document.getElementById('swapDirection');
+        if (amount && direction && this.userBalances) {
+            if (direction.value === 'usdc-to-cpa') {
+                amount.value = this.userBalances.usdc.toString();
+            } else if (direction.value === 'cpa-to-usdc') {
+                amount.value = this.userBalances.cpa.toString();
+            }
+            await this.updateSwapPreview();
+        }
+    }
+
+    // تابع اصلی سواپ
+    async handleSwap(e) {
+        e.preventDefault();
+        if (this.isSwapping) return;
+        this.isSwapping = true;
+        this.setUIBusy(true);
+        try {
+            const amount = document.getElementById('swapAmount');
+            const direction = document.getElementById('swapDirection');
+            if (!amount || !direction) throw new Error('فرم ناقص است');
+            const value = parseFloat(amount.value);
+            if (!value || value <= 0) throw new Error('مقدار نامعتبر است');
+            if (direction.value === 'usdc-to-cpa' && value > this.userBalances.usdc) throw new Error('موجودی USDC کافی نیست');
+            if (direction.value === 'cpa-to-usdc' && value > this.userBalances.cpa) throw new Error('موجودی CPA کافی نیست');
+
+            if (direction.value === 'usdc-to-cpa') {
+                await this.buyTokensWithUSDC(value);
+            } else if (direction.value === 'cpa-to-usdc') {
+                await this.sellTokensForUSDC(value);
+            }
+            this.showStatus('تبدیل با موفقیت انجام شد!', 'success');
+            await this.refreshSwapData();
+            amount.value = '';
+            await this.updateSwapPreview();
+        } catch (error) {
+            this.showStatus(this.getErrorMessage(error), 'error');
+        }
+        this.setUIBusy(false);
+        this.isSwapping = false;
+    }
+
+    // خرید CPA با USDC (با مدیریت allowance)
+    async buyTokensWithUSDC(usdcAmount) {
+        const contract = window.contractConfig.contract;
+        const signer = window.contractConfig.signer;
+        const address = window.contractConfig.address;
+        const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
+        const USDC_ABI = [
+            "function approve(address,uint256) public returns (bool)",
+            "function allowance(address,address) public view returns (uint256)"
+        ];
+        const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, signer);
+        const usdcAmountWei = ethers.parseUnits(usdcAmount.toString(), 6);
+        // بررسی allowance
+        const allowance = await usdcContract.allowance(address, contract.target);
+        if (allowance < usdcAmountWei) {
+            this.showStatus('در حال تایید مجوز USDC...', 'loading');
+            const approveTx = await usdcContract.approve(contract.target, ethers.MaxUint256);
+            this.showStatus('در انتظار تایید تراکنش approve...', 'loading', approveTx.hash);
+            await approveTx.wait();
+        }
+        // خرید CPA
+        this.showStatus('در حال خرید توکن...', 'loading');
+        const tx = await contract.buyTokens(usdcAmountWei);
+        this.showStatus('در انتظار تایید تراکنش خرید...', 'loading', tx.hash);
+        await tx.wait();
+        this.showStatus('خرید موفق!','success',tx.hash);
+    }
+
+    // فروش CPA و دریافت USDC
+    async sellTokensForUSDC(cpaAmount) {
+        const contract = window.contractConfig.contract;
+        const cpaAmountWei = ethers.parseUnits(cpaAmount.toString(), 18);
+        this.showStatus('در حال فروش توکن...', 'loading');
+        const tx = await contract.sellTokens(cpaAmountWei);
+        this.showStatus('در انتظار تایید تراکنش فروش...', 'loading', tx.hash);
+        await tx.wait();
+        this.showStatus('فروش موفق!','success',tx.hash);
+    }
+
+    // مدیریت وضعیت UI
+    setUIBusy(isBusy) {
+        const btn = document.querySelector('.swap-btn');
+        if (btn) btn.disabled = isBusy;
+        const amount = document.getElementById('swapAmount');
+        if (amount) amount.disabled = isBusy;
+        const direction = document.getElementById('swapDirection');
+        if (direction) direction.disabled = isBusy;
+        const maxBtn = document.getElementById('maxBtn');
+        if (maxBtn) maxBtn.disabled = isBusy;
+    }
+
+    // نمایش وضعیت و هش تراکنش
+    showStatus(message, type, txHash = null) {
+        const status = document.getElementById('swapStatus');
+        if (!status) return;
+        status.textContent = message;
+        status.className = `swap-status ${type}`;
+        if (txHash) {
+            const scanLink = `https://polygonscan.com/tx/${txHash}`;
+            status.innerHTML += `<br><a href='${scanLink}' target='_blank' style='color:#00f;text-decoration:underline;'>مشاهده تراکنش در اسکنر</a>`;
+        }
+        if (type === 'success' || type === 'error') {
+            setTimeout(() => {
+                status.textContent = '';
+                status.className = 'swap-status';
+            }, 8000);
+        }
+    }
+
+    // تبدیل خطا به پیام کاربرپسند
+    getErrorMessage(error) {
+        const msg = error?.message || error?.data?.message || error?.toString() || '';
+        if (msg.includes('user rejected')) return '❌ تراکنش توسط کاربر لغو شد.';
+        if (msg.includes('insufficient funds')) return 'موجودی کافی برای پرداخت کارمزد یا سواپ وجود ندارد.';
+        if (msg.includes('insufficient balance')) return 'موجودی کافی نیست.';
+        if (msg.includes('allowance')) return 'مجوز کافی نیست، لطفاً دوباره تلاش کنید.';
+        if (msg.includes('invalid address')) return 'آدرس مقصد یا ورودی نامعتبر است.';
+        if (msg.includes('not allowed') || msg.includes('only owner')) return 'شما مجاز به انجام این عملیات نیستید.';
+        if (msg.includes('already swapped') || msg.includes('already exists')) return 'این عملیات قبلاً انجام شده است یا تکراری است.';
+        if (msg.includes('slippage')) return 'اختلاف قیمت (slippage) زیاد است. لطفاً مقدار را تغییر دهید.';
+        if (msg.includes('price changed')) return 'قیمت تغییر کرده است. لطفاً دوباره تلاش کنید.';
+        if (msg.includes('execution reverted')) return 'تراکنش ناموفق بود. شرایط سواپ را بررسی کنید.';
+        if (msg.includes('network') || msg.includes('connection')) return '❌ خطا در اتصال شبکه. لطفاً اینترنت خود را بررسی کنید.';
+        if (msg.includes('timeout')) return 'زمان تراکنش به پایان رسید. دوباره تلاش کنید.';
+        return msg ? '❌ خطا: ' + msg : 'خطا در انجام تراکنش. لطفاً دوباره تلاش کنید.';
+    }
+
+    // بروزرسانی داده‌ها
+    async refreshSwapData() {
+        await this.loadSwapData();
+        await this.updateSwapPreview();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    window.swapManager = new SwapManager();
+    await window.swapManager.initializeSwap();
+});
+
+if (window.connectWallet) {
+    const originalConnectWallet = window.connectWallet;
+    window.connectWallet = async function() {
+        const result = await originalConnectWallet();
+        setTimeout(async () => {
+            if (window.swapManager) {
+                await window.swapManager.refreshSwapData();
+            }
+        }, 1000);
+        return result;
+    };
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SwapManager;
+} 
