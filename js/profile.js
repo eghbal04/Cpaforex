@@ -418,7 +418,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 claimStatus.className = 'profile-status success';
                 setTimeout(() => location.reload(), 1200);
             } catch (e) {
-                claimStatus.textContent = 'خطا در برداشت: ' + (e && e.message ? e.message : e);
+                let msg = e && e.message ? e.message : e;
+                if (e.code === 4001 || (msg && msg.includes('user denied'))) {
+                    msg = '❌ تراکنش توسط کاربر لغو شد.';
+                } else if (e.code === -32002 || (msg && msg.includes('Already processing'))) {
+                    msg = '⏳ متامسک در حال پردازش درخواست قبلی است. لطفاً چند لحظه صبر کنید.';
+                } else if (e.code === 'NETWORK_ERROR' || (msg && msg.includes('network'))) {
+                    msg = '❌ خطای شبکه! اتصال اینترنت یا شبکه بلاکچین را بررسی کنید.';
+                } else if (msg && msg.includes('insufficient funds')) {
+                    msg = 'موجودی کافی برای پرداخت کارمزد یا برداشت وجود ندارد.';
+                } else if (msg && msg.includes('Cooldown not finished')) {
+                    msg = '⏳ هنوز زمان برداشت بعدی فرا نرسیده است. لطفاً تا پایان شمارش معکوس صبر کنید.';
+                } else if (msg && msg.includes('execution reverted')) {
+                    msg = 'تراکنش ناموفق بود. شرایط برداشت را بررسی کنید.';
+                } else {
+                    msg = '❌ خطا در برداشت: ' + (msg || 'خطای ناشناخته');
+                }
+                claimStatus.textContent = msg;
                 claimStatus.className = 'profile-status error';
             }
             claimBtn.disabled = false;
@@ -440,10 +456,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => location.reload(), 1200);
             } catch (e) {
                 let msg = e && e.message ? e.message : e;
-                if (msg && msg.includes('No cashback available')) {
+                if (e.code === 4001 || (msg && msg.includes('user denied'))) {
+                    msg = '❌ تراکنش توسط کاربر لغو شد.';
+                } else if (e.code === -32002 || (msg && msg.includes('Already processing'))) {
+                    msg = '⏳ متامسک در حال پردازش درخواست قبلی است. لطفاً چند لحظه صبر کنید.';
+                } else if (e.code === 'NETWORK_ERROR' || (msg && msg.includes('network'))) {
+                    msg = '❌ خطای شبکه! اتصال اینترنت یا شبکه بلاکچین را بررسی کنید.';
+                } else if (msg && msg.includes('insufficient funds')) {
+                    msg = 'موجودی کافی برای پرداخت کارمزد یا برداشت وجود ندارد.';
+                } else if (msg && msg.includes('Cooldown not finished')) {
+                    msg = '⏳ هنوز زمان برداشت بعدی فرا نرسیده است. لطفاً تا پایان شمارش معکوس صبر کنید.';
+                } else if (msg && msg.includes('execution reverted')) {
+                    msg = 'تراکنش ناموفق بود. شرایط برداشت را بررسی کنید.';
+                } else if (msg && msg.includes('No cashback available')) {
                     msg = 'شما در حال حاضر پاداش ماهانه‌ای برای برداشت ندارید.\n\nتوضیح: پاداش ماهانه فقط زمانی قابل برداشت است که مقدار کافی از فعالیت یا خرید ماهانه داشته باشید و هنوز آن را دریافت نکرده باشید.';
+                } else {
+                    msg = '❌ خطا در برداشت ماهانه: ' + (msg || 'خطای ناشناخته');
                 }
-                claimMonthlyStatus.textContent = 'خطا در برداشت ماهانه: ' + msg;
+                claimMonthlyStatus.textContent = msg;
                 claimMonthlyStatus.className = 'profile-status error';
             }
             claimMonthlyBtn.disabled = false;
