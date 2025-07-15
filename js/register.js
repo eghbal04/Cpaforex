@@ -190,7 +190,7 @@ function setupRegistrationButton() {
         registerBtn.onclick = async () => {
             const oldText = registerBtn.textContent;
             registerBtn.disabled = true;
-            registerBtn.textContent = 'در حال ثبت‌نام...';
+            registerBtn.innerHTML = '<span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #00ff88;border-radius:50%;margin-left:8px;vertical-align:middle;animation:spin 0.8s linear infinite;"></span> در حال ثبت‌نام...';
             if (registerStatus) registerStatus.textContent = '';
             try {
                 await performRegistration();
@@ -767,4 +767,12 @@ async function displayUserBalances() {
 
 // Export for global use
 window.displayUserBalances = displayUserBalances;
+
+// Add spinner animation CSS to the page if not present
+if (!document.getElementById('register-spinner-style')) {
+  const style = document.createElement('style');
+  style.id = 'register-spinner-style';
+  style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+  document.head.appendChild(style);
+}
 

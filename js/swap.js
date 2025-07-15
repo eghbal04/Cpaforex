@@ -280,13 +280,23 @@ class SwapManager {
     showStatus(message, type, txHash = null) {
         const status = document.getElementById('swapStatus');
         if (!status) return;
-        status.textContent = message;
+        let icon = '';
+        switch(type) {
+            case 'success': icon = '✅ '; break;
+            case 'error': icon = '❌ '; break;
+            case 'warning': icon = '⚠️ '; break;
+            case 'info': icon = 'ℹ️ '; break;
+            case 'loading': icon = '⏳ '; break;
+            default: icon = '';
+        }
+        status.textContent = icon + message;
         status.className = `swap-status ${type}`;
         if (txHash) {
             const scanLink = `https://polygonscan.com/tx/${txHash}`;
             status.innerHTML += `<br><a href='${scanLink}' target='_blank' style='color:#00f;text-decoration:underline;'>مشاهده تراکنش در اسکنر</a>`;
         }
-        if (type === 'success' || type === 'error') {
+        // پیام‌های موفق/خطا/هشدار بعد از چند ثانیه پاک شوند
+        if (['success','error','warning'].includes(type)) {
             setTimeout(() => {
                 status.textContent = '';
                 status.className = 'swap-status';
@@ -309,6 +319,24 @@ class SwapManager {
         if (msg.includes('execution reverted')) return 'تراکنش ناموفق بود. شرایط سواپ را بررسی کنید.';
         if (msg.includes('network') || msg.includes('connection')) return '❌ خطا در اتصال شبکه. لطفاً اینترنت خود را بررسی کنید.';
         if (msg.includes('timeout')) return 'زمان تراکنش به پایان رسید. دوباره تلاش کنید.';
+        if (msg.includes('unsupported token')) return 'این توکن پشتیبانی نمی‌شود.';
+        if (msg.includes('high fee')) return 'کارمزد شبکه بالا است. لطفاً بعداً تلاش کنید.';
+        if (msg.includes('min amount')) return 'مقدار وارد شده کمتر از حداقل مجاز است.';
+        if (msg.includes('max amount')) return 'مقدار وارد شده بیشتر از سقف مجاز است.';
+        if (msg.includes('paused') || msg.includes('swap disabled')) return 'سواپ در حال حاضر غیرفعال است.';
+        if (msg.includes('rate limit')) return 'تعداد درخواست‌ها زیاد است. لطفاً کمی صبر کنید.';
+        if (msg.includes('approve failed')) return 'تایید مجوز (Approve) ناموفق بود. لطفاً دوباره تلاش کنید.';
+        if (msg.includes('pending')) return 'تراکنش قبلی هنوز تایید نشده است. لطفاً منتظر بمانید.';
+        if (msg.includes('reverted')) return 'تراکنش برگشت خورد. لطفاً شرایط را بررسی کنید.';
+        if (msg.includes('invalid amount')) return 'مقدار وارد شده معتبر نیست.';
+        if (msg.includes('no wallet')) return 'لطفاً ابتدا کیف پول خود را متصل کنید.';
+        if (msg.includes('gas required exceeds allowance')) return 'مقدار گس کافی نیست. لطفاً گس لیمیت را افزایش دهید.';
+        if (msg.includes('replacement transaction underpriced')) return 'تراکنش جایگزین ارزان‌تر است. لطفاً گس پرایس را افزایش دهید.';
+        if (msg.includes('nonce too low')) return 'تراکنش قبلی هنوز تایید نشده است. لطفاً منتظر بمانید.';
+        if (msg.includes('cancelled')) return 'عملیات لغو شد.';
+        if (msg.includes('not enough liquidity')) return 'نقدینگی کافی برای سواپ وجود ندارد.';
+        if (msg.includes('slippage too high')) return 'اختلاف قیمت زیاد است. لطفاً مقدار را تغییر دهید.';
+        if (msg.includes('waiting for confirmation')) return 'در انتظار تایید تراکنش توسط شما...';
         return msg ? '❌ خطا: ' + msg : 'خطا در انجام تراکنش. لطفاً دوباره تلاش کنید.';
     }
 
