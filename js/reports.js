@@ -167,6 +167,7 @@ function shortenTransactionHash(hash) {
     async function fetchReports() {
         try {
             const { contract, address } = await connectWallet();
+            const provider = contract.runner && contract.runner.provider ? contract.runner.provider : contract.provider;
             const reports = [];
             
             // استفاده از retry برای دریافت block number
@@ -302,10 +303,14 @@ function shortenTransactionHash(hash) {
             } catch (e) {}
             treeEvents.forEach(event => {
                 if ([event.args.user, event.args.parent, event.args.referrer].map(a=>a.toLowerCase()).includes(address.toLowerCase())) {
+                    let posLabel = '';
+                    if (event.args.position == 0) posLabel = 'فرزند سمت چپ ثبت شد';
+                    else if (event.args.position == 1) posLabel = 'فرزند سمت راست ثبت شد';
+                    else posLabel = `موقعیت: ${event.args.position}`;
                     reports.push({
                         type: 'network',
                         title: 'تغییر ساختار شبکه',
-                        amount: `موقعیت: ${event.args.position} - زمان: ${event.args.timestamp}`,
+                        amount: posLabel,
                         timestamp: event.blockNumber,
                         transactionHash: event.transactionHash,
                         blockNumber: event.blockNumber,
@@ -371,6 +376,21 @@ function shortenTransactionHash(hash) {
                     });
                 }
                 });
+            // After collecting all events into reports array, fetch timestamps for each unique blockNumber
+            const blockNumbers = [...new Set(reports.map(r => r.blockNumber))];
+            const blockTimestamps = {};
+            for (const bn of blockNumbers) {
+                try {
+                    const block = await provider.getBlock(bn);
+                    blockTimestamps[bn] = block.timestamp;
+                } catch (e) {
+                    blockTimestamps[bn] = null;
+                }
+            }
+            // Assign real timestamp to each report
+            reports.forEach(r => {
+                r.timestamp = blockTimestamps[r.blockNumber] ? blockTimestamps[r.blockNumber] * 1000 : null;
+            });
             // مرتب‌سازی بر اساس تاریخ (جدیدترین اول)
             reports.sort((a, b) => b.blockNumber - a.blockNumber);
             return reports;
@@ -407,7 +427,7 @@ function shortenTransactionHash(hash) {
                 <div class="report-item">
                     <div class="report-header">
                         <div class="report-type">${getReportIcon(type)} ${title}</div>
-                        <!-- <div class="report-time">${formatDate(timestamp)}</div> -->
+                        <div class="report-time" style="font-size:0.95em;color:#a786ff;">${formatDate(timestamp)}</div>
                     </div>
                     <div class="report-details">
                         <div class="report-details-row">
