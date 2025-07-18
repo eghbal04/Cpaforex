@@ -209,7 +209,7 @@ function shortenTransactionHash(hash) {
                 if (event.args.user.toLowerCase() === address.toLowerCase()) {
                     reports.push({
                         type: 'purchase',
-                        title: 'خرید توکن',
+                        title: 'خرید با USDC',
                         amount: formatNumber(event.args.amountLvl || event.args.amountlvl, 18) + ' CPA',
                         timestamp: event.blockNumber,
                         transactionHash: event.transactionHash,
@@ -228,7 +228,7 @@ function shortenTransactionHash(hash) {
                 if (event.args.buyer.toLowerCase() === address.toLowerCase()) {
                     reports.push({
                         type: 'trading',
-                        title: 'خرید توکن با POL',
+                        title: 'خرید با USDC',
                         amount: `${formatNumber(event.args.maticAmount, 18)} POL → ${formatNumber(event.args.tokenAmount, 18)} CPA`,
                         timestamp: event.blockNumber,
                         transactionHash: event.transactionHash,
