@@ -97,3 +97,29 @@
 .admin-group .menu-group-title {
   color: #a786ff;
 } 
+
+/* --- Override for hamburger button to fix size/visibility issues --- */
+#hamburger-toggle-btn {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  max-width: 80px !important;
+  max-height: 80px !important;
+  font-size: 2.2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 100002 !important;
+  background: #232946 !important;
+  color: #00ff88 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 12px #00ff8840 !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+} 

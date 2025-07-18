@@ -573,6 +573,8 @@
     </div>
     <div class="expand-content">
       <div class="profile-container">
+        <!-- دکمه اتصال ولت -->
+        <button id="connectProfileWalletBtn" style="margin:1rem 0 2rem 0;background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.7rem 2.2rem;font-size:1rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,255,136,0.10);transition:background 0.2s,box-shadow 0.2s;">اتصال کیف پول</button>
         <!-- کارت اطلاعات شخصی -->
         <div class="profile-section">
           <div class="section-header">
@@ -1531,5 +1533,24 @@
   window.getUserProfile = async function() {
     return { activated: true, isDeployer: true, address: "0x..." };
   };
+  </script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('connectProfileWalletBtn');
+    if (btn) {
+      btn.addEventListener('click', async function() {
+        try {
+          if (window.connectWallet) {
+            await window.connectWallet();
+            // پس از اتصال، پروفایل را مجدد بارگذاری کن
+            if (typeof loadUserProfile === 'function') loadUserProfile();
+          }
+        } catch (e) {
+          alert('خطا در اتصال کیف پول: ' + (e.message || e));
+        }
+      });
+    }
+  });
   </script>
 
