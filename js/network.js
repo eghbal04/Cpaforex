@@ -511,5 +511,5 @@ document.addEventListener('click', function(e) {
 // فرض: بعد از ثبت‌نام موفق یا عملیات نیازمند رفرش
 window.refreshNetworkTab = function() {
   localStorage.setItem('activeTab', 'network');
-  window.location.reload();
+  // window.location.reload(); // حذف شد: دیگر رفرش انجام نمی‌شود
 }; 

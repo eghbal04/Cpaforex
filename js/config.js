@@ -4293,4 +4293,10 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // فرض: بعد از تایید تراکنش متامسک
 saveActiveTab('networkTab');
-window.location.reload();
+// به جای رفرش، فقط داده‌های مورد نیاز را به‌روزرسانی کنید
+if (typeof updateDashboardStats === 'function') {
+  updateDashboardStats();
+}
+if (typeof activateTab === 'function') {
+  activateTab('networkTab');
+}

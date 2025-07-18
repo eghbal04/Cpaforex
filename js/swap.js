@@ -220,7 +220,6 @@ class SwapManager {
             await this.updateSwapPreview();
             // ذخیره تب فعال و رفرش صفحه
             localStorage.setItem('activeTab', 'swap');
-            window.location.reload();
         } catch (error) {
             this.showStatus(this.getErrorMessage(error), 'error');
         }

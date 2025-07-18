@@ -23,7 +23,7 @@ async function waitForWalletConnection() {
         setupFilters();
 
         // به‌روزرسانی خودکار هر 5 دقیقه
-        setInterval(loadReports, 300000);
+        // setInterval(loadReports, 300000); // حذف شد
 
     } catch (error) {
         showReportsError("خطا در بارگذاری گزارشات");
