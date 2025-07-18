@@ -4,7 +4,7 @@ const deepseek_api ='sk-6074908ce7954bd89d494d57651392a8';
 
 // تنظیمات قرارداد LevelUp
 
-const CONTRACT_ADDRESS = '0x3cAF6f18612a8c1b95BcE988f5aCb6a066F3ed7E';
+const CONTRACT_ADDRESS = '0xf26766F4726619e4046CFB856A7491fd5698a539';
 
 const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'; // Polygon USDC
 const USDC_ABI =[
@@ -1489,6 +1489,11 @@ const LEVELUP_ABI =[
 				"internalType": "uint256",
 				"name": "payout",
 				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
 			}
 		],
 		"name": "purchase",

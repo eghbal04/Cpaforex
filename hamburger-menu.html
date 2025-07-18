@@ -1,0 +1,172 @@
+<!-- دکمه همبرگری (کلیک) -->
+<button id="hamburger-toggle-btn" style="position:fixed;bottom:24px;right:24px;z-index:100002;font-size:2.2rem;background:#232946;border:none;border-radius:50%;width:56px;height:56px;box-shadow:0 2px 12px #00ff8840;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;">
+  ☰
+</button>
+
+<!-- Hamburger Menu -->
+<div id="hamburgerMenu" class="hamburger-menu">
+  <div style="text-align:center;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid rgba(167,134,255,0.2);">
+    <h3 style="margin:0;color:#00ff88;font-size:1rem;font-weight:bold;">CONTINUOUS PROFIT ACADEMY</h3>
+  </div>
+  
+  <!-- Dashboard Section -->
+  <div class="menu-group">
+    <div class="menu-group-title">📊 داشبورد</div>
+    <button onclick="showTab('dashboard')" class="menu-btn">
+      <span class="menu-icon">🏠</span>
+      <span class="menu-label">داشبورد اصلی</span>
+    </button>
+  </div>
+  <div class="menu-divider"></div>
+  <!-- Education Section -->
+  <div class="menu-group">
+    <div class="menu-group-title">📚 آموزش</div>
+    <a href="learning.html" class="menu-btn">
+      <span class="menu-icon">🎓</span>
+      <span class="menu-label">آموزش</span>
+    </a>
+    <button onclick="navigateToPage('news.html')" class="menu-btn">
+      <span class="menu-icon">📰</span>
+      <span class="menu-label">اخبار و تحلیل</span>
+    </button>
+  </div>
+  <div class="menu-divider"></div>
+  <!-- Tools Section -->
+  <div class="menu-group">
+    <div class="menu-group-title">🛠️ ابزارها</div>
+    <button onclick="showTab('swap')" class="menu-btn">
+      <span class="menu-icon">🔄</span>
+      <span class="menu-label">تبدیل ارز</span>
+    </button>
+    <button onclick="showTab('transfer')" class="menu-btn">
+      <span class="menu-icon">💸</span>
+      <span class="menu-label">انتقال</span>
+    </button>
+    <button onclick="showTab('network')" class="menu-btn">
+      <span class="menu-icon">🌐</span>
+      <span class="menu-label">شبکه</span>
+    </button>
+    <button onclick="showSignalBox()" class="menu-btn">
+      <span class="menu-icon">📈</span>
+      <span class="menu-label">سیگنال</span>
+    </button>
+  </div>
+  <div class="menu-divider"></div>
+  <!-- Others Section -->
+  <div class="menu-group">
+    <div class="menu-group-title">📋 سایر</div>
+    <button onclick="showTab('profile')" class="menu-btn">
+      <span class="menu-icon">👤</span>
+      <span class="menu-label">پروفایل</span>
+    </button>
+    <button onclick="showTab('reports')" class="menu-btn">
+      <span class="menu-icon">📊</span>
+      <span class="menu-label">گزارشات</span>
+    </button>
+    <button onclick="navigateToPage('shop.html')" class="menu-btn">
+      <span class="menu-icon">🛒</span>
+      <span class="menu-label">فروشگاه</span>
+    </button>
+    <button onclick="showTab('about')" class="menu-btn">
+      <span class="menu-icon">ℹ️</span>
+      <span class="menu-label">درباره ما</span>
+    </button>
+  </div>
+  <div class="menu-divider"></div>
+  <!-- Admin Section -->
+  <div class="menu-group admin-group">
+    <div class="menu-group-title">🔐 مدیریت</div>
+    <button onclick="showTab('prop')" class="menu-btn admin-btn">
+      <span class="menu-icon">⚙️</span>
+      <span class="menu-label">مدیریت پراپ‌ها</span>
+    </button>
+    <button onclick="showSubAdminModal()" class="menu-btn admin-btn">
+      <span class="menu-icon">👥</span>
+      <span class="menu-label">مدیریت ساب ادمین</span>
+    </button>
+  </div>
+  <!-- Services Section -->
+  <div class="menu-group">
+    <div class="menu-group-title">🛡️ خدمات ویژه</div>
+    <button onclick="showTab('prop-service')" class="menu-btn">
+      <span class="menu-icon">📄</span>
+      <span class="menu-label">پاس پراپ</span>
+    </button>
+    <button onclick="showTab('autotrade-license')" class="menu-btn">
+      <span class="menu-icon">🤖</span>
+      <span class="menu-label">لایسنس ربات اتوترید</span>
+    </button>
+    <button onclick="showTab('copytrades')" class="menu-btn">
+      <span class="menu-icon">🔗</span>
+      <span class="menu-label">لینک کپی تریدها</span>
+    </button>
+  </div>
+  <div class="menu-divider"></div>
+</div> 
+
+<!-- Voice Activation Indicator -->
+<div id="voice-indicator" style="position:fixed;bottom:90px;right:32px;z-index:100001;background:#232946;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px #00ff8840;">
+  <span style="font-size:1.8rem;color:#00ff88;">🎤</span>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  const menu = document.getElementById('hamburgerMenu');
+  const indicator = document.getElementById('voice-indicator');
+  const btn = document.getElementById('hamburger-toggle-btn');
+  let recognizing = false;
+  let recognition;
+
+  // دکمه همبرگری (کلیک)
+  if (btn && menu) {
+    btn.onclick = function() {
+      menu.classList.toggle('open');
+    };
+  }
+
+  // Voice activation
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'fa-IR'; // Persian
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.onstart = function() {
+      recognizing = true;
+      indicator.style.background = '#00ff88';
+      indicator.style.color = '#232946';
+    };
+    recognition.onend = function() {
+      recognizing = false;
+      indicator.style.background = '#232946';
+      indicator.style.color = '#00ff88';
+      setTimeout(() => recognition.start(), 500);
+    };
+    recognition.onerror = function(e) {
+      recognizing = false;
+      indicator.style.background = '#dc3545';
+      setTimeout(() => {
+        indicator.style.background = '#232946';
+        if (!recognizing) recognition.start();
+      }, 1500);
+    };
+    recognition.onresult = function(event) {
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          const transcript = event.results[i][0].transcript.trim().toLowerCase();
+          if (transcript.includes('منو') || transcript.includes('menu')) {
+            menu.classList.add('open');
+          }
+          if (transcript.includes('ببند') || transcript.includes('close')) {
+            menu.classList.remove('open');
+          }
+        }
+      }
+    };
+    recognition.start();
+  } else {
+    indicator.innerHTML = '<span style="color:#dc3545;font-size:1.2rem;">Voice<br>NA</span>';
+  }
+});
+</script> 

@@ -984,7 +984,7 @@ window.showWelcomeRegistrationPrompt = async function() {
         let registrationPrice = '100';
         try {
             if (window.contractConfig && window.contractConfig.contract) {
-                const price = await window.getRegistrationPrice(window.contractConfig.contract);
+                const price = await window.getRegPrice(window.contractConfig.contract);
                 registrationPrice = parseFloat(ethers.formatUnits(price, 18)).toFixed(0);
             }
         } catch (e) {
@@ -1339,7 +1339,7 @@ window.manageMainRegistrationButton = async function() {
             // بروزرسانی هزینه ثبت‌نام
             try {
                 if (window.contractConfig && window.contractConfig.contract) {
-                    const price = await window.getRegistrationPrice(window.contractConfig.contract);
+                    const price = await window.getRegPrice(window.contractConfig.contract);
                     const formattedPrice = parseFloat(ethers.formatUnits(price, 18)).toFixed(0);
                     const costDisplay = document.getElementById('registration-cost-display');
                     if (costDisplay) {
@@ -2068,10 +2068,30 @@ document.addEventListener('click', function(e) {
 });
 
 // فرم ثبت‌نام با ورودی آدرس ولت جدید و نمایش موجودی متیک و توکن - بهینه‌سازی شده برای موبایل
-window.showRegisterForm = function(referrerAddress, defaultNewWallet, connectedAddress, provider, contract) {
+window.showRegisterForm = async function(referrerAddress, defaultNewWallet, connectedAddress, provider, contract) {
   let old = document.getElementById('register-form-modal');
   if (old) old.remove();
-  
+
+  // Check registration status of connected wallet
+  let isRegistered = false;
+  try {
+    if (contract && connectedAddress) {
+      const userData = await contract.users(connectedAddress);
+      isRegistered = userData && userData.activated;
+    }
+  } catch (e) { isRegistered = false; }
+
+  // Determine input value and readonly state
+  let walletInputValue = '';
+  let walletInputReadonly = false;
+  if (!isRegistered && connectedAddress) {
+    walletInputValue = connectedAddress;
+    walletInputReadonly = true;
+  } else {
+    walletInputValue = '';
+    walletInputReadonly = false;
+  }
+
   const modal = document.createElement('div');
   modal.id = 'register-form-modal';
   modal.style = `
@@ -2085,37 +2105,51 @@ window.showRegisterForm = function(referrerAddress, defaultNewWallet, connectedA
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: 0.7rem;
     box-sizing: border-box;
   `;
-  
+
+  // Determine referrer input value and readonly state
+  let referrerInputValue = referrerAddress;
+  let referrerInputReadonly = false;
+  // Try to get referral from URL
+  let urlReferrer = '';
+  if (typeof getReferrerFromURL === 'function') {
+    urlReferrer = getReferrerFromURL();
+    if (urlReferrer && /^0x[a-fA-F0-9]{40}$/.test(urlReferrer)) {
+      referrerInputValue = urlReferrer;
+      referrerInputReadonly = true;
+    }
+  }
+
   modal.innerHTML = `
     <div style="
       background: linear-gradient(135deg, #181c2a, #232946);
-      padding: 1.5rem;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      padding: 1rem 0.7rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
       width: 100%;
-      max-width: 500px;
-      max-height: 90vh;
+      max-width: 95vw;
+      max-height: 95vh;
       overflow-y: auto;
       direction: rtl;
       position: relative;
-      border: 2px solid #a786ff;
+      border: 1.5px solid #a786ff;
+      font-size: 0.97rem;
     ">
       <!-- Header -->
       <div style="
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #a786ff;
+        margin-bottom: 0.7rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #a786ff;
       ">
         <h3 style="
           color: #00ff88;
           margin: 0;
-          font-size: 1.3rem;
+          font-size: 1.05rem;
           font-weight: bold;
           text-align: center;
           flex: 1;
@@ -2124,12 +2158,12 @@ window.showRegisterForm = function(referrerAddress, defaultNewWallet, connectedA
           background: none;
           border: none;
           color: #fff;
-          font-size: 1.5rem;
+          font-size: 1.2rem;
           cursor: pointer;
-          padding: 0.5rem;
+          padding: 0.2rem;
           border-radius: 50%;
-          width: 40px;
-          height: 40px;
+          width: 32px;
+          height: 32px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2137,51 +2171,64 @@ window.showRegisterForm = function(referrerAddress, defaultNewWallet, connectedA
         " onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">×</button>
       </div>
 
-      <!-- Referrer Info -->
+      <!-- Referrer Input -->
       <div style="
-        background: rgba(167, 134, 255, 0.1);
+        background: rgba(167, 134, 255, 0.08);
         border: 1px solid #a786ff;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        padding: 0.6rem 0.7rem;
+        margin-bottom: 0.7rem;
       ">
-        <div style="color: #a786ff; font-weight: bold; margin-bottom: 0.5rem;">👤 معرف (Referrer):</div>
-        <div style="
-          color: #fff;
-          font-family: monospace;
-          font-size: 0.9rem;
-          word-break: break-all;
-          background: rgba(0,0,0,0.3);
-          padding: 0.5rem;
-          border-radius: 6px;
-        ">${referrerAddress}</div>
+        <label for="register-referrer-address" style="color: #a786ff; font-weight: bold; margin-bottom: 0.3rem; font-size:0.95em; display:block;">👤 معرف (Referrer):</label>
+        <input id="register-referrer-address"
+          type="text"
+          value="${referrerInputValue}"
+          ${referrerInputReadonly ? 'readonly' : ''}
+          style="
+            width: 100%;
+            padding: 0.5rem 0.7rem;
+            border-radius: 5px;
+            border: 1.2px solid #a786ff;
+            background: rgba(0,0,0,0.18);
+            color: #fff;
+            font-family: monospace;
+            font-size: 0.95rem;
+            direction: ltr;
+            text-align: left;
+            box-sizing: border-box;
+            margin-bottom: 0.1rem;
+          "
+        />
       </div>
 
       <!-- New Wallet Input -->
-      <div style="margin-bottom: 1.5rem;">
+      <div style="margin-bottom: 0.7rem;">
         <label for="register-new-wallet" style="
           display: block;
           color: #fff;
           font-weight: bold;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.3rem;
+          font-size:0.95em;
         ">🔑 آدرس ولت جدید:</label>
         <input id="register-new-wallet" 
           type="text" 
           placeholder="0x..." 
-          value="${defaultNewWallet}"
+          value="${walletInputValue}"
+          ${walletInputReadonly ? 'readonly' : ''}
           style="
             width: 100%;
-            padding: 1rem;
-            border-radius: 12px;
-            border: 2px solid #a786ff;
-            background: rgba(0,0,0,0.3);
+            padding: 0.7rem 0.7rem;
+            border-radius: 7px;
+            border: 1.5px solid #a786ff;
+            background: rgba(0,0,0,0.18);
             color: #fff;
             font-family: monospace;
-            font-size: 1rem;
+            font-size: 0.97rem;
             direction: ltr;
             text-align: left;
             box-sizing: border-box;
             transition: border-color 0.3s;
+            height: 2.2rem;
           "
           onfocus="this.style.borderColor='#00ff88'"
           onblur="this.style.borderColor='#a786ff'"
@@ -2190,24 +2237,23 @@ window.showRegisterForm = function(referrerAddress, defaultNewWallet, connectedA
 
       <!-- Balance Info -->
       <div style="
-        background: rgba(0, 255, 136, 0.1);
+        background: rgba(0, 255, 136, 0.07);
         border: 1px solid #00ff88;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        padding: 0.6rem 0.7rem;
+        margin-bottom: 0.7rem;
       ">
-        <div style="color: #00ff88; font-weight: bold; margin-bottom: 1rem;">💰 موجودی‌های شما:</div>
-        
-        <div style="display: grid; gap: 0.8rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="color: #00ff88; font-weight: bold; margin-bottom: 0.5rem; font-size:0.95em;">💰 موجودی‌های شما:</div>
+        <div style="display: grid; gap: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size:0.95em;">
             <span style="color: #fff;">🟣 POL:</span>
             <span id="register-matic-balance" style="color: #a786ff; font-weight: bold;">در حال دریافت...</span>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size:0.95em;">
             <span style="color: #fff;">🟢 CPA:</span>
             <span id="register-cpa-balance" style="color: #00ff88; font-weight: bold;">در حال دریافت...</span>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size:0.95em;">
             <span style="color: #fff;">💵 USDC:</span>
             <span id="register-usdc-balance" style="color: #00ccff; font-weight: bold;">در حال دریافت...</span>
           </div>
@@ -2216,16 +2262,16 @@ window.showRegisterForm = function(referrerAddress, defaultNewWallet, connectedA
 
       <!-- Required Amount -->
       <div style="
-        background: rgba(255, 107, 107, 0.1);
+        background: rgba(255, 107, 107, 0.07);
         border: 1px solid #ff6b6b;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        padding: 0.6rem 0.7rem;
+        margin-bottom: 0.7rem;
       ">
-        <div style="color: #ff6b6b; font-weight: bold; margin-bottom: 0.5rem;">⚠️ مقدار مورد نیاز:</div>
+        <div style="color: #ff6b6b; font-weight: bold; margin-bottom: 0.3rem; font-size:0.95em;">⚠️ مقدار مورد نیاز:</div>
         <div id="register-required-usdc" style="
           color: #ff6b6b;
-          font-size: 1.1rem;
+          font-size: 1rem;
           font-weight: bold;
           text-align: center;
         ">در حال دریافت...</div>
@@ -2234,47 +2280,48 @@ window.showRegisterForm = function(referrerAddress, defaultNewWallet, connectedA
       <!-- Action Buttons -->
       <div style="
         display: flex;
-        gap: 1rem;
+        gap: 0.5rem;
         flex-direction: column;
       ">
         <button id="register-form-confirm" style="
           background: linear-gradient(135deg, #00ff88, #00cc66);
           color: #232946;
           font-weight: bold;
-          padding: 1rem;
+          padding: 0.7rem 0;
           border: none;
-          border-radius: 12px;
-          font-size: 1.1rem;
+          border-radius: 8px;
+          font-size: 1rem;
           cursor: pointer;
           transition: all 0.3s;
-          box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
-        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,255,136,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(0,255,136,0.3)'">
+          box-shadow: 0 2px 8px rgba(0, 255, 136, 0.18);
+        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,255,136,0.22)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(0,255,136,0.18)'">
           ✅ ثبت‌نام
         </button>
         <button id="register-form-cancel" style="
           background: linear-gradient(135deg, #a786ff, #8b6bff);
           color: #fff;
           font-weight: bold;
-          padding: 1rem;
+          padding: 0.7rem 0;
           border: none;
-          border-radius: 12px;
-          font-size: 1.1rem;
+          border-radius: 8px;
+          font-size: 1rem;
           cursor: pointer;
           transition: all 0.3s;
-          box-shadow: 0 4px 15px rgba(167, 134, 255, 0.3);
-        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(167,134,255,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(167,134,255,0.3)'">
+          box-shadow: 0 2px 8px rgba(167, 134, 255, 0.18);
+        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(167,134,255,0.22)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(167,134,255,0.18)'">
           ❌ انصراف
         </button>
       </div>
 
       <!-- Status Message -->
       <div id="register-form-status" style="
-        margin-top: 1rem;
-        padding: 1rem;
-        border-radius: 8px;
+        margin-top: 0.7rem;
+        padding: 0.5rem;
+        border-radius: 6px;
         text-align: center;
         font-weight: bold;
-        min-height: 20px;
+        min-height: 18px;
+        font-size:0.97em;
       "></div>
     </div>
   `;
@@ -2304,67 +2351,56 @@ window.showRegisterForm = function(referrerAddress, defaultNewWallet, connectedA
       let usdc = '-';
       let requiredUsdc = '-';
 
-      console.log('provider:', provider);
-      console.log('contract:', contract);
-      console.log('connectedAddress:', connectedAddress);
-
       if (provider && connectedAddress) {
         try {
           const bal = await provider.getBalance(connectedAddress);
           matic = window.ethers ? window.ethers.formatUnits(bal, 18) : bal.toString();
-          console.log('matic:', matic);
         } catch (e) {
           matic = 'خطا در دریافت POL';
-          console.error('Error fetching MATIC:', e);
         }
       }
       if (contract && connectedAddress) {
         try {
           const cpaBal = await contract.balanceOf(connectedAddress);
           cpa = window.ethers ? window.ethers.formatUnits(cpaBal, 18) : cpaBal.toString();
-          console.log('cpa:', cpa);
         } catch (e) {
           cpa = 'خطا در دریافت CPA';
-          console.error('Error fetching CPA:', e);
         }
         // دریافت موجودی USDC
         try {
           const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
           const USDC_ABI = ["function balanceOf(address) view returns (uint256)"];
-          // استفاده از provider به جای signer
           const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider || contract.provider);
           const usdcBal = await usdcContract.balanceOf(connectedAddress);
           usdc = window.ethers ? window.ethers.formatUnits(usdcBal, 6) : usdcBal.toString();
-          console.log('usdc:', usdc);
         } catch (e) {
           usdc = 'خطا در دریافت USDC';
-          console.error('Error fetching USDC:', e);
         }
-        // مقدار مورد نیاز ثبت‌نام
-        requiredUsdc = '100 CPA'; // Static value
+        // مقدار مورد نیاز ثبت‌نام از قرارداد
+        try {
+          if (window.getRegPrice) {
+            const regPrice = await window.getRegPrice(contract);
+            requiredUsdc = parseFloat(window.ethers.formatUnits(regPrice, 18)).toFixed(0) + ' CPA';
+          } else {
+            requiredUsdc = '...';
+          }
+        } catch (e) {
+          requiredUsdc = 'خطا';
+        }
       }
       document.getElementById('register-matic-balance').textContent = matic;
       document.getElementById('register-cpa-balance').textContent = cpa;
       document.getElementById('register-usdc-balance').textContent = usdc;
       document.getElementById('register-required-usdc').textContent = requiredUsdc;
 
-
-
-      // فراخوانی تابع displayUserBalances برای اطمینان از نمایش صحیح موجودی‌ها
       if (window.displayUserBalances) {
         await window.displayUserBalances();
       }
-
-      // فراخوانی تابع updateRegisterRequiredAmount برای اطمینان از نمایش صحیح
-      // if (window.updateRegisterRequiredAmount) {
-      //   await window.updateRegisterRequiredAmount();
-      // }
     } catch (e) {
       document.getElementById('register-matic-balance').textContent = '-';
       document.getElementById('register-cpa-balance').textContent = '-';
       document.getElementById('register-usdc-balance').textContent = '-';
       document.getElementById('register-required-usdc').textContent = '-';
-      console.error('General error in register modal:', e);
     }
   })();
   document.getElementById('register-form-confirm').onclick = async function() {
