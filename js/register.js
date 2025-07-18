@@ -558,6 +558,9 @@ async function showRegistrationForm() {
             document.getElementById('new-user-address').value = '';
             document.getElementById('new-referrer-address').value = '';
             document.getElementById('new-register-status').textContent = '';
+            // Hide any duplicate or leftover registration forms
+            const allModals = document.querySelectorAll('.new-registration-modal, #new-registration-modal');
+            allModals.forEach(m => m.style.display = 'none');
         };
         submitNewRegister.onclick = async function() {
             const userAddr = document.getElementById('new-user-address').value.trim();
@@ -620,6 +623,9 @@ window.addEventListener('DOMContentLoaded', function() {
             document.getElementById('new-user-address').value = '';
             document.getElementById('new-referrer-address').value = '';
             document.getElementById('new-register-status').textContent = '';
+            // Hide any duplicate or leftover registration forms
+            const allModals = document.querySelectorAll('.new-registration-modal, #new-registration-modal');
+            allModals.forEach(m => m.style.display = 'none');
         };
         submitNewRegister.onclick = async function() {
             const userAddr = document.getElementById('new-user-address').value.trim();

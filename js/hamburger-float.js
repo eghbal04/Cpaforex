@@ -86,9 +86,9 @@
           <span class="btn-icon">🤖</span>
           <span class="btn-text">ربات</span>
         </button>
-        <button onclick="navigateToPage('admin-prop.html')" class="menu-btn">
-          <span class="btn-icon">📄</span>
-          <span class="btn-text">پاس پراپ</span>
+        <button onclick="navigateToPage('prop-service.html')" class="menu-btn">
+          <span class="btn-icon">🏦</span>
+          <span class="btn-text">پراپ سرویس</span>
         </button>
       </div>
       
