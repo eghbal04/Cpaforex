@@ -517,8 +517,8 @@ async function showRegistrationForm() {
       // بررسی موجودی ولت متصل (address)
       if (parseFloat(userLvlBalance) < parseFloat(requiredTokenAmount)) {
         registerBtn.disabled = true;
-        registerBtn.textContent = 'موجودی USDC کافی نیست';
-        if (registerStatus) registerStatus.textContent = 'برای ثبت‌نام باید حداقل '+requiredTokenAmount+' USDC داشته باشید. لطفاً ابتدا کیف پول خود را شارژ کنید.';
+        registerBtn.textContent = 'موجودی CPA کافی نیست';
+        if (registerStatus) registerStatus.innerHTML = 'موجودی توکن CPA شما برای ثبت‌نام کافی نیست.<br>برای ثبت‌نام باید حداقل '+requiredTokenAmount+' CPA داشته باشید.<br>لطفاً ابتدا کیف پول خود را شارژ یا از بخش سواپ/فروشگاه توکن CPA تهیه کنید.';
         return;
       } else if (parseFloat(maticBalance) < requiredMatic) {
         registerBtn.disabled = true;

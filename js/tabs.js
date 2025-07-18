@@ -254,7 +254,14 @@ window.checkUserAccessOnLoad = async function() {
 
 // Run access check when page loads
 document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    window.checkUserAccessOnLoad();
-  }, 2000); // Wait for user profile to load
+  // بازیابی تب فعال از localStorage
+  const activeTab = localStorage.getItem('activeTab');
+  if (activeTab) {
+    window.showTab(activeTab);
+    localStorage.removeItem('activeTab');
+  } else {
+    setTimeout(() => {
+      window.checkUserAccessOnLoad();
+    }, 2000); // Wait for user profile to load
+  }
 }); 

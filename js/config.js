@@ -4274,3 +4274,23 @@ window.getRegPrice = async function(contract) {
   }
 };
 // ... existing code ...
+
+// فرض: تب‌ها با data-tab یا id مشخص می‌شوند
+function saveActiveTab(tabId) {
+  localStorage.setItem('activeTab', tabId);
+}
+
+// هنگام کلیک روی تب یا پس از تایید متامسک:
+saveActiveTab('networkTab'); // یا هر شناسه‌ای که دارید
+
+window.addEventListener('DOMContentLoaded', function() {
+  const activeTab = localStorage.getItem('activeTab');
+  if (activeTab) {
+    activateTab(activeTab); // تابع فعال‌سازی تب شما
+    localStorage.removeItem('activeTab');
+  }
+});
+
+// فرض: بعد از تایید تراکنش متامسک
+saveActiveTab('networkTab');
+window.location.reload();
