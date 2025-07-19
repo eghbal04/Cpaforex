@@ -274,27 +274,35 @@ let lastRenderedTime = 0;
 window.renderSimpleBinaryTree = async function() {
     const container = document.getElementById('network-tree');
     if (!container) {
+        console.error('❌ Network tree container not found');
         return;
     }
     
     // جلوگیری از رندر همزمان
     if (isRenderingTree) {
+        console.log('⏳ Tree rendering already in progress, skipping...');
         return;
     }
     
     try {
         isRenderingTree = true;
+        console.log('🔄 Starting network tree render...');
         
+        // بررسی اتصال کیف پول
         const { contract, address } = await window.connectWallet();
         if (!contract || !address) {
-            throw new Error('No wallet connection available');
+            throw new Error('اتصال کیف پول در دسترس نیست');
         }
         
+        console.log('✅ Wallet connected:', address);
+        
+        // بررسی کاربر
         const user = await contract.users(address);
-        
         if (!user || !user.index) {
-            throw new Error('User not found or not registered');
+            throw new Error('کاربر پیدا نشد یا ثبت‌نام نشده است');
         }
+        
+        console.log('✅ User found, index:', user.index);
         
         // نمایش وضعیت بارگذاری
         container.innerHTML = '<div style="color:#00ccff;text-align:center;padding:2rem;">🔄 در حال بارگذاری درخت شبکه...</div>';
@@ -309,12 +317,25 @@ window.renderSimpleBinaryTree = async function() {
         lastRenderedIndex = user.index;
         lastRenderedTime = Date.now();
         
+        console.log('✅ Network tree rendered successfully');
+        
     } catch (error) {
-        console.error('Error rendering binary tree:', error);
+        console.error('❌ Error rendering binary tree:', error);
         container.innerHTML = `
             <div style="color:#ff4444;text-align:center;padding:2rem;">
                 ❌ خطا در بارگذاری درخت شبکه<br>
                 <small style="color:#ccc;">${error.message}</small>
+                <br><br>
+                <button onclick="window.renderSimpleBinaryTree()" style="
+                    background: linear-gradient(135deg, #00ff88, #00cc66);
+                    color: #232946;
+                    border: none;
+                    padding: 0.8rem 1.5rem;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    margin-top: 1rem;
+                ">🔄 تلاش مجدد</button>
             </div>
         `;
     } finally {
@@ -336,6 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const networkTab = document.getElementById('tab-network-btn');
     if (networkTab) {
         networkTab.addEventListener('click', function() {
+            console.log('🔄 Network tab clicked, initializing...');
             setTimeout(() => {
                 if (typeof window.initializeNetworkTab === 'function') {
                     window.initializeNetworkTab();
@@ -347,11 +369,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // بررسی اینکه آیا در تب network هستیم و شبکه رندر نشده
     const networkSection = document.getElementById('main-network');
     if (networkSection && networkSection.style.display !== 'none') {
+        console.log('🔄 Network section visible on load, initializing...');
         setTimeout(() => {
             if (typeof window.initializeNetworkTab === 'function') {
                 window.initializeNetworkTab();
             }
         }, 1000);
+    }
+    
+    // اضافه کردن event listener برای تغییر visibility
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                const visibleNetworkSection = document.getElementById('main-network');
+                if (visibleNetworkSection && visibleNetworkSection.style.display !== 'none') {
+                    console.log('🔄 Network section became visible, initializing...');
+                    setTimeout(() => {
+                        if (typeof window.initializeNetworkTab === 'function') {
+                            window.initializeNetworkTab();
+                        }
+                    }, 500);
+                }
+            }
+        });
+    });
+    
+    // observe کردن تغییرات در main-network
+    if (networkSection) {
+        observer.observe(networkSection, { attributes: true, attributeFilter: ['style'] });
     }
 });
 
@@ -411,26 +456,50 @@ window.initializeNetworkTab = async function() {
     // نمایش وضعیت بارگذاری
     container.innerHTML = '<div style="color:#00ccff;text-align:center;padding:2rem;">🔄 در حال بارگذاری درخت شبکه...</div>';
     
-    // کمی صبر کن تا UI کاملاً لود شود
-    setTimeout(async () => {
+    // retry logic
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    const tryRender = async () => {
         try {
             if (typeof window.renderSimpleBinaryTree === 'function') {
-                console.log('🔄 Calling renderSimpleBinaryTree...');
+                console.log(`🔄 Attempt ${retryCount + 1} to render network tree...`);
                 await window.renderSimpleBinaryTree();
             } else {
                 console.error('❌ renderSimpleBinaryTree function not found');
                 container.innerHTML = '<div style="color:#ff4444;text-align:center;padding:2rem;">❌ تابع رندر شبکه پیدا نشد</div>';
             }
         } catch (error) {
-            console.error('❌ Error initializing network tab:', error);
-            container.innerHTML = `
-                <div style="color:#ff4444;text-align:center;padding:2rem;">
-                    ❌ خطا در بارگذاری درخت شبکه<br>
-                    <small style="color:#ccc;">${error.message}</small>
-                </div>
-            `;
+            console.error(`❌ Error initializing network tab (attempt ${retryCount + 1}):`, error);
+            retryCount++;
+            
+            if (retryCount < maxRetries) {
+                console.log(`🔄 Retrying in 2 seconds... (${retryCount}/${maxRetries})`);
+                setTimeout(tryRender, 2000);
+            } else {
+                container.innerHTML = `
+                    <div style="color:#ff4444;text-align:center;padding:2rem;">
+                        ❌ خطا در بارگذاری درخت شبکه<br>
+                        <small style="color:#ccc;">${error.message}</small>
+                        <br><br>
+                        <button onclick="window.initializeNetworkTab()" style="
+                            background: linear-gradient(135deg, #00ff88, #00cc66);
+                            color: #232946;
+                            border: none;
+                            padding: 0.8rem 1.5rem;
+                            border-radius: 8px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            margin-top: 1rem;
+                        ">🔄 تلاش مجدد</button>
+                    </div>
+                `;
+            }
         }
-    }, 1000);
+    };
+    
+    // کمی صبر کن تا UI کاملاً لود شود
+    setTimeout(tryRender, 1000);
 };
 
 function getReferrerFromURL() {
@@ -740,3 +809,24 @@ window.refreshNetworkTab = function() {
 
 // حذف توابع تست و دکمه‌های تست
 // (تابع testNetworkContainer، testNetworkRender، testNetworkFromConsole و فراخوانی‌های آن‌ها حذف شد) 
+
+// تابع force render برای رندر اجباری شبکه
+window.forceRenderNetwork = async function() {
+    console.log('🔄 Force rendering network tree...');
+    
+    // reset کردن متغیرها
+    isRenderingTree = false;
+    lastRenderedIndex = null;
+    lastRenderedTime = 0;
+    
+    // پاک کردن container
+    const container = document.getElementById('network-tree');
+    if (container) {
+        container.innerHTML = '';
+    }
+    
+    // تلاش برای رندر
+    if (typeof window.renderSimpleBinaryTree === 'function') {
+        await window.renderSimpleBinaryTree();
+    }
+}; 
