@@ -117,112 +117,317 @@ function showUserPopup(address, user) {
 }
 
 async function renderNodeLazy(index, container) {
-    const { contract } = await window.connectWallet();
-    let address = await contract.indexToAddress(index);
-    if (!address || address === '0x0000000000000000000000000000000000000000') {
-        renderEmptyNode(index, container);
-        return;
-    }
-    let user = await contract.users(address);
-    // ساخت ادمک
-    let nodeDiv = document.createElement('div');
-    nodeDiv.style.display = 'flex';
-    nodeDiv.style.flexDirection = 'column';
-    nodeDiv.style.alignItems = 'center';
-    nodeDiv.style.margin = '0.5em';
-    nodeDiv.style.cursor = 'pointer';
-    nodeDiv.style.position = 'relative';
-    
-    // تولید CPA ID
-    const cpaId = window.generateCPAId ? window.generateCPAId(user.index) : user.index;
-    
-    nodeDiv.innerHTML = `<div style='font-size:2.2em;'>👤</div><div style='font-size:0.9em;color:#00ff88;'>${cpaId}</div><div style='font-size:0.8em;'>${shortAddress(address)}</div>`;
-    // دکمه expand/collapse
-    let expandBtn = document.createElement('button');
-    expandBtn.textContent = '+';
-    expandBtn.style.marginTop = '0.3em';
-    expandBtn.style.fontSize = '1em';
-    expandBtn.style.background = '#232946';
-    expandBtn.style.color = '#00ff88';
-    expandBtn.style.border = 'none';
-    expandBtn.style.borderRadius = '6px';
-    expandBtn.style.cursor = 'pointer';
-    nodeDiv.appendChild(expandBtn);
-    // container برای فرزندان
-    let childrenDiv = document.createElement('div');
-    childrenDiv.style.display = 'none';
-    childrenDiv.style.justifyContent = 'center';
-    childrenDiv.style.gap = '2em';
-    nodeDiv.appendChild(childrenDiv);
-    // مدیریت expand/collapse
-    let expanded = false;
-    expandBtn.onclick = async function(e) {
-        e.stopPropagation();
-        if (!expanded) {
-            expandBtn.textContent = '-';
-            childrenDiv.style.display = 'flex';
-            if (!childrenDiv.hasChildNodes()) {
-                await renderNodeLazy(index * 2n, childrenDiv);
-                await renderNodeLazy(index * 2n + 1n, childrenDiv);
-            }
-            expanded = true;
-        } else {
-            expandBtn.textContent = '+';
-            childrenDiv.style.display = 'none';
-            expanded = false;
+    try {
+        const { contract } = await window.connectWallet();
+        if (!contract) {
+            throw new Error('No contract connection available');
         }
-    };
-    // نمایش popup struct با کلیک روی ادمک (نه دکمه)
-    nodeDiv.querySelector('div').onclick = (e) => {
-        e.stopPropagation();
-        showUserPopup(address, user);
-    };
-    container.appendChild(nodeDiv);
+        
+        let address = await contract.indexToAddress(index);
+        if (!address || address === '0x0000000000000000000000000000000000000000') {
+            renderEmptyNode(index, container);
+            return;
+        }
+        
+        let user = await contract.users(address);
+        if (!user) {
+            renderEmptyNode(index, container);
+            return;
+        }
+        
+        // ساخت گره ساده
+        let nodeDiv = document.createElement('div');
+        nodeDiv.style.display = 'flex';
+        nodeDiv.style.flexDirection = 'column';
+        nodeDiv.style.alignItems = 'center';
+        nodeDiv.style.margin = '0.5em';
+        nodeDiv.style.cursor = 'pointer';
+        nodeDiv.style.position = 'relative';
+        nodeDiv.style.background = 'transparent';
+        nodeDiv.style.border = 'none';
+        nodeDiv.style.padding = '0.5em';
+        nodeDiv.style.transition = 'all 0.3s ease';
+        
+        // تولید CPA ID
+        const cpaId = window.generateCPAId ? window.generateCPAId(user.index) : user.index;
+        
+        // فقط ادمک و ایندکس
+        nodeDiv.innerHTML = `
+            <div style='font-size:2.2em;'>👤</div>
+            <div style='font-size:0.9em;color:#00ff88;'>${cpaId}</div>
+        `;
+        
+        // دکمه expand/collapse
+        let expandBtn = document.createElement('button');
+        expandBtn.textContent = '+';
+        expandBtn.style.marginTop = '0.3em';
+        expandBtn.style.fontSize = '1em';
+        expandBtn.style.background = '#232946';
+        expandBtn.style.color = '#00ff88';
+        expandBtn.style.border = 'none';
+        expandBtn.style.borderRadius = '6px';
+        expandBtn.style.cursor = 'pointer';
+        expandBtn.style.padding = '0.3em 0.6em';
+        expandBtn.style.transition = 'all 0.3s ease';
+        nodeDiv.appendChild(expandBtn);
+        
+        // container برای فرزندان
+        let childrenDiv = document.createElement('div');
+        childrenDiv.style.display = 'none';
+        childrenDiv.style.justifyContent = 'center';
+        childrenDiv.style.gap = '2em';
+        childrenDiv.style.marginTop = '1em';
+        childrenDiv.setAttribute('data-index', index.toString());
+        nodeDiv.appendChild(childrenDiv);
+        
+        // مدیریت expand/collapse
+        let expanded = false;
+        expandBtn.onclick = async function(e) {
+            e.stopPropagation();
+            if (!expanded) {
+                expandBtn.textContent = '-';
+                expandBtn.style.background = '#00ff88';
+                expandBtn.style.color = '#232946';
+                childrenDiv.style.display = 'flex';
+                if (!childrenDiv.hasChildNodes()) {
+                    try {
+                        console.log('🔄 Expanding node:', index.toString());
+                        await renderNodeLazy(index * 2n, childrenDiv);
+                        await renderNodeLazy(index * 2n + 1n, childrenDiv);
+                        console.log('✅ Node expanded:', index.toString());
+                    } catch (error) {
+                        console.warn('Error rendering child nodes:', error);
+                    }
+                }
+                expanded = true;
+            } else {
+                expandBtn.textContent = '+';
+                expandBtn.style.background = '#232946';
+                expandBtn.style.color = '#00ff88';
+                childrenDiv.style.display = 'none';
+                expanded = false;
+            }
+        };
+        
+        // نمایش popup struct با کلیک روی ادمک
+        nodeDiv.querySelector('div').onclick = (e) => {
+            e.stopPropagation();
+            showUserPopup(address, user);
+        };
+        
+        // hover effects ساده
+        nodeDiv.onmouseover = function() {
+            this.style.transform = 'scale(1.02)';
+        };
+        
+        nodeDiv.onmouseout = function() {
+            this.style.transform = 'scale(1)';
+        };
+        
+        container.appendChild(nodeDiv);
+        
+    } catch (error) {
+        console.warn('Error rendering node:', error);
+        renderEmptyNode(index, container);
+    }
 }
 
 // تابع رندر گره خالی (علامت سؤال)
 function renderEmptyNode(index, container) {
-    const emptyNode = document.createElement('span');
+    const emptyNode = document.createElement('div');
     emptyNode.className = 'empty-node';
     emptyNode.setAttribute('data-index', index);
-    emptyNode.textContent = '❓';
-    emptyNode.style.cursor = 'pointer';
+    emptyNode.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0.5em;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        padding: 0.5em;
+        transition: all 0.3s ease;
+        opacity: 0.7;
+    `;
+    emptyNode.innerHTML = `
+        <div style="font-size:2.2em;opacity:0.5;pointer-events:none;">❓</div>
+    `;
     emptyNode.title = 'ثبت‌نام زیرمجموعه جدید';
+    
+    // hover effects ساده
+    emptyNode.onmouseover = function() {
+        this.style.opacity = '1';
+        this.style.transform = 'scale(1.02)';
+    };
+    
+    emptyNode.onmouseout = function() {
+        this.style.opacity = '0.7';
+        this.style.transform = 'scale(1)';
+    };
+    
     container.appendChild(emptyNode);
 }
 
+// متغیر برای جلوگیری از رندر همزمان
+let isRenderingTree = false;
+let lastRenderedIndex = null;
+let lastRenderedTime = 0;
+
 window.renderSimpleBinaryTree = async function() {
     const container = document.getElementById('network-tree');
-    if (!container) return;
-    container.innerHTML = '';
+    if (!container) {
+        console.warn('Network tree container not found');
+        return;
+    }
+    
+    // جلوگیری از رندر همزمان و مکرر
+    if (isRenderingTree) {
+        console.log('🔄 Tree rendering already in progress, skipping...');
+        return;
+    }
+    
+    // جلوگیری از رندر مکرر در زمان کوتاه
+    const now = Date.now();
+    if (now - lastRenderedTime < 2000) { // حداقل 2 ثانیه بین رندرها
+        console.log('🔄 Tree rendered recently, skipping...');
+        return;
+    }
+    
+    // Debug: نمایش stack trace برای فهمیدن از کجا فراخوانی شده
+    console.log('🔄 renderSimpleBinaryTree called from:', new Error().stack);
+    
     try {
+        isRenderingTree = true;
+        lastRenderedTime = now;
+        console.log('🔄 Starting to render binary tree...');
+        
         const { contract, address } = await window.connectWallet();
+        if (!contract || !address) {
+            throw new Error('No wallet connection available');
+        }
+        
+        console.log('✅ Wallet connected, getting user data...');
         const user = await contract.users(address);
-        const index = user.index;
-        await renderNodeLazy(BigInt(index), container);
-    } catch (e) {
-        container.innerHTML = '<div style="color:#ff4444">خطا در بارگذاری درخت</div>';
+        
+        if (!user || !user.index) {
+            throw new Error('User not found or not registered');
+        }
+        
+        // بررسی اینکه آیا این index قبلاً رندر شده است
+        if (lastRenderedIndex === user.index) {
+            console.log('🔄 Same index already rendered, skipping...');
+            return;
+        }
+        
+        console.log('✅ User data retrieved, index:', user.index);
+        
+        // نمایش وضعیت بارگذاری
+        container.innerHTML = '<div style="color:#00ccff;text-align:center;padding:2rem;">🔄 در حال بارگذاری درخت شبکه...</div>';
+        
+        // پاک کردن container
+        container.innerHTML = '';
+        
+        // رندر کردن گره اصلی
+        await renderNodeLazy(BigInt(user.index), container);
+        
+        // ذخیره index رندر شده
+        lastRenderedIndex = user.index;
+        
+        console.log('✅ Binary tree rendered successfully');
+        
+        // نمایش پیام موفقیت
+        if (typeof window.showSuccessMessage === 'function') {
+            window.showSuccessMessage('درخت باینری با موفقیت به‌روزرسانی شد');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error rendering binary tree:', error);
+        container.innerHTML = `
+            <div style="color:#ff4444;text-align:center;padding:2rem;">
+                ❌ خطا در بارگذاری درخت شبکه<br>
+                <small style="color:#ccc;">${error.message}</small>
+            </div>
+        `;
+        
+        // نمایش پیام خطا
+        if (typeof window.showErrorMessage === 'function') {
+            window.showErrorMessage('خطا در بارگذاری درخت باینری');
+        }
+    } finally {
+        isRenderingTree = false;
     }
 };
 
-if (typeof window.showTab === 'function') {
-    const origShowTab = window.showTab;
-    window.showTab = async function(tab) {
-        await origShowTab.apply(this, arguments);
-        if (tab === 'network') {
-            setTimeout(() => window.renderSimpleBinaryTree(), 500);
-        }
-    };
-}
+// حذف event listener اضافی که باعث رندر مکرر می‌شود
+// این بخش حذف شد چون در tabs.js و main.js event listener های مناسب وجود دارد
 
 // اطمینان از اتصال توابع به window برای نمایش شبکه
 if (typeof renderSimpleBinaryTree === 'function') {
     window.renderSimpleBinaryTree = renderSimpleBinaryTree;
 }
-window.initializeNetworkTab = async function() {
-    if (typeof window.renderSimpleBinaryTree === 'function') {
-        await window.renderSimpleBinaryTree();
+
+// تابع رفرش درخت باینری بعد از تایید متامسک
+window.refreshBinaryTreeAfterMetaMask = async function() {
+    try {
+        console.log('🔄 Refreshing binary tree after MetaMask approval...');
+        
+        // پاک کردن کامل درخت و reset متغیرها
+        if (typeof window.clearBinaryTree === 'function') {
+            window.clearBinaryTree();
+        }
+        
+        // کمی صبر کن تا اتصال برقرار شود
+        setTimeout(async () => {
+            try {
+                if (typeof window.renderSimpleBinaryTree === 'function') {
+                    // force render با reset کردن متغیرها
+                    lastRenderedIndex = null;
+                    lastRenderedTime = 0;
+                    await window.renderSimpleBinaryTree();
+                    console.log('✅ Binary tree refreshed after MetaMask approval');
+                    
+                    // نمایش پیام موفقیت
+                    if (typeof window.showSuccessMessage === 'function') {
+                        window.showSuccessMessage('درخت باینری با موفقیت به‌روزرسانی شد');
+                    }
+                }
+            } catch (error) {
+                console.warn('Error refreshing binary tree after MetaMask approval:', error);
+                
+                // نمایش پیام خطا
+                if (typeof window.showErrorMessage === 'function') {
+                    window.showErrorMessage('خطا در به‌روزرسانی درخت باینری');
+                }
+            }
+        }, 2000); // 2 ثانیه صبر کن
+        
+    } catch (error) {
+        console.warn('Error in refreshBinaryTreeAfterMetaMask:', error);
     }
+};
+
+// تابع پاک کردن کامل درخت
+window.clearBinaryTree = function() {
+    const container = document.getElementById('network-tree');
+    if (container) {
+        container.innerHTML = '';
+        console.log('✅ Binary tree cleared');
+    }
+    lastRenderedIndex = null;
+    isRenderingTree = false;
+    lastRenderedTime = 0; // reset time counter
+};
+
+window.initializeNetworkTab = async function() {
+    // پاک کردن درخت قبل از رندر جدید
+    window.clearBinaryTree();
+    
+    // کمی صبر کن تا UI کاملاً لود شود
+    setTimeout(async () => {
+        if (typeof window.renderSimpleBinaryTree === 'function') {
+            await window.renderSimpleBinaryTree();
+        }
+    }, 500);
 };
 
 function getReferrerFromURL() {
@@ -490,8 +695,17 @@ function showRegisterModal(parentIndex, parentAddress) {
 
 // هندل کلیک روی علامت سؤال (گره خالی)
 document.addEventListener('click', function(e) {
-  if (e.target.classList.contains('empty-node')) {
-    const parentIndex = e.target.getAttribute('data-index');
+  // بررسی کلیک روی خود عنصر یا فرزندان آن
+  let targetElement = e.target;
+  while (targetElement && !targetElement.classList.contains('empty-node')) {
+    targetElement = targetElement.parentElement;
+  }
+  
+  if (targetElement && targetElement.classList.contains('empty-node')) {
+    console.log('Empty node clicked:', targetElement);
+    const parentIndex = targetElement.getAttribute('data-index');
+    console.log('Parent index:', parentIndex);
+    
     (async function() {
       try {
         const { contract } = await window.connectWallet();
@@ -505,8 +719,10 @@ document.addEventListener('click', function(e) {
           // فقط اگر آدرس صفر بود، ثبت‌نام مجاز نیست
           return;
         }
+        console.log('Showing register modal for index:', parentIndex, 'referrer:', referrerAddress);
         showRegisterModal(parentIndex, referrerAddress); // معرف = آدرس گره والد واقعی
       } catch (e) {
+        console.error('Error handling empty node click:', e);
         alert('خطا در دریافت آدرس معرف: ' + (e && e.message ? e.message : e));
       }
     })();

@@ -143,6 +143,9 @@ window.navigateToPage = function(pageUrl) {
   }, 300);
 };
 window.showTab = async function(tab) {
+  // ذخیره تب فعال در localStorage
+  localStorage.setItem('currentActiveTab', tab);
+  
   // Check if user is activated for restricted tabs
   const restrictedTabs = ['shop', 'reports', 'learning', 'news'];
   if (restrictedTabs.includes(tab)) {
@@ -235,9 +238,13 @@ window.showTab = async function(tab) {
 
 // Check user status on page load and redirect if needed
 window.checkUserAccessOnLoad = async function() {
-  // Get current tab from URL or default
+  // بازیابی تب فعال از localStorage
+  const savedTab = localStorage.getItem('currentActiveTab');
   const urlParams = new URLSearchParams(window.location.search);
-  const currentTab = urlParams.get('tab') || 'network';
+  const urlTab = urlParams.get('tab');
+  
+  // اولویت: URL parameter > localStorage > default
+  const currentTab = urlTab || savedTab || 'network';
   
   const restrictedTabs = ['shop', 'reports', 'learning', 'news'];
   if (restrictedTabs.includes(currentTab)) {
@@ -252,24 +259,44 @@ window.checkUserAccessOnLoad = async function() {
           setTimeout(() => {
             showRegistrationPrompt();
           }, 1000);
+        } else {
+          // کاربر فعال است، تب ذخیره شده را نمایش بده
+          if (typeof window.showTab === 'function') {
+            window.showTab(currentTab);
+          }
+        }
+      } else {
+        // اگر getUserProfile موجود نیست، تب ذخیره شده را نمایش بده
+        if (typeof window.showTab === 'function') {
+          window.showTab(currentTab);
         }
       }
     } catch (error) {
       console.warn('Could not check user status on load:', error);
+      // در صورت خطا، تب ذخیره شده را نمایش بده
+      if (typeof window.showTab === 'function') {
+        window.showTab(currentTab);
+      }
+    }
+  } else {
+    // تب محدود نیست، مستقیماً نمایش بده
+    if (typeof window.showTab === 'function') {
+      window.showTab(currentTab);
     }
   }
 };
 
 // Run access check when page loads
 document.addEventListener('DOMContentLoaded', function() {
-  // بازیابی تب فعال از localStorage
-  const activeTab = localStorage.getItem('activeTab');
-  if (activeTab) {
-    window.showTab(activeTab);
+  // بررسی تب فعال از localStorage قدیمی (برای سازگاری)
+  const oldActiveTab = localStorage.getItem('activeTab');
+  if (oldActiveTab) {
+    localStorage.setItem('currentActiveTab', oldActiveTab);
     localStorage.removeItem('activeTab');
-  } else {
-    setTimeout(() => {
-      window.checkUserAccessOnLoad();
-    }, 2000); // Wait for user profile to load
   }
+  
+  // اجرای بررسی دسترسی با کمی تاخیر
+  setTimeout(() => {
+    window.checkUserAccessOnLoad();
+  }, 1000); // Wait for user profile to load
 }); 

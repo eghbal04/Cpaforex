@@ -1541,6 +1541,9 @@
   };
 
   window.showTab = async function(tab) {
+      // ذخیره تب فعال در localStorage
+      localStorage.setItem('currentActiveTab', tab);
+      
       // بستن منوی همبرگری
       const menu = document.getElementById('hamburgerMenu');
       if (menu) {
@@ -1600,12 +1603,10 @@
       try {
         switch(tab) {
           case 'network':
-            if (typeof window.initializeNetworkTab === 'function') {
-              await window.initializeNetworkTab();
-            } else {
-              if (typeof updateNetworkStats === 'function') await updateNetworkStats();
-              if (typeof renderNetworkTree === 'function') await renderNetworkTree();
-            }
+            // حذف فراخوانی مکرر initializeNetworkTab
+            // این تابع فقط در tabs.js فراخوانی می‌شود
+            if (typeof updateNetworkStats === 'function') await updateNetworkStats();
+            if (typeof renderNetworkTree === 'function') await renderNetworkTree();
             break;
           case 'profile':
             if (typeof loadUserProfile === 'function') await loadUserProfile();
@@ -1634,6 +1635,15 @@
     document.addEventListener('DOMContentLoaded', function() {
       var archiveBtn = Array.from(document.querySelectorAll('button, a')).find(el => el.textContent.includes('آرشیو بازارهای مالی'));
       if (archiveBtn) archiveBtn.remove();
+      
+      // بازیابی تب فعال از localStorage
+      const savedTab = localStorage.getItem('currentActiveTab');
+      if (savedTab && typeof window.showTab === 'function') {
+        // کمی صبر کن تا صفحه کاملاً لود شود
+        setTimeout(() => {
+          window.showTab(savedTab);
+        }, 1000);
+      }
     });
   </script>
 

@@ -4,7 +4,7 @@ const deepseek_api ='sk-6074908ce7954bd89d494d57651392a8';
 
 // تنظیمات قرارداد LevelUp
 
-const CONTRACT_ADDRESS = '0xF1aA1e8aD630869B017581dFFFb4d87241027578';
+const CONTRACT_ADDRESS = '0x99524CfD5Aa152eB7A89E02b9cbf6Fa899964F17';
 
 const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'; // Polygon USDC
 const USDC_ABI =[
@@ -2640,6 +2640,15 @@ window.connectWallet = async function() {
                 // راه‌اندازی Web3
                 const result = await window.contractConfig.initializeWeb3();
                 if (result && result.contract && result.address) {
+                    // رفرش شبکه بعد از اتصال موفق
+                    setTimeout(async () => {
+                        try {
+                            await window.refreshNetworkAfterConnection(result);
+                        } catch (error) {
+                            console.warn('Error refreshing network data after connection:', error);
+                        }
+                    }, 1000); // 1 ثانیه صبر کن
+                    
                     return {
                         contract: result.contract,
                         address: result.address,
@@ -2679,6 +2688,209 @@ window.connectWallet = async function() {
         
         throw lastError;
     });
+};
+
+// تابع رفرش شبکه بعد از اتصال کیف پول
+window.refreshNetworkAfterConnection = async function(connection) {
+    try {
+        console.log('🔄 Refreshing network after connection...');
+        
+        // رفرش آمار شبکه
+        if (typeof window.loadNetworkStats === 'function' && connection && connection.contract) {
+            await window.loadNetworkStats(connection.contract);
+            console.log('✅ Network stats refreshed');
+        }
+        
+        // رفرش درخت شبکه
+        if (typeof window.renderSimpleBinaryTree === 'function') {
+            console.log('🔄 Refreshing binary tree...');
+            await window.renderSimpleBinaryTree();
+            console.log('✅ Binary tree refreshed');
+        } else if (typeof window.renderNetworkTree === 'function') {
+            await window.renderNetworkTree();
+            console.log('✅ Network tree refreshed');
+        }
+        
+        // رفرش پروفایل کاربر
+        if (typeof window.loadUserProfile === 'function') {
+            await window.loadUserProfile();
+            console.log('✅ User profile refreshed');
+        }
+        
+        // رفرش موجودی‌های ترنسفر
+        if (typeof window.updateTransferBalancesOnConnect === 'function') {
+            await window.updateTransferBalancesOnConnect();
+            console.log('✅ Transfer balances refreshed');
+        }
+        
+        // رفرش داده‌های سواپ
+        if (window.swapManager && typeof window.swapManager.refreshSwapData === 'function') {
+            await window.swapManager.refreshSwapData();
+            console.log('✅ Swap data refreshed');
+        }
+        
+        console.log('✅ Network refresh completed successfully');
+        
+    } catch (error) {
+        console.warn('Error refreshing network data:', error);
+    }
+};
+
+// تابع نمایش پیام موفقیت
+window.showSuccessMessage = function(message) {
+    try {
+        // ایجاد عنصر پیام
+        const messageElement = document.createElement('div');
+        messageElement.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #181c2a;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,255,136,0.3);
+            border: 1px solid rgba(0,255,136,0.5);
+            max-width: 300px;
+            word-wrap: break-word;
+            animation: slideInRight 0.5s ease;
+        `;
+        messageElement.textContent = message;
+        messageElement.id = 'success-message';
+        
+        // اضافه کردن CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // حذف پیام قبلی اگر وجود دارد
+        const existingMessage = document.getElementById('success-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        document.body.appendChild(messageElement);
+        
+        // حذف خودکار بعد از 5 ثانیه
+        setTimeout(() => {
+            if (messageElement.parentNode) {
+                messageElement.style.animation = 'slideOutRight 0.5s ease';
+                setTimeout(() => {
+                    if (messageElement.parentNode) {
+                        messageElement.remove();
+                    }
+                }, 500);
+            }
+        }, 5000);
+        
+    } catch (error) {
+        console.warn('Error showing success message:', error);
+    }
+};
+
+// تابع نمایش پیام خطا
+window.showErrorMessage = function(message) {
+    try {
+        // ایجاد عنصر پیام
+        const messageElement = document.createElement('div');
+        messageElement.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            color: #ffffff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(255,68,68,0.3);
+            border: 1px solid rgba(255,68,68,0.5);
+            max-width: 300px;
+            word-wrap: break-word;
+            animation: slideInRight 0.5s ease;
+        `;
+        messageElement.textContent = message;
+        messageElement.id = 'error-message';
+        
+        // حذف پیام قبلی اگر وجود دارد
+        const existingMessage = document.getElementById('error-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        document.body.appendChild(messageElement);
+        
+        // حذف خودکار بعد از 5 ثانیه
+        setTimeout(() => {
+            if (messageElement.parentNode) {
+                messageElement.style.animation = 'slideOutRight 0.5s ease';
+                setTimeout(() => {
+                    if (messageElement.parentNode) {
+                        messageElement.remove();
+                    }
+                }, 500);
+            }
+        }, 5000);
+        
+    } catch (error) {
+        console.warn('Error showing error message:', error);
+    }
+};
+
+// تابع رفرش شبکه بعد از تایید متامسک
+window.refreshNetworkAfterMetaMaskApproval = async function() {
+    try {
+        console.log('🔄 Refreshing network after MetaMask approval...');
+        
+        // نمایش پیام موفقیت
+        if (typeof window.showSuccessMessage === 'function') {
+            window.showSuccessMessage('کیف پول با موفقیت متصل شد و شبکه رفرش شد');
+        }
+        
+        // کمی صبر کن تا اتصال برقرار شود
+        setTimeout(async () => {
+            try {
+                const connection = await window.connectWallet();
+                if (connection) {
+                    await window.refreshNetworkAfterConnection(connection);
+                    console.log('✅ Network refreshed after MetaMask approval');
+                    
+                    // رفرش مخصوص درخت باینری
+                    if (typeof window.refreshBinaryTreeAfterMetaMask === 'function') {
+                        console.log('🔄 Refreshing binary tree specifically...');
+                        await window.refreshBinaryTreeAfterMetaMask();
+                        console.log('✅ Binary tree refreshed after MetaMask approval');
+                    }
+                    
+                    // نمایش پیام موفقیت نهایی
+                    if (typeof window.showSuccessMessage === 'function') {
+                        window.showSuccessMessage('شبکه و درخت باینری با موفقیت به‌روزرسانی شد');
+                    }
+                }
+            } catch (error) {
+                console.warn('Error refreshing network after MetaMask approval:', error);
+                
+                // نمایش پیام خطا
+                if (typeof window.showErrorMessage === 'function') {
+                    window.showErrorMessage('خطا در به‌روزرسانی شبکه');
+                }
+            }
+        }, 3000); // 3 ثانیه صبر کن
+        
+    } catch (error) {
+        console.warn('Error in refreshNetworkAfterMetaMaskApproval:', error);
+    }
 };
 
 // تابع پاک کردن کش اتصال
@@ -2740,6 +2952,18 @@ if (typeof window.ethereum !== 'undefined') {
                                 }
                             }
                         }
+                        
+                        // رفرش شبکه بعد از تغییر حساب کاربر
+                        const connection = await window.connectWallet();
+                        if (connection) {
+                            await window.refreshNetworkAfterConnection(connection);
+                        }
+                        
+                        // فراخوانی تابع رفرش بعد از تایید متامسک
+                        setTimeout(() => {
+                            window.refreshNetworkAfterMetaMaskApproval();
+                        }, 1000); // 1 ثانیه صبر کن
+                        
                     } catch (error) {
                         console.log('Could not check user status after account change:', error);
                     }
@@ -2751,9 +2975,29 @@ if (typeof window.ethereum !== 'undefined') {
     });
     
     // پاک کردن کش هنگام تغییر شبکه
-    window.ethereum.on('chainChanged', function (chainId) {
+    window.ethereum.on('chainChanged', async function (chainId) {
         console.log('MetaMask chain changed:', chainId);
         window.clearConnectionCache();
+        
+        // رفرش شبکه بعد از تغییر شبکه
+        if (chainId === '0x89') { // Polygon network
+            try {
+                // کمی صبر کن تا اتصال جدید برقرار شود
+                setTimeout(async () => {
+                    try {
+                        const connection = await window.connectWallet();
+                        if (connection) {
+                            await window.refreshNetworkAfterConnection(connection);
+                        }
+                    } catch (error) {
+                        console.warn('Error refreshing network data after chain change:', error);
+                    }
+                }, 2000); // 2 ثانیه صبر کن
+                
+            } catch (error) {
+                console.warn('Error handling chain change:', error);
+            }
+        }
     });
     
     // پاک کردن کش هنگام قطع اتصال
@@ -2761,6 +3005,25 @@ if (typeof window.ethereum !== 'undefined') {
         console.log('MetaMask disconnected:', error);
         window.clearConnectionCache();
     });
+    
+    // رفرش شبکه هنگام اتصال مجدد
+    window.ethereum.on('connect', async function (connectInfo) {
+        console.log('MetaMask connected:', connectInfo);
+        
+        // کمی صبر کن تا اتصال جدید برقرار شود
+        setTimeout(async () => {
+            try {
+                const connection = await window.connectWallet();
+                if (connection) {
+                    await window.refreshNetworkAfterConnection(connection);
+                }
+            } catch (error) {
+                console.warn('Error refreshing network data after reconnection:', error);
+            }
+        }, 2000); // 2 ثانیه صبر کن
+    });
+    
+
 }
 
 // Global error handler for unhandled promise rejections

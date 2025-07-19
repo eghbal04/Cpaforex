@@ -844,7 +844,19 @@ window.showDirectRegistrationForm = async function() {
     }
 };
 
-document.addEventListener('DOMContentLoaded', lockTabsForDeactivatedUsers);
+document.addEventListener('DOMContentLoaded', async function() {
+    // ابتدا قفل‌ها را اعمال کن
+    await lockTabsForDeactivatedUsers();
+    
+    // بازیابی تب فعال از localStorage
+    const savedTab = localStorage.getItem('currentActiveTab');
+    if (savedTab && typeof window.showTab === 'function') {
+        // کمی صبر کن تا صفحه کاملاً لود شود
+        setTimeout(() => {
+            window.showTab(savedTab);
+        }, 500);
+    }
+});
 
 // تابع تست برای بررسی وضعیت قفل‌ها
 window.testLockStatus = async function() {
@@ -1963,6 +1975,9 @@ window.copyReferralLink = function(address) {
 };
 
 window.showTab = async function(tab) {
+      // ذخیره تب فعال در localStorage
+      localStorage.setItem('currentActiveTab', tab);
+      
       const tabs = ['network','profile','reports','swap','transfer','news','shop','learning','about','register'];
       tabs.forEach(function(name) {
         var mainEl = document.getElementById('main-' + name);
@@ -2009,11 +2024,9 @@ window.showTab = async function(tab) {
       try {
         switch(tab) {
           case 'network':
-            if (typeof window.initializeNetworkTab === 'function') {
-              await window.initializeNetworkTab();
-            } else {
-              if (typeof updateNetworkStats === 'function') await updateNetworkStats();
-            }
+            // حذف فراخوانی مکرر initializeNetworkTab
+            // این تابع فقط در tabs.js فراخوانی می‌شود
+            if (typeof updateNetworkStats === 'function') await updateNetworkStats();
             break;
           case 'profile':
             if (typeof window.loadUserProfile === 'function') await window.loadUserProfile();
@@ -3579,10 +3592,14 @@ window.refreshWalletConnection = async function() {
         if (connection && connection.contract && connection.address) {
             console.log('✅ Wallet connection refreshed successfully');
             
-            // به‌روزرسانی موجودی‌های ترنسفر
-            if (window.updateTransferBalancesOnConnect) {
-                await window.updateTransferBalancesOnConnect();
-            }
+            // رفرش شبکه بعد از اتصال مجدد
+            setTimeout(async () => {
+                try {
+                    await window.refreshNetworkAfterConnection(connection);
+                } catch (error) {
+                    console.warn('Error refreshing network data after wallet refresh:', error);
+                }
+            }, 1000); // 1 ثانیه صبر کن
             
             return connection;
         } else {
