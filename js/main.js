@@ -2692,25 +2692,34 @@ window.initializePermanentRegistrationForm = function() {
     // فرم ثبت‌نام
     form.onsubmit = async function(e) {
         e.preventDefault();
-        
+
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'در حال ثبت‌نام...';
+
         if (!window.contractConfig || !window.contractConfig.contract) {
             statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">لطفاً ابتدا کیف پول را متصل کنید</div>`;
+            registerBtn.disabled = false;
+            registerBtn.textContent = '🚀 ثبت‌نام';
             return;
         }
-        
+
         const userAddress = userAddressInput.value.trim();
         const referrerAddress = referrerAddressInput.value.trim();
-        
+
         if (!userAddress || !/^0x[a-fA-F0-9]{40}$/.test(userAddress)) {
             statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">آدرس کیف پول کاربر معتبر نیست</div>`;
+            registerBtn.disabled = false;
+            registerBtn.textContent = '🚀 ثبت‌نام';
             return;
         }
-        
+
         if (!referrerAddress || !/^0x[a-fA-F0-9]{40}$/.test(referrerAddress)) {
             statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">آدرس معرف معتبر نیست</div>`;
+            registerBtn.disabled = false;
+            registerBtn.textContent = '🚀 ثبت‌نام';
             return;
         }
-        
+
         try {
             registerBtn.textContent = 'در حال ثبت‌نام...';
             registerBtn.disabled = true;
