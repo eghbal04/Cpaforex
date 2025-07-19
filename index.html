@@ -488,10 +488,46 @@
   <div id="main-swap" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:none;">
     <div class="expand-header" style="padding:0 1.5rem;">
       <h2 style="margin:0 0 0.5rem 0;">🔄 تبدیل ارز</h2>
-      <p style="margin:0 0 0.5rem 0;">تبدیل بین توکن‌های POL و CPA</p>
+      <p style="margin:0 0 0.5rem 0;">تبدیل بین توکن‌های USDC و CPA</p>
     </div>
     <div class="expand-content" style="padding:0;">
       <div class="swap-container" style="max-width:600px;margin:0 auto;padding:1.5rem;">
+        
+        <!-- Swap Rules and Information -->
+        <div style="background:linear-gradient(135deg,#232946,#181c2a);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;border:2px solid #00ff88;">
+          <h3 style="color:#00ff88;margin-bottom:1rem;font-size:1.2rem;">📋 قوانین و راهنمای تبدیل</h3>
+          
+          <div style="margin-bottom:1rem;">
+            <h4 style="color:#00ff88;margin-bottom:0.5rem;">🔄 نحوه تبدیل:</h4>
+            <ul style="color:#b8c1ec;line-height:1.6;margin:0;padding-right:1rem;">
+              <li>✅ <strong style="color:#00ff88;">USDC → CPA:</strong> خرید توکن CPA با USDC (نرخ متغیر)</li>
+              <li>✅ <strong style="color:#00ff88;">CPA → USDC:</strong> فروش توکن CPA و دریافت USDC</li>
+              <li>✅ کارمزد تبدیل: 2% از مبلغ تبدیل</li>
+              <li>✅ حداقل مقدار تبدیل: 1 USDC یا 1 CPA</li>
+            </ul>
+          </div>
+          
+          <div style="margin-bottom:1rem;">
+            <h4 style="color:#00ff88;margin-bottom:0.5rem;">💰 مزایای تبدیل:</h4>
+            <ul style="color:#b8c1ec;line-height:1.6;margin:0;padding-right:1rem;">
+              <li><strong style="color:#00ff88;">CPA:</strong> توکن اصلی پلتفرم - برای سرمایه‌گذاری و کسب درآمد</li>
+              <li><strong style="color:#00ccff;">USDC:</strong> توکن استیبل - برای حفظ ارزش و معاملات روزانه</li>
+              <li>🔄 تبدیل فوری و بدون نیاز به تایید اضافی</li>
+              <li>📊 نرخ تبدیل بر اساس عرضه و تقاضا محاسبه می‌شود</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style="color:#00ff88;margin-bottom:0.5rem;">⚠️ نکات مهم:</h4>
+            <ul style="color:#b8c1ec;line-height:1.6;margin:0;padding-right:1rem;">
+              <li>🔍 قبل از تبدیل، نرخ فعلی را بررسی کنید</li>
+              <li>💰 موجودی کافی برای تبدیل + کارمزد داشته باشید</li>
+              <li>⏱️ تبدیل‌ها فوری انجام می‌شوند</li>
+              <li>📞 در صورت مشکل با پشتیبانی تماس بگیرید</li>
+            </ul>
+          </div>
+        </div>
+        
         <form id="swapForm" class="swap-form">
           <div class="swap-row">
             <label for="swapDirection">نوع تبدیل:</label>
@@ -499,6 +535,7 @@
               <option value="usdc-to-cpa">USDC → CPA</option>
               <option value="cpa-to-usdc">CPA → USDC</option>
             </select>
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">نوع تبدیل مورد نظر را انتخاب کنید</small>
           </div>
           
           <div class="swap-row">
@@ -507,9 +544,10 @@
               <input type="number" id="swapAmount" placeholder="مقدار را وارد کنید" min="0" step="any" required>
               <button type="button" id="maxBtn" class="max-btn">حداکثر</button>
             </div>
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">مقدار مورد نظر برای تبدیل را وارد کنید</small>
           </div>
           
-          <div id="swapRate" class="swap-rate">نرخ تبدیل: 1 POL = 2 CPA</div>
+          <div id="swapRate" class="swap-rate">نرخ تبدیل: در حال بارگذاری...</div>
           <div id="swapPreview" class="swap-preview"></div>
           <div id="swapLimitInfo" class="swap-limit-info" style="margin-top:0.5rem;color:#555;font-size:0.98em;"></div>
           
@@ -517,14 +555,18 @@
           <div id="swapStatus" class="swap-status"></div>
         </form>
         
-        <div class="swap-balances">
-          <div class="balance-item">
-            <span class="balance-label">موجودی CPA:</span>
-            <span class="balance-value" id="cpaBalance">-</span>
-          </div>
-          <div class="balance-item">
-            <span class="balance-label">موجودی USDC:</span>
-            <span class="balance-value" id="usdcBalance">-</span>
+        <!-- Balance Check -->
+        <div style="background:rgba(0,255,136,0.1);border-radius:8px;padding:1rem;margin-top:1.5rem;">
+          <h4 style="color:#00ff88;margin-bottom:0.8rem;">💰 موجودی فعلی شما:</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div style="text-align:center;">
+              <div style="color:#00ff88;font-weight:bold;">USDC</div>
+              <div id="usdcBalance" style="color:#b8c1ec;font-family:monospace;">-</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="color:#00ccff;font-weight:bold;">CPA</div>
+              <div id="cpaBalance" style="color:#b8c1ec;font-family:monospace;">-</div>
+            </div>
           </div>
         </div>
       </div>

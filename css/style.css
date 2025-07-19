@@ -6683,24 +6683,39 @@ body.signal-page { background: #181c2a; color: #fff; font-family: 'Noto Sans Ara
 }
 
 .swap-rate {
-  background: rgba(0, 255, 136, 0.1);
-  color: #00ff88;
-  padding: 0.8rem;
-  border-radius: 8px;
-  text-align: center;
+  background: rgba(0, 204, 255, 0.08);
+  color: #00ccff;
+  border: 2px solid #00ccff;
+  border-radius: 16px;
+  font-size: 1.08rem;
+  font-family: 'Noto Sans Mono', monospace;
   font-weight: bold;
-  border: 1px solid rgba(0, 255, 136, 0.3);
+  box-shadow: 0 2px 16px #00ccff22;
+  margin-bottom: 1rem;
+  padding: 1.2rem 1.5rem;
+  text-align: center;
+  letter-spacing: 0.01em;
 }
 
 .swap-preview {
-  background: rgba(167, 134, 255, 0.1);
+  background: rgba(167, 134, 255, 0.08);
   color: #a786ff;
-  padding: 0.8rem;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: bold;
-  border: 1px solid rgba(167, 134, 255, 0.3);
+  border: 2px solid #a786ff;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  font-family: 'Noto Sans Arabic', 'Nazanin', Tahoma, Arial, sans-serif;
+  font-weight: 600;
+  box-shadow: 0 2px 16px #a786ff22;
+  margin-bottom: 1rem;
+  padding: 1.2rem 1.5rem;
+  text-align: right;
   min-height: 1.2rem;
+}
+
+.swap-preview strong, .swap-preview .token-amount {
+  color: #00ff88;
+  font-family: 'Noto Sans Mono', monospace;
+  font-size: 1.08rem;
 }
 
 .swap-btn {
