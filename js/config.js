@@ -2693,43 +2693,32 @@ window.connectWallet = async function() {
 // تابع رفرش شبکه بعد از اتصال کیف پول
 window.refreshNetworkAfterConnection = async function(connection) {
     try {
-        console.log('🔄 Refreshing network after connection...');
-        
         // رفرش آمار شبکه
         if (typeof window.loadNetworkStats === 'function' && connection && connection.contract) {
             await window.loadNetworkStats(connection.contract);
-            console.log('✅ Network stats refreshed');
         }
         
         // رفرش درخت شبکه
         if (typeof window.renderSimpleBinaryTree === 'function') {
-            console.log('🔄 Refreshing binary tree...');
             await window.renderSimpleBinaryTree();
-            console.log('✅ Binary tree refreshed');
         } else if (typeof window.renderNetworkTree === 'function') {
             await window.renderNetworkTree();
-            console.log('✅ Network tree refreshed');
         }
         
         // رفرش پروفایل کاربر
         if (typeof window.loadUserProfile === 'function') {
             await window.loadUserProfile();
-            console.log('✅ User profile refreshed');
         }
         
         // رفرش موجودی‌های ترنسفر
         if (typeof window.updateTransferBalancesOnConnect === 'function') {
             await window.updateTransferBalancesOnConnect();
-            console.log('✅ Transfer balances refreshed');
         }
         
         // رفرش داده‌های سواپ
         if (window.swapManager && typeof window.swapManager.refreshSwapData === 'function') {
             await window.swapManager.refreshSwapData();
-            console.log('✅ Swap data refreshed');
         }
-        
-        console.log('✅ Network refresh completed successfully');
         
     } catch (error) {
         console.warn('Error refreshing network data:', error);
@@ -2851,8 +2840,6 @@ window.showErrorMessage = function(message) {
 // تابع رفرش شبکه بعد از تایید متامسک
 window.refreshNetworkAfterMetaMaskApproval = async function() {
     try {
-        console.log('🔄 Refreshing network after MetaMask approval...');
-        
         // نمایش پیام موفقیت
         if (typeof window.showSuccessMessage === 'function') {
             window.showSuccessMessage('کیف پول با موفقیت متصل شد و شبکه رفرش شد');
@@ -2864,13 +2851,10 @@ window.refreshNetworkAfterMetaMaskApproval = async function() {
                 const connection = await window.connectWallet();
                 if (connection) {
                     await window.refreshNetworkAfterConnection(connection);
-                    console.log('✅ Network refreshed after MetaMask approval');
                     
                     // رفرش مخصوص درخت باینری
                     if (typeof window.refreshBinaryTreeAfterMetaMask === 'function') {
-                        console.log('🔄 Refreshing binary tree specifically...');
                         await window.refreshBinaryTreeAfterMetaMask();
-                        console.log('✅ Binary tree refreshed after MetaMask approval');
                     }
                     
                     // نمایش پیام موفقیت نهایی
@@ -2886,7 +2870,7 @@ window.refreshNetworkAfterMetaMaskApproval = async function() {
                     window.showErrorMessage('خطا در به‌روزرسانی شبکه');
                 }
             }
-        }, 3000); // 3 ثانیه صبر کن
+        }, 3000);
         
     } catch (error) {
         console.warn('Error in refreshNetworkAfterMetaMaskApproval:', error);
@@ -4581,7 +4565,9 @@ saveActiveTab('networkTab'); // یا هر شناسه‌ای که دارید
 window.addEventListener('DOMContentLoaded', function() {
   const activeTab = localStorage.getItem('activeTab');
   if (activeTab) {
-    activateTab(activeTab); // تابع فعال‌سازی تب شما
+    if (typeof window.showTab === 'function') {
+      window.showTab(activeTab);
+    }
     localStorage.removeItem('activeTab');
   }
 });
@@ -4592,8 +4578,8 @@ saveActiveTab('networkTab');
 if (typeof updateDashboardStats === 'function') {
   updateDashboardStats();
 }
-if (typeof activateTab === 'function') {
-  activateTab('networkTab');
+if (typeof window.showTab === 'function') {
+  window.showTab('network');
 }
 
 // تابع تولید ID بر اساس ایندکس کاربر

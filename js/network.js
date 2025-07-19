@@ -191,10 +191,8 @@ async function renderNodeLazy(index, container) {
                 childrenDiv.style.display = 'flex';
                 if (!childrenDiv.hasChildNodes()) {
                     try {
-                        console.log('🔄 Expanding node:', index.toString());
                         await renderNodeLazy(index * 2n, childrenDiv);
                         await renderNodeLazy(index * 2n + 1n, childrenDiv);
-                        console.log('✅ Node expanded:', index.toString());
                     } catch (error) {
                         console.warn('Error rendering child nodes:', error);
                     }
@@ -276,13 +274,11 @@ let lastRenderedTime = 0;
 window.renderSimpleBinaryTree = async function() {
     const container = document.getElementById('network-tree');
     if (!container) {
-        console.warn('Network tree container not found');
         return;
     }
     
     // جلوگیری از رندر همزمان
     if (isRenderingTree) {
-        console.log('🔄 Tree rendering already in progress, skipping...');
         return;
     }
     
@@ -340,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const networkTab = document.getElementById('tab-network-btn');
     if (networkTab) {
         networkTab.addEventListener('click', function() {
-            console.log('🔄 Network tab clicked, initializing...');
             setTimeout(() => {
                 if (typeof window.initializeNetworkTab === 'function') {
                     window.initializeNetworkTab();
@@ -352,7 +347,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // بررسی اینکه آیا در تب network هستیم و شبکه رندر نشده
     const networkSection = document.getElementById('main-network');
     if (networkSection && networkSection.style.display !== 'none') {
-        console.log('🔄 Network section is visible, initializing...');
         setTimeout(() => {
             if (typeof window.initializeNetworkTab === 'function') {
                 window.initializeNetworkTab();
@@ -364,8 +358,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // تابع رفرش درخت باینری بعد از تایید متامسک
 window.refreshBinaryTreeAfterMetaMask = async function() {
     try {
-        console.log('🔄 Refreshing binary tree after MetaMask approval...');
-        
         // پاک کردن کامل درخت و reset متغیرها
         if (typeof window.clearBinaryTree === 'function') {
             window.clearBinaryTree();
@@ -379,22 +371,11 @@ window.refreshBinaryTreeAfterMetaMask = async function() {
                     lastRenderedIndex = null;
                     lastRenderedTime = 0;
                     await window.renderSimpleBinaryTree();
-                    console.log('✅ Binary tree refreshed after MetaMask approval');
-                    
-                    // نمایش پیام موفقیت
-                    if (typeof window.showSuccessMessage === 'function') {
-                        window.showSuccessMessage('درخت باینری با موفقیت به‌روزرسانی شد');
-                    }
                 }
             } catch (error) {
                 console.warn('Error refreshing binary tree after MetaMask approval:', error);
-                
-                // نمایش پیام خطا
-                if (typeof window.showErrorMessage === 'function') {
-                    window.showErrorMessage('خطا در به‌روزرسانی درخت باینری');
-                }
             }
-        }, 2000); // 2 ثانیه صبر کن
+        }, 2000);
         
     } catch (error) {
         console.warn('Error in refreshBinaryTreeAfterMetaMask:', error);
@@ -406,75 +387,10 @@ window.clearBinaryTree = function() {
     const container = document.getElementById('network-tree');
     if (container) {
         container.innerHTML = '';
-        console.log('✅ Binary tree cleared');
     }
     lastRenderedIndex = null;
     isRenderingTree = false;
-    lastRenderedTime = 0; // reset time counter
-};
-
-// تابع تست برای بررسی وضعیت شبکه
-window.testNetworkStatus = async function() {
-    console.log('🔍 Testing network status...');
-    
-    try {
-        // بررسی container
-        const container = document.getElementById('network-tree');
-        console.log('📦 Network tree container:', container ? 'Found' : 'Not found');
-        
-        // بررسی اتصال کیف پول
-        const connection = await window.connectWallet();
-        console.log('🔗 Wallet connection:', connection ? 'Connected' : 'Not connected');
-        
-        if (connection) {
-            const { contract, address } = connection;
-            console.log('👤 Connected address:', address);
-            
-            // بررسی کاربر
-            const user = await contract.users(address);
-            console.log('👤 User data:', user);
-            
-            if (user && user.index) {
-                console.log('✅ User is registered with index:', user.index);
-            } else {
-                console.log('❌ User is not registered');
-            }
-        }
-        
-        // بررسی توابع
-        console.log('🔧 Functions check:');
-        console.log('- renderSimpleBinaryTree:', typeof window.renderSimpleBinaryTree);
-        console.log('- initializeNetworkTab:', typeof window.initializeNetworkTab);
-        console.log('- clearBinaryTree:', typeof window.clearBinaryTree);
-        
-    } catch (error) {
-        console.error('❌ Error testing network status:', error);
-    }
-};
-
-// تابع force render برای رندر اجباری شبکه
-window.forceRenderNetwork = async function() {
-    console.log('🚀 Force rendering network...');
-    
-    // Reset تمام متغیرها
-    isRenderingTree = false;
-    lastRenderedIndex = null;
     lastRenderedTime = 0;
-    
-    // پاک کردن درخت
-    window.clearBinaryTree();
-    
-    // رندر اجباری
-    if (typeof window.renderSimpleBinaryTree === 'function') {
-        try {
-            await window.renderSimpleBinaryTree();
-            console.log('✅ Network force rendered successfully');
-        } catch (error) {
-            console.error('❌ Error force rendering network:', error);
-        }
-    } else {
-        console.error('❌ renderSimpleBinaryTree function not found');
-    }
 };
 
 window.initializeNetworkTab = async function() {
@@ -483,20 +399,38 @@ window.initializeNetworkTab = async function() {
     // پاک کردن درخت قبل از رندر جدید
     window.clearBinaryTree();
     
+    // بررسی وجود container
+    const container = document.getElementById('network-tree');
+    if (!container) {
+        console.error('❌ Network tree container not found');
+        return;
+    }
+    
+    console.log('✅ Network tree container found');
+    
+    // نمایش وضعیت بارگذاری
+    container.innerHTML = '<div style="color:#00ccff;text-align:center;padding:2rem;">🔄 در حال بارگذاری درخت شبکه...</div>';
+    
     // کمی صبر کن تا UI کاملاً لود شود
     setTimeout(async () => {
-        console.log('🔄 Starting network tab initialization after delay...');
-        if (typeof window.renderSimpleBinaryTree === 'function') {
-            try {
+        try {
+            if (typeof window.renderSimpleBinaryTree === 'function') {
+                console.log('🔄 Calling renderSimpleBinaryTree...');
                 await window.renderSimpleBinaryTree();
-                console.log('✅ Network tab initialized successfully');
-            } catch (error) {
-                console.error('❌ Error initializing network tab:', error);
+            } else {
+                console.error('❌ renderSimpleBinaryTree function not found');
+                container.innerHTML = '<div style="color:#ff4444;text-align:center;padding:2rem;">❌ تابع رندر شبکه پیدا نشد</div>';
             }
-        } else {
-            console.warn('❌ renderSimpleBinaryTree function not found');
+        } catch (error) {
+            console.error('❌ Error initializing network tab:', error);
+            container.innerHTML = `
+                <div style="color:#ff4444;text-align:center;padding:2rem;">
+                    ❌ خطا در بارگذاری درخت شبکه<br>
+                    <small style="color:#ccc;">${error.message}</small>
+                </div>
+            `;
         }
-    }, 1000); // افزایش تاخیر به 1 ثانیه
+    }, 1000);
 };
 
 function getReferrerFromURL() {
@@ -803,3 +737,6 @@ window.refreshNetworkTab = function() {
   localStorage.setItem('activeTab', 'network');
   // window.location.reload(); // حذف شد: دیگر رفرش انجام نمی‌شود
 }; 
+
+// حذف توابع تست و دکمه‌های تست
+// (تابع testNetworkContainer، testNetworkRender، testNetworkFromConsole و فراخوانی‌های آن‌ها حذف شد) 

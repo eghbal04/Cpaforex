@@ -16,29 +16,24 @@ window.updateRegisterRequiredAmount = function() {
 // تابع بارگذاری اطلاعات ثبت‌نام
 async function loadRegisterData(contract, address, tokenPriceUSDFormatted) {
     if (isRegisterLoading || registerDataLoaded) {
-        // console.log('Register: Already loading or loaded, skipping...');
         return;
     }
     
     // فقط اگر تب register انتخاب شده باشد
     if (!registerTabSelected) {
-        // console.log('Register: Tab not selected, skipping...');
         return;
     }
     
     isRegisterLoading = true;
     
     try {
-        // console.log('Register: Loading register data...');
         
         // بررسی اتصال کیف پول
         if (!window.contractConfig || !window.contractConfig.contract) {
-            // console.log('Register: No wallet connection, skipping...');
             return;
         }
         
         const { contract, address } = window.contractConfig;
-        // console.log('Register: Wallet connected, loading register data...');
         
         // دریافت اطلاعات کاربر
         const userData = await contract.users(address);
@@ -108,10 +103,8 @@ async function loadRegisterData(contract, address, tokenPriceUSDFormatted) {
             await showRegistrationForm();
         }
         registerDataLoaded = true;
-        // console.log('Register: Data loaded successfully');
         
     } catch (error) {
-        // console.error('Error loading register data:', error);
         showRegisterError("خطا در بارگذاری اطلاعات ثبت‌نام");
     } finally {
         isRegisterLoading = false;
@@ -758,12 +751,13 @@ async function displayUserBalances() {
             const element = document.getElementById(id);
             if (element) {
                 element.textContent = value;
-                console.log(`✅ Updated ${id}: ${value}`);
+                // Updated element
             }
         });
         
-        console.log('✅ User balances displayed successfully');
-        return { cpaFormatted, usdcFormatted, maticFormatted };
+        if (balances) {
+            // User balances displayed successfully
+        }
         
     } catch (error) {
         console.error('❌ Error displaying user balances:', error);

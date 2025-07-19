@@ -744,23 +744,19 @@ window.testLockStatus = async function() {
         console.log('🔍 Testing lock status...');
         
         const profile = await loadUserProfileOnce();
-        console.log('📋 User profile:', profile);
+        // User profile loaded
         
         if (profile) {
-            console.log('✅ Profile loaded successfully');
-            console.log('🔓 Activation status:', profile.activated);
-            console.log('👤 User address:', profile.address);
+            // Profile loaded successfully
         } else {
-            console.log('❌ No profile available');
+            // No profile available
         }
         
         // Check tab lock status
         const lockedTabs = document.querySelectorAll('.locked-tab');
-        console.log('🔒 Locked tabs count:', lockedTabs.length);
         
         // Check hamburger menu lock status
         const lockedMenuItems = document.querySelectorAll('.locked-menu-item');
-        console.log('🔒 Locked menu items count:', lockedMenuItems.length);
         
         return {
             profile: profile,
@@ -858,54 +854,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// تابع تست برای بررسی وضعیت قفل‌ها
-window.testLockStatus = async function() {
-    console.log('🔍 Testing lock status...');
-    
-    try {
-        if (!window.getUserProfile) {
-            console.log('❌ getUserProfile function not available');
-            return;
-        }
-        
-        const profile = await loadUserProfileOnce();
-        console.log('👤 User profile:', profile);
-        console.log('🔓 User activated:', profile.activated);
-        
-        if (!profile.activated) {
-            console.log('🔒 User is not activated, applying locks...');
-            
-            // Test main tabs
-            const testTabs = ['tab-shop-btn', 'tab-reports-btn', 'tab-learning-btn', 'tab-news-btn'];
-            testTabs.forEach(tabId => {
-                const el = document.getElementById(tabId);
-                if (el) {
-                    console.log(`✅ Found tab: ${tabId}`);
-                    el.innerHTML = `🔒 ${tabId.replace('tab-', '').replace('-btn', '').toUpperCase()}`;
-                    el.classList.add('locked-tab');
-                    el.style.pointerEvents = 'none';
-                    el.style.opacity = '0.5';
-                    el.style.cursor = 'not-allowed';
-                    el.title = '🔒 این بخش فقط برای کاربران فعال باز است';
-                } else {
-                    console.log(`❌ Tab not found: ${tabId}`);
-                }
-            });
-            
-            // Test hamburger menu
-            setTimeout(() => {
-                lockHamburgerMenuItems();
-                console.log('🍔 Hamburger menu items locked');
-            }, 1000);
-            
-        } else {
-            console.log('✅ User is activated, no locks needed');
-        }
-        
-    } catch (error) {
-        console.error('❌ Error testing lock status:', error);
-    }
-};
+// تابع تست برای بررسی وضعیت قفل‌ها - حذف شده
 
 // اجرای تست قفل‌ها بعد از 3 ثانیه
 setTimeout(() => {
@@ -914,66 +863,7 @@ setTimeout(() => {
     }
 }, 3000);
 
-// تابع اجباری برای قفل کردن همه چیز
-window.forceLockAll = function() {
-    console.log('🔒 Force locking all restricted areas...');
-    
-    // قفل کردن تب‌های اصلی
-    const mainTabs = [
-        { id: 'tab-shop-btn', label: 'فروشگاه' },
-        { id: 'tab-reports-btn', label: 'گزارشات' },
-        { id: 'tab-learning-btn', label: 'آموزش' },
-        { id: 'tab-news-btn', label: 'اخبار' }
-    ];
-    
-    mainTabs.forEach(tab => {
-        const el = document.getElementById(tab.id);
-        if (el) {
-            el.innerHTML = `🔒 ${tab.label}`;
-            el.classList.add('locked-tab');
-            el.style.pointerEvents = 'none';
-            el.style.opacity = '0.5';
-            el.style.cursor = 'not-allowed';
-            el.title = '🔒 این بخش فقط برای کاربران فعال باز است';
-            console.log(`🔒 Locked tab: ${tab.id}`);
-        }
-    });
-    
-    // قفل کردن منوی همبرگری
-    const hamburgerItems = [
-        { selector: 'button[onclick*="shop.html"]', label: 'فروشگاه' },
-        { selector: 'button[onclick*="news.html"]', label: 'اخبار' },
-        { selector: 'button[onclick*="learning.html"]', label: 'آموزش' },
-        { selector: 'button[onclick*="signal.html"]', label: 'سیگنال' },
-        { selector: 'button[onclick*="autotrade-license.html"]', label: 'ربات' },
-        { selector: 'button[onclick*="admin-prop.html"]', label: 'پاس پراپ' },
-        { selector: 'button[onclick*="showTab(\'reports\')"]', label: 'گزارشات' }
-    ];
-    
-    hamburgerItems.forEach(item => {
-        const elements = document.querySelectorAll(item.selector);
-        elements.forEach(el => {
-            const btnText = el.querySelector('.btn-text');
-            if (btnText) {
-                btnText.innerHTML = `🔒 ${item.label}`;
-            }
-            el.classList.add('locked-menu-item');
-            el.style.pointerEvents = 'none';
-            el.style.opacity = '0.5';
-            el.style.cursor = 'not-allowed';
-            el.title = '🔒 این بخش فقط برای کاربران فعال باز است';
-            el.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                showRegistrationPrompt();
-                return false;
-            };
-            console.log(`🔒 Locked hamburger item: ${item.label}`);
-        });
-    });
-    
-    console.log('✅ All restrictions applied');
-};
+// تابع اجباری برای قفل کردن همه چیز - حذف شده
 
 // نمایش پیام خوشامدگویی و ثبت‌نام برای کاربران غیرفعال
 window.showWelcomeRegistrationPrompt = async function() {
