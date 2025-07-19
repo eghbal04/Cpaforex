@@ -20,7 +20,7 @@ async function waitForWalletConnection() {
         await loadReports();
 
         // راه‌اندازی فیلترها
-        setupFilters();
+        // setupFilters(); // حذف شد
 
         // به‌روزرسانی خودکار هر 5 دقیقه
         // setInterval(loadReports, 300000); // حذف شد
@@ -402,27 +402,23 @@ function shortenTransactionHash(hash) {
     }
     
     // تابع نمایش گزارشات
-    function displayReports(reports, filterType = 'all') {
-    const reportsContainer = document.getElementById('reports-container');
+    function displayReports(reports) {
+        const reportsContainer = document.getElementById('reports-container');
         if (!reportsContainer) return;
         
-        const filteredReports = filterType === 'all' 
-            ? reports 
-            : reports.filter(report => report.type === filterType);
-        
-        if (filteredReports.length === 0) {
+        // نمایش همه گزارشات بدون فیلتر
+        if (reports.length === 0) {
             reportsContainer.innerHTML = `
-            <div class="no-reports">
+                <div class="no-reports">
                     <p>هیچ گزارشی یافت نشد.</p>
                     <p>برای مشاهده گزارشات، ابتدا فعالیتی در پلتفرم انجام دهید.</p>
-        </div>
-    `;
+                </div>
+            `;
             return;
         }
     
-        const reportsHTML = filteredReports.map(report => {
+        const reportsHTML = reports.map(report => {
             const { type, title, amount, timestamp, blockNumber, address, usdcAmount } = report;
-            // حذف دکمه کپی
             const reportHTML = `
                 <div class="report-item">
                     <div class="report-header">
@@ -480,7 +476,7 @@ function shortenTransactionHash(hash) {
         displayReports(reports);
         
         // تنظیم فیلترها
-        setupFilters();
+        // setupFilters(); // حذف شد
             
         } catch (error) {
         showReportsError("خطا در بارگذاری گزارشات");
@@ -521,13 +517,4 @@ function showReportsError(message) {
             }
         }
     
-// تابع راه‌اندازی فیلترها
-function setupFilters() {
-    const reportTypeFilter = document.getElementById('report-type-filter');
-    
-    if (reportTypeFilter) {
-        reportTypeFilter.addEventListener('change', () => {
-            loadReports();
-        });
-    }
-} 
+// تابع راه‌اندازی فیلترها حذف شد - همه گزارشات نمایش داده می‌شوند 
