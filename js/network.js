@@ -280,16 +280,9 @@ window.renderSimpleBinaryTree = async function() {
         return;
     }
     
-    // جلوگیری از رندر همزمان و مکرر
+    // جلوگیری از رندر همزمان
     if (isRenderingTree) {
         console.log('🔄 Tree rendering already in progress, skipping...');
-        return;
-    }
-    
-    // جلوگیری از رندر مکرر در زمان کوتاه
-    const now = Date.now();
-    if (now - lastRenderedTime < 2000) { // حداقل 2 ثانیه بین رندرها
-        console.log('🔄 Tree rendered recently, skipping...');
         return;
     }
     
@@ -298,7 +291,6 @@ window.renderSimpleBinaryTree = async function() {
     
     try {
         isRenderingTree = true;
-        lastRenderedTime = now;
         console.log('🔄 Starting to render binary tree...');
         
         const { contract, address } = await window.connectWallet();
@@ -311,12 +303,6 @@ window.renderSimpleBinaryTree = async function() {
         
         if (!user || !user.index) {
             throw new Error('User not found or not registered');
-        }
-        
-        // بررسی اینکه آیا این index قبلاً رندر شده است
-        if (lastRenderedIndex === user.index) {
-            console.log('🔄 Same index already rendered, skipping...');
-            return;
         }
         
         console.log('✅ User data retrieved, index:', user.index);
@@ -332,6 +318,7 @@ window.renderSimpleBinaryTree = async function() {
         
         // ذخیره index رندر شده
         lastRenderedIndex = user.index;
+        lastRenderedTime = Date.now();
         
         console.log('✅ Binary tree rendered successfully');
         
@@ -365,6 +352,33 @@ window.renderSimpleBinaryTree = async function() {
 if (typeof renderSimpleBinaryTree === 'function') {
     window.renderSimpleBinaryTree = renderSimpleBinaryTree;
 }
+
+// اضافه کردن event listener برای تب network
+document.addEventListener('DOMContentLoaded', function() {
+    // بررسی اینکه آیا در تب network هستیم
+    const networkTab = document.getElementById('tab-network-btn');
+    if (networkTab) {
+        networkTab.addEventListener('click', function() {
+            console.log('🔄 Network tab clicked, initializing...');
+            setTimeout(() => {
+                if (typeof window.initializeNetworkTab === 'function') {
+                    window.initializeNetworkTab();
+                }
+            }, 500);
+        });
+    }
+    
+    // بررسی اینکه آیا در تب network هستیم و شبکه رندر نشده
+    const networkSection = document.getElementById('main-network');
+    if (networkSection && networkSection.style.display !== 'none') {
+        console.log('🔄 Network section is visible, initializing...');
+        setTimeout(() => {
+            if (typeof window.initializeNetworkTab === 'function') {
+                window.initializeNetworkTab();
+            }
+        }, 1000);
+    }
+});
 
 // تابع رفرش درخت باینری بعد از تایید متامسک
 window.refreshBinaryTreeAfterMetaMask = async function() {
@@ -418,16 +432,90 @@ window.clearBinaryTree = function() {
     lastRenderedTime = 0; // reset time counter
 };
 
+// تابع تست برای بررسی وضعیت شبکه
+window.testNetworkStatus = async function() {
+    console.log('🔍 Testing network status...');
+    
+    try {
+        // بررسی container
+        const container = document.getElementById('network-tree');
+        console.log('📦 Network tree container:', container ? 'Found' : 'Not found');
+        
+        // بررسی اتصال کیف پول
+        const connection = await window.connectWallet();
+        console.log('🔗 Wallet connection:', connection ? 'Connected' : 'Not connected');
+        
+        if (connection) {
+            const { contract, address } = connection;
+            console.log('👤 Connected address:', address);
+            
+            // بررسی کاربر
+            const user = await contract.users(address);
+            console.log('👤 User data:', user);
+            
+            if (user && user.index) {
+                console.log('✅ User is registered with index:', user.index);
+            } else {
+                console.log('❌ User is not registered');
+            }
+        }
+        
+        // بررسی توابع
+        console.log('🔧 Functions check:');
+        console.log('- renderSimpleBinaryTree:', typeof window.renderSimpleBinaryTree);
+        console.log('- initializeNetworkTab:', typeof window.initializeNetworkTab);
+        console.log('- clearBinaryTree:', typeof window.clearBinaryTree);
+        
+    } catch (error) {
+        console.error('❌ Error testing network status:', error);
+    }
+};
+
+// تابع force render برای رندر اجباری شبکه
+window.forceRenderNetwork = async function() {
+    console.log('🚀 Force rendering network...');
+    
+    // Reset تمام متغیرها
+    isRenderingTree = false;
+    lastRenderedIndex = null;
+    lastRenderedTime = 0;
+    
+    // پاک کردن درخت
+    window.clearBinaryTree();
+    
+    // رندر اجباری
+    if (typeof window.renderSimpleBinaryTree === 'function') {
+        try {
+            await window.renderSimpleBinaryTree();
+            console.log('✅ Network force rendered successfully');
+        } catch (error) {
+            console.error('❌ Error force rendering network:', error);
+        }
+    } else {
+        console.error('❌ renderSimpleBinaryTree function not found');
+    }
+};
+
 window.initializeNetworkTab = async function() {
+    console.log('🔄 Initializing network tab...');
+    
     // پاک کردن درخت قبل از رندر جدید
     window.clearBinaryTree();
     
     // کمی صبر کن تا UI کاملاً لود شود
     setTimeout(async () => {
+        console.log('🔄 Starting network tab initialization after delay...');
         if (typeof window.renderSimpleBinaryTree === 'function') {
-            await window.renderSimpleBinaryTree();
+            try {
+                await window.renderSimpleBinaryTree();
+                console.log('✅ Network tab initialized successfully');
+            } catch (error) {
+                console.error('❌ Error initializing network tab:', error);
+            }
+        } else {
+            console.warn('❌ renderSimpleBinaryTree function not found');
         }
-    }, 500);
+    }, 1000); // افزایش تاخیر به 1 ثانیه
 };
 
 function getReferrerFromURL() {
