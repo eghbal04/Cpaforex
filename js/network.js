@@ -20,6 +20,7 @@ function showUserPopup(address, user) {
     const infoLines = [
         `🔗 Address:   ${address}`,
         `📋 Index:     ${user.index}`,
+        `🆔 CPA ID:    ${window.generateCPAId ? window.generateCPAId(user.index) : user.index}`,
         `✅ Activated: ${user.activated ? 'بله' : 'خیر'}`,
         `🎯 BinaryPoints: ${user.binaryPoints}`,
         `📈 Cap:      ${user.binaryPointCap}`,
@@ -131,7 +132,11 @@ async function renderNodeLazy(index, container) {
     nodeDiv.style.margin = '0.5em';
     nodeDiv.style.cursor = 'pointer';
     nodeDiv.style.position = 'relative';
-    nodeDiv.innerHTML = `<div style='font-size:2.2em;'>👤</div><div style='font-size:0.9em;color:#00ff88;'>${user.index}</div><div style='font-size:0.8em;'>${shortAddress(address)}</div>`;
+    
+    // تولید CPA ID
+    const cpaId = window.generateCPAId ? window.generateCPAId(user.index) : user.index;
+    
+    nodeDiv.innerHTML = `<div style='font-size:2.2em;'>👤</div><div style='font-size:0.9em;color:#00ff88;'>${cpaId}</div><div style='font-size:0.8em;'>${shortAddress(address)}</div>`;
     // دکمه expand/collapse
     let expandBtn = document.createElement('button');
     expandBtn.textContent = '+';

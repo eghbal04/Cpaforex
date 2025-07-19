@@ -102,9 +102,17 @@ window.showDirectRegistrationForm = async function() {
     // دریافت آدرس معرف (deployer)
     let referrerAddress;
     try {
-      referrerAddress = await contract.deployer();
+      // ابتدا بررسی کنیم که آیا کاربر متصل فعال است و ایندکس دارد
+      const connectedUserData = await contract.users(address);
+      if (connectedUserData.activated) {
+        // اگر کاربر فعال است، از آدرس خودش به عنوان معرف استفاده کن
+        referrerAddress = address;
+      } else {
+        // اگر کاربر فعال نیست، از deployer استفاده کن
+        referrerAddress = await contract.deployer();
+      }
     } catch (e) {
-      console.error('Error getting deployer address:', e);
+      console.error('Error getting referrer address:', e);
       referrerAddress = address; // fallback to connected address
     }
     
@@ -154,7 +162,7 @@ window.showTab = async function(tab) {
     }
   }
 
-  const tabs = ['network','profile','reports','swap','transfer','news','shop','learning','about'];
+  const tabs = ['network','profile','reports','swap','transfer','register','news','shop','learning','about'];
   tabs.forEach(function(name) {
     var mainEl = document.getElementById('main-' + name);
     if (mainEl) {

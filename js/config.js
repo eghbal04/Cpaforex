@@ -4,7 +4,7 @@ const deepseek_api ='sk-6074908ce7954bd89d494d57651392a8';
 
 // تنظیمات قرارداد LevelUp
 
-const CONTRACT_ADDRESS = '0x7d2B838F0351645f188A3B789328538F42956c1c';
+const CONTRACT_ADDRESS = '0xC758fcDE8E3AF6664698ac96E4619652A7d9702b';
 
 const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'; // Polygon USDC
 const USDC_ABI =[
@@ -1170,30 +1170,6 @@ const USDC_ABI =[
 ];
 const LEVELUP_ABI =[
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
@@ -1421,33 +1397,6 @@ const LEVELUP_ABI =[
 		"type": "event"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "usdcAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "buyTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "claim",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "claimMonthlyReward",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -1479,29 +1428,6 @@ const LEVELUP_ABI =[
 		"type": "event"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "amountCPA",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "payout",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "seller",
-				"type": "address"
-			}
-		],
-		"name": "purchase",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -1519,37 +1445,6 @@ const LEVELUP_ABI =[
 		],
 		"name": "PurchaseKind",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "referrer",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "newUser",
-				"type": "address"
-			}
-		],
-		"name": "registerAndActivate",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "tokenAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "sellTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -1602,30 +1497,6 @@ const LEVELUP_ABI =[
 		"type": "event"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -1649,48 +1520,6 @@ const LEVELUP_ABI =[
 		],
 		"name": "Transfer",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferIndexOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -1730,6 +1559,32 @@ const LEVELUP_ABI =[
 		"type": "event"
 	},
 	{
+		"inputs": [],
+		"name": "MAX_BINARY_POINT_CAP",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "REFERRAL_FEE_PERCENT",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -1757,11 +1612,61 @@ const LEVELUP_ABI =[
 		"inputs": [
 			{
 				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
 				"name": "account",
 				"type": "address"
 			}
 		],
 		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "usdcAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "buyTokens",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cashBack",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -1787,15 +1692,16 @@ const LEVELUP_ABI =[
 	},
 	{
 		"inputs": [],
-		"name": "cashBack",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
+		"name": "claim",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "claimMonthlyReward",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -2134,19 +2040,6 @@ const LEVELUP_ABI =[
 	},
 	{
 		"inputs": [],
-		"name": "MAX_BINARY_POINT_CAP",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "name",
 		"outputs": [
 			{
@@ -2159,16 +2052,57 @@ const LEVELUP_ABI =[
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "REFERRAL_FEE_PERCENT",
-		"outputs": [
+		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "",
+				"name": "amountCPA",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "payout",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
+			}
+		],
+		"name": "purchase",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "referrer",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "newUser",
+				"type": "address"
+			}
+		],
+		"name": "registerAndActivate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenAmount",
 				"type": "uint256"
 			}
 		],
-		"stateMutability": "view",
+		"name": "sellTokens",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -2221,6 +2155,72 @@ const LEVELUP_ABI =[
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferIndexOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -2720,9 +2720,34 @@ window.clearConnectionCache = function() {
 // تنظیم event listeners برای MetaMask
 if (typeof window.ethereum !== 'undefined') {
     // پاک کردن کش هنگام تغییر حساب
-    window.ethereum.on('accountsChanged', function (accounts) {
+    window.ethereum.on('accountsChanged', async function (accounts) {
         console.log('MetaMask accounts changed:', accounts);
         window.clearConnectionCache();
+        
+        // بررسی وضعیت کاربر جدید و نمایش فرم ثبت‌نام اگر فعال نیست
+        if (accounts && accounts.length > 0) {
+            try {
+                // کمی صبر کن تا اتصال جدید برقرار شود
+                setTimeout(async () => {
+                    try {
+                        if (window.contractConfig && window.contractConfig.contract) {
+                            const { contract } = window.contractConfig;
+                            const userData = await contract.users(accounts[0]);
+                            if (!userData.activated) {
+                                // کاربر فعال نیست - فرم ثبت‌نام را نمایش بده
+                                if (typeof window.showRegistrationFormForInactiveUser === 'function') {
+                                    window.showRegistrationFormForInactiveUser();
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.log('Could not check user status after account change:', error);
+                    }
+                }, 2000); // 2 ثانیه صبر کن
+            } catch (error) {
+                console.log('Error handling account change:', error);
+            }
+        }
     });
     
     // پاک کردن کش هنگام تغییر شبکه
@@ -2995,6 +3020,13 @@ window.getUserProfile = async function() {
             // مدیریت دکمه ثبت‌نام اصلی
             if (typeof window.manageMainRegistrationButton === 'function') {
                 window.manageMainRegistrationButton();
+            }
+            
+            // به‌روزرسانی نمایش ID کاربر
+            if (user.index) {
+                if (typeof window.updateCPAIdDisplay === 'function') {
+                    window.updateCPAIdDisplay(user.index);
+                }
             }
             
             const profile = {
@@ -4300,3 +4332,118 @@ if (typeof updateDashboardStats === 'function') {
 if (typeof activateTab === 'function') {
   activateTab('networkTab');
 }
+
+// تابع تولید ID بر اساس ایندکس کاربر
+window.generateCPAId = function(index) {
+    if (!index || index === 0) return 'CPA00000';
+    
+    // تبدیل به عدد
+    const numIndex = typeof index === 'bigint' ? Number(index) : parseInt(index);
+    if (isNaN(numIndex) || numIndex < 0) return 'CPA00000';
+    
+    // تولید ID با فرمت CPA + 5 رقم
+    return `CPA${numIndex.toString().padStart(5, '0')}`;
+};
+
+// تابع نمایش ID در گوشه بالا سمت راست
+window.displayCPAIdInCorner = function(index) {
+    // حذف ID قبلی اگر وجود دارد
+    const existingId = document.getElementById('cpa-id-corner');
+    if (existingId) existingId.remove();
+    
+    if (!index || index === 0) return;
+    
+    const cpaId = window.generateCPAId(index);
+    
+    // ایجاد عنصر ID
+    const idElement = document.createElement('div');
+    idElement.id = 'cpa-id-corner';
+    idElement.textContent = cpaId;
+    idElement.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(135deg, #00ff88, #a786ff);
+        color: #181c2a;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 0.9rem;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,255,136,0.3);
+        border: 1px solid rgba(167,134,255,0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    `;
+    
+    // اضافه کردن hover effect
+    idElement.onmouseover = function() {
+        this.style.transform = 'scale(1.05)';
+        this.style.boxShadow = '0 4px 12px rgba(0,255,136,0.4)';
+    };
+    
+    idElement.onmouseout = function() {
+        this.style.transform = 'scale(1)';
+        this.style.boxShadow = '0 2px 8px rgba(0,255,136,0.3)';
+    };
+    
+    // کلیک برای کپی کردن
+    idElement.onclick = function() {
+        navigator.clipboard.writeText(cpaId);
+        const originalText = this.textContent;
+        this.textContent = 'کپی شد!';
+        this.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+        setTimeout(() => {
+            this.textContent = originalText;
+            this.style.background = 'linear-gradient(135deg, #00ff88, #a786ff)';
+        }, 1000);
+    };
+    
+    document.body.appendChild(idElement);
+};
+
+// تابع به‌روزرسانی نمایش ID در تمام بخش‌ها
+window.updateCPAIdDisplay = function(index) {
+    const cpaId = window.generateCPAId(index);
+    
+    // به‌روزرسانی در پروفایل
+    const profileIndexEl = document.getElementById('profile-index');
+    if (profileIndexEl) {
+        profileIndexEl.textContent = cpaId;
+    }
+    
+    // به‌روزرسانی در داشبورد
+    const dashboardIndexEl = document.getElementById('dashboard-user-index');
+    if (dashboardIndexEl) {
+        dashboardIndexEl.textContent = cpaId;
+    }
+    
+    // نمایش بخش اطلاعات کاربر در داشبورد
+    const dashboardUserInfo = document.getElementById('dashboard-user-info');
+    if (dashboardUserInfo) {
+        dashboardUserInfo.style.display = 'block';
+        
+        // به‌روزرسانی آدرس کیف پول
+        const dashboardUserAddress = document.getElementById('dashboard-user-address');
+        if (dashboardUserAddress && window.contractConfig && window.contractConfig.address) {
+            dashboardUserAddress.textContent = window.shortenAddress ? window.shortenAddress(window.contractConfig.address) : window.contractConfig.address.substring(0, 6) + '...' + window.contractConfig.address.substring(38);
+        }
+        
+        // به‌روزرسانی وضعیت
+        const dashboardUserStatus = document.getElementById('dashboard-user-status');
+        if (dashboardUserStatus) {
+            dashboardUserStatus.textContent = 'فعال';
+            dashboardUserStatus.style.color = '#00ff88';
+        }
+    }
+    
+    // به‌روزرسانی در شبکه
+    const networkIndexEl = document.getElementById('network-user-index');
+    if (networkIndexEl) {
+        networkIndexEl.textContent = cpaId;
+    }
+    
+    // نمایش در گوشه
+    window.displayCPAIdInCorner(index);
+};

@@ -195,6 +195,10 @@
     <!-- Others Section -->
     <div class="menu-group">
       <div class="menu-group-title">📋 سایر</div>
+      <button onclick="showTab('register')" class="menu-btn">
+        <span class="menu-icon">📝</span>
+        <span class="menu-label">ثبت‌نام</span>
+      </button>
       <button onclick="showTab('profile')" class="menu-btn">
         <span class="menu-icon">👤</span>
         <span class="menu-label">پروفایل</span>
@@ -239,6 +243,24 @@
         
         <div style="text-align:center;margin-bottom:1.5rem;">
           <h3 style="color:#00ff88;font-size:1.2rem;font-weight:bold;margin:0;font-family:monospace;">CONTINUOUS PROFIT ACADEMY</h3>
+        </div>
+        
+        <!-- User Info Section -->
+        <div id="dashboard-user-info" style="background:rgba(0,255,136,0.1);border-radius:12px;padding:1rem;margin-bottom:1rem;border:1px solid rgba(0,255,136,0.2);display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+            <div style="text-align:center;flex:1;min-width:120px;">
+              <div style="color:#00ff88;font-size:0.8rem;font-weight:bold;margin-bottom:0.3rem;">CPA ID</div>
+              <div style="color:#fff;font-size:1rem;font-family:monospace;font-weight:bold;" id="dashboard-user-index">-</div>
+            </div>
+            <div style="text-align:center;flex:1;min-width:120px;">
+              <div style="color:#00ff88;font-size:0.8rem;font-weight:bold;margin-bottom:0.3rem;">آدرس کیف پول</div>
+              <div style="color:#fff;font-size:0.9rem;font-family:monospace;" id="dashboard-user-address">-</div>
+            </div>
+            <div style="text-align:center;flex:1;min-width:120px;">
+              <div style="color:#00ff88;font-size:0.8rem;font-weight:bold;margin-bottom:0.3rem;">وضعیت</div>
+              <div style="color:#00ff88;font-size:0.9rem;font-weight:bold;" id="dashboard-user-status">-</div>
+            </div>
+          </div>
         </div>
         
         <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;justify-content:center;">
@@ -517,10 +539,55 @@
     </div>
     <div class="expand-content" style="padding:0;">
       <div class="transfer-container" style="max-width:600px;margin:0 auto;padding:1.5rem;">
+        
+        <!-- Transfer Rules and Information -->
+        <div style="background:linear-gradient(135deg,#232946,#181c2a);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;border:2px solid #a786ff;">
+          <h3 style="color:#00ff88;margin-bottom:1rem;font-size:1.2rem;">📋 قوانین و راهنمای انتقال</h3>
+          
+          <div style="margin-bottom:1rem;">
+            <h4 style="color:#a786ff;margin-bottom:0.5rem;">🔒 امنیت انتقال:</h4>
+            <ul style="color:#b8c1ec;line-height:1.6;margin:0;padding-right:1rem;">
+              <li>✅ انتقال‌ها غیرقابل بازگشت هستند - قبل از ارسال دوباره بررسی کنید</li>
+              <li>✅ آدرس مقصد را با دقت وارد کنید - یک کاراکتر اشتباه باعث از دست رفتن دارایی می‌شود</li>
+              <li>✅ ابتدا مقدار کمی ارسال کنید تا از صحت آدرس مطمئن شوید</li>
+              <li>✅ از کیف پول‌های معتبر و امن استفاده کنید</li>
+            </ul>
+          </div>
+          
+          <div style="margin-bottom:1rem;">
+            <h4 style="color:#a786ff;margin-bottom:0.5rem;">💰 انواع توکن قابل انتقال:</h4>
+            <ul style="color:#b8c1ec;line-height:1.6;margin:0;padding-right:1rem;">
+              <li><strong style="color:#00ff88;">USDC:</strong> توکن استیبل با ارزش 1 دلار - برای معاملات روزانه</li>
+              <li><strong style="color:#a786ff;">POL (MATIC):</strong> توکن شبکه Polygon - برای پرداخت کارمزد تراکنش‌ها</li>
+              <li><strong style="color:#00ccff;">CPA:</strong> توکن اصلی پلتفرم - برای سرمایه‌گذاری و کسب درآمد</li>
+            </ul>
+          </div>
+          
+          <div style="margin-bottom:1rem;">
+            <h4 style="color:#a786ff;margin-bottom:0.5rem;">⚡ کارمزد تراکنش:</h4>
+            <ul style="color:#b8c1ec;line-height:1.6;margin:0;padding-right:1rem;">
+              <li>💸 کارمزد شبکه Polygon: ~0.001-0.01 MATIC (بسته به ترافیک شبکه)</li>
+              <li>⏱️ زمان تایید: 2-5 ثانیه (معمولاً)</li>
+              <li>🔍 تراکنش‌ها در PolygonScan قابل ردیابی هستند</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style="color:#a786ff;margin-bottom:0.5rem;">🎯 نکات مهم:</h4>
+            <ul style="color:#b8c1ec;line-height:1.6;margin:0;padding-right:1rem;">
+              <li>📱 می‌توانید با ایندکس کاربر جستجو کنید تا آدرس را پیدا کنید</li>
+              <li>🔍 قبل از انتقال، موجودی خود را بررسی کنید</li>
+              <li>⚠️ مقدار انتقال + کارمزد شبکه باید کمتر از موجودی باشد</li>
+              <li>📞 در صورت مشکل با پشتیبانی تماس بگیرید</li>
+            </ul>
+          </div>
+        </div>
+        
         <form id="transferForm" class="transfer-form">
           <div class="transfer-row">
             <label for="transferTo">آدرس مقصد:</label>
             <input type="text" id="transferTo" placeholder="0x..." required style="direction:ltr;">
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">آدرس کیف پول مقصد را وارد کنید (42 کاراکتر)</small>
           </div>
           <div class="transfer-row" style="margin-bottom:0.5rem;">
             <label for="searchIndex">جستجو با ایندکس:</label>
@@ -529,10 +596,12 @@
               <button type="button" id="searchIndexBtn" class="transfer-btn" style="padding:0.5rem 1.2rem;font-size:1rem;min-width:80px;">جستجو</button>
             </div>
             <div id="searchIndexStatus" class="transfer-status" style="margin-top:0.3rem;"></div>
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">ایندکس کاربر را وارد کنید تا آدرس به طور خودکار پر شود</small>
           </div>
           <div class="transfer-row">
             <label for="transferAmount">مقدار:</label>
             <input type="number" id="transferAmount" placeholder="مقدار را وارد کنید" min="0" step="any" required>
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">مقدار انتقال را وارد کنید (حداقل 0.001)</small>
           </div>
           <div class="transfer-row">
             <label for="transferToken">نوع توکن:</label>
@@ -541,7 +610,28 @@
               <option value="pol">POL</option>
               <option value="cpa">CPA</option>
             </select>
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">نوع توکن مورد نظر برای انتقال را انتخاب کنید</small>
           </div>
+          
+          <!-- Balance Check -->
+          <div style="background:rgba(167,134,255,0.1);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+            <h4 style="color:#a786ff;margin-bottom:0.8rem;">💰 موجودی فعلی شما:</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+              <div style="text-align:center;">
+                <div style="color:#00ff88;font-weight:bold;">USDC</div>
+                <div id="transfer-usdc-balance" style="color:#b8c1ec;font-family:monospace;">-</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="color:#a786ff;font-weight:bold;">POL</div>
+                <div id="transfer-poly-balance" style="color:#b8c1ec;font-family:monospace;">-</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="color:#00ccff;font-weight:bold;">CPA</div>
+                <div id="transfer-cpa-balance" style="color:#b8c1ec;font-family:monospace;">-</div>
+              </div>
+            </div>
+          </div>
+          
           <button type="submit" class="transfer-btn">انتقال</button>
           <div id="transferStatus" class="transfer-status"></div>
         </form>
@@ -586,6 +676,10 @@
               <div class="info-item">
                 <div class="info-label">آدرس کیف پول</div>
                 <div class="info-value" id="profile-address">-</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">CPA ID</div>
+                <div class="info-value" id="profile-index">-</div>
               </div>
               <div class="info-item">
                 <div class="info-label">معرف</div>
@@ -798,13 +892,122 @@
             <option value="all">همه گزارشات</option>
             <option value="purchase">خریدها</option>
             <option value="activation">فعال‌سازی‌ها</option>
-            <option value="binary">پاداش‌های باینری</option>
-            <option value="trading">معاملات</option>
+            <option value="referral">رفرال‌ها</option>
+            <option value="claim">برداشت‌ها</option>
           </select>
+          <input type="date" id="report-date-filter">
+          <button id="apply-report-filters">اعمال فیلتر</button>
         </div>
-        <div id="reports-container">
-          <div class="loading-message">در حال بارگذاری گزارشات...</div>
+        <div id="reports-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permanent Registration Form Section -->
+  <div id="main-register" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:none;">
+    <div class="expand-header" style="padding:0 1.5rem;">
+      <h2 style="margin:0 0 0.5rem 0;color:#00ff88;">📝 ثبت‌نام در آکادمی سود مستمر</h2>
+      <p style="margin:0 0 0.5rem 0;color:#b8c1ec;">ثبت‌نام سریع و آسان - فقط چند کلیک</p>
+    </div>
+    <div class="expand-content" style="padding:0;">
+      <div class="register-container" style="max-width:600px;margin:0 auto;padding:1.5rem;">
+        
+        <!-- Registration Status Display -->
+        <div id="registration-status-display" style="background:linear-gradient(135deg,#232946,#181c2a);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;border:2px solid #a786ff;text-align:center;">
+          <div style="font-size:3rem;margin-bottom:1rem;">🚀</div>
+          <h3 style="color:#00ff88;margin-bottom:1rem;font-size:1.3rem;">خوش آمدید به آکادمی سود مستمر</h3>
+          <p style="color:#b8c1ec;margin-bottom:1.5rem;line-height:1.6;">
+            برای دسترسی به تمام امکانات، لطفاً ثبت‌نام کنید.<br>
+            هزینه ثبت‌نام: <strong style="color:#00ff88;" id="permanent-registration-cost">100 CPA</strong>
+          </p>
+          <div style="background:rgba(167,134,255,0.1);border-radius:8px;padding:1rem;margin:1rem 0;">
+            <h4 style="color:#a786ff;margin-bottom:0.5rem;">✨ مزایای ثبت‌نام:</h4>
+            <ul style="color:#b8c1ec;text-align:right;margin:0;padding-right:1rem;">
+              <li>دسترسی به تمام بخش‌های سایت</li>
+              <li>امکان خرید و فروش توکن CPA</li>
+              <li>دسترسی به شبکه باینری و پاداش‌ها</li>
+              <li>امکان دریافت رفرال و درآمد</li>
+              <li>دسترسی به آموزش‌ها و اخبار</li>
+            </ul>
+          </div>
         </div>
+
+        <!-- Registration Form -->
+        <form id="permanent-registration-form" class="registration-form" style="background:linear-gradient(135deg,#232946,#181c2a);border-radius:12px;padding:1.5rem;border:2px solid #a786ff;">
+          
+          <!-- Wallet Connection Status -->
+          <div id="wallet-connection-status" style="background:rgba(255,68,68,0.1);border:1px solid #ff4444;border-radius:8px;padding:1rem;margin-bottom:1.5rem;text-align:center;">
+            <div style="color:#ff4444;font-weight:bold;margin-bottom:0.5rem;">⚠️ کیف پول متصل نیست</div>
+            <p style="color:#b8c1ec;margin:0;font-size:0.9rem;">لطفاً ابتدا کیف پول خود را متصل کنید</p>
+            <button type="button" id="connect-wallet-btn" style="background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.7rem 2rem;font-size:1rem;cursor:pointer;margin-top:0.5rem;transition:all 0.3s;">
+              🔗 اتصال کیف پول
+            </button>
+          </div>
+
+          <!-- User Address Input -->
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label for="permanent-user-address" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">👤 آدرس کیف پول کاربر:</label>
+            <input type="text" id="permanent-user-address" placeholder="0x..." required style="width:100%;padding:0.8rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;">
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">آدرس کیف پولی که می‌خواهید ثبت‌نام کنید</small>
+          </div>
+
+          <!-- Referrer Index Input -->
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label for="permanent-referrer-index" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">🔢 ایندکس معرف (اختیاری):</label>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <input type="number" id="permanent-referrer-index" placeholder="0" min="0" style="flex:1;padding:0.8rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;">
+              <button type="button" id="get-referrer-address-btn" style="background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.8rem 1rem;font-size:0.9rem;cursor:pointer;transition:all 0.3s;white-space:nowrap;">
+                🔍 دریافت آدرس
+              </button>
+            </div>
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">ایندکس معرف را وارد کنید تا آدرس ولت به طور خودکار دریافت شود</small>
+          </div>
+
+          <!-- Referrer Address Input -->
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label for="permanent-referrer-address" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">👥 آدرس معرف:</label>
+            <input type="text" id="permanent-referrer-address" placeholder="0x..." required style="width:100%;padding:0.8rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;">
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">آدرس معرف (اگر ندارید، آدرس deployer استفاده می‌شود)</small>
+          </div>
+
+          <!-- Balances Display -->
+          <div id="permanent-balances-display" style="background:rgba(167,134,255,0.1);border-radius:8px;padding:1rem;margin-bottom:1.5rem;display:none;">
+            <h4 style="color:#a786ff;margin-bottom:0.8rem;">💰 موجودی‌های شما:</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div style="text-align:center;">
+                <div style="color:#00ff88;font-weight:bold;">CPA</div>
+                <div id="permanent-cpa-balance" style="color:#b8c1ec;font-family:monospace;">-</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="color:#00ff88;font-weight:bold;">MATIC</div>
+                <div id="permanent-matic-balance" style="color:#b8c1ec;font-family:monospace;">-</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Registration Button -->
+          <button type="submit" id="permanent-register-btn" style="width:100%;background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:1rem;font-size:1.1rem;cursor:pointer;transition:all 0.3s;margin-bottom:1rem;" disabled>
+            🔒 ابتدا کیف پول را متصل کنید
+          </button>
+
+          <!-- Status Messages -->
+          <div id="permanent-registration-status" style="text-align:center;margin-top:1rem;"></div>
+
+        </form>
+
+        <!-- Quick Actions -->
+        <div style="background:rgba(167,134,255,0.05);border-radius:8px;padding:1rem;margin-top:1.5rem;text-align:center;">
+          <h4 style="color:#a786ff;margin-bottom:0.8rem;">⚡ اقدامات سریع:</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+            <button onclick="showTab('swap')" style="background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid #00ff88;border-radius:6px;padding:0.6rem;font-size:0.9rem;cursor:pointer;transition:all 0.3s;">
+              🔄 خرید CPA
+            </button>
+            <button onclick="showTab('network')" style="background:rgba(167,134,255,0.1);color:#a786ff;border:1px solid #a786ff;border-radius:6px;padding:0.6rem;font-size:0.9rem;cursor:pointer;transition:all 0.3s;">
+              🌐 مشاهده شبکه
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -940,6 +1143,99 @@
       #point-chart-canvas {
         height: 120px !important;
       }
+    }
+    
+    /* Transfer Status Styles */
+    .transfer-status {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      text-align: center;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .transfer-status.success {
+      background: rgba(0, 255, 136, 0.1);
+      color: #00ff88;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+    
+    .transfer-status.error {
+      background: rgba(255, 68, 68, 0.1);
+      color: #ff4444;
+      border: 1px solid rgba(255, 68, 68, 0.3);
+    }
+    
+    .transfer-status.loading {
+      background: rgba(167, 134, 255, 0.1);
+      color: #a786ff;
+      border: 1px solid rgba(167, 134, 255, 0.3);
+    }
+    
+    /* Transfer Form Improvements */
+    .transfer-form {
+      background: linear-gradient(135deg, #232946, #181c2a);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 2px solid #a786ff;
+    }
+    
+    .transfer-row {
+      margin-bottom: 1.5rem;
+    }
+    
+    .transfer-row label {
+      display: block;
+      color: #a786ff;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    
+    .transfer-row input,
+    .transfer-row select {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 8px;
+      border: 2px solid #a786ff;
+      background: rgba(0, 0, 0, 0.2);
+      color: #fff;
+      font-size: 0.95rem;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+    
+    .transfer-row input:focus,
+    .transfer-row select:focus {
+      outline: none;
+      border-color: #00ff88;
+    }
+    
+    .transfer-btn {
+      background: linear-gradient(90deg, #00ff88, #a786ff);
+      color: #181c2a;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    
+    .transfer-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+    }
+    
+    .transfer-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
   </style>
   <script src="js/register.js?v=5.7"></script>
@@ -1209,7 +1505,7 @@
         menu.classList.remove('open');
       }
       
-      const tabs = ['network','profile','reports','swap','transfer','about'];
+      const tabs = ['network','profile','reports','swap','transfer','register','about'];
       tabs.forEach(function(name) {
         var mainEl = document.getElementById('main-' + name);
         if (mainEl) {
@@ -1283,6 +1579,7 @@
           case 'transfer':
             // No extra logic needed for now
             break;
+          case 'register': break;
           case 'about': break;
         }
       } catch (error) {

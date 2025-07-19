@@ -168,55 +168,46 @@ window.addOwnerPanelButtonIfOwner = async function() {
 // تابع اتصال کیف پول با نوع مشخص
 async function connectWalletAndUpdateUI(walletType) {
     try {
-        const connectButton = document.getElementById('connectButton');
-        const walletConnectButton = document.getElementById('walletConnectButton');
+        const connection = await connectWallet();
+        const { contract, address, provider } = connection;
         
-        if (walletType === 'metamask' && connectButton) {
-            connectButton.textContent = 'در حال اتصال...';
-            connectButton.disabled = true;
-        } else if (walletType === 'walletconnect' && walletConnectButton) {
-            walletConnectButton.textContent = 'در حال اتصال...';
-            walletConnectButton.disabled = true;
+        // به‌روزرسانی UI اتصال
+        updateConnectionUI(null, address, walletType);
+        
+        // بررسی وضعیت کاربر و نمایش فرم ثبت‌نام اگر فعال نیست
+        try {
+            const userData = await contract.users(address);
+            if (!userData.activated) {
+                // کاربر فعال نیست - فرم ثبت‌نام را نمایش بده
+                setTimeout(() => {
+                    showRegistrationFormForInactiveUser();
+                }, 1500); // کمی صبر کن تا UI کاملاً لود شود
+            }
+        } catch (userDataError) {
+            console.warn('Could not fetch user data:', userDataError);
+            // در صورت خطا، فرم ثبت‌نام را نمایش بده
+            setTimeout(() => {
+                showRegistrationFormForInactiveUser();
+            }, 1500);
         }
-
-        let connected = false;
-        if (walletType === 'metamask') {
-            connected = await window.contractConfig.initializeWeb3();
-        } else if (walletType === 'walletconnect') {
-            connected = await window.contractConfig.connectWithWalletConnect();
-        }
-
-        if (!connected) {
-            throw new Error("اتصال کیف پول ناموفق بود");
-        }
-
-        // دریافت پروفایل کاربر
-        const profile = await loadUserProfileOnce();
-        const address = await window.contractConfig.signer.getAddress();
-
-        // به‌روزرسانی UI
-        updateConnectionUI(profile, address, walletType);
-
-        // بعد از به‌روزرسانی UI:
-        setTimeout(window.addOwnerPanelButtonIfOwner, 500);
-        // بعد از اتصال موفق، قفل‌گذاری را دوباره بررسی کن
-        setTimeout(lockTabsForDeactivatedUsers, 500);
-
+        
+        // به‌روزرسانی ناوبار بر اساس وضعیت کاربر
+        await updateNavbarBasedOnUserStatus();
+        
+        // به‌روزرسانی قفل‌ها
+        await lockTabsForDeactivatedUsers();
+        
+        // به‌روزرسانی موجودی‌های ترنسفر
+        setTimeout(() => {
+            if (window.updateTransferBalancesOnConnect) {
+                window.updateTransferBalancesOnConnect();
+            }
+        }, 2000);
+        
+        return connection;
     } catch (error) {
-        alert("اتصال کیف پول ناموفق بود: " + error.message);
-    } finally {
-        const connectButton = document.getElementById('connectButton');
-        const walletConnectButton = document.getElementById('walletConnectButton');
-        
-        if (connectButton) {
-            connectButton.textContent = 'اتصال با متامسک';
-            connectButton.disabled = false;
-        }
-        
-        if (walletConnectButton) {
-            walletConnectButton.textContent = 'اتصال با WalletConnect';
-            walletConnectButton.disabled = false;
-        }
+        console.error('Error in connectWalletAndUpdateUI:', error);
+        throw error;
     }
 }
 
@@ -398,14 +389,19 @@ async function updateNavbarBasedOnUserStatus() {
             const userData = await contract.users(address);
             
             if (userData.activated) {
-                // کاربر فعال - تغییر "ثبت‌نام" به "ارتقا"
+                // کاربر فعال است
                 updateNavbarForActiveUser();
+                
+                // به‌روزرسانی نمایش ID کاربر
+                if (userData.index) {
+                    updateCPAIdDisplay(userData.index);
+                }
             } else {
-                // کاربر غیرفعال - ناوبار به حالت پیش‌فرض
+                // کاربر فعال نیست
                 resetNavbarToDefault();
             }
-        } catch (userDataError) {
-            console.warn('Could not fetch user data:', userDataError);
+        } catch (error) {
+            console.error('Error checking user status:', error);
             resetNavbarToDefault();
         }
     } catch (error) {
@@ -2037,6 +2033,12 @@ window.showTab = async function(tab) {
               await window.loadRegisterData(window.contractConfig.contract, window.contractConfig.address, window.tokenPriceUSDFormatted);
             }
             break;
+          default:
+            // توقف به‌روزرسانی خودکار موجودی‌های ترنسفر وقتی از تب ترنسفر خارج می‌شویم
+            if (typeof window.stopTransferBalanceAutoRefresh === 'function') {
+              window.stopTransferBalanceAutoRefresh();
+            }
+            break;
         }
       } catch (e) { console.error(e); }
     }
@@ -2112,14 +2114,36 @@ window.showRegisterForm = async function(referrerAddress, defaultNewWallet, conn
   // Determine referrer input value and readonly state
   let referrerInputValue = referrerAddress;
   let referrerInputReadonly = false;
-  // Try to get referral from URL
-  let urlReferrer = '';
-  if (typeof getReferrerFromURL === 'function') {
-    urlReferrer = getReferrerFromURL();
-    if (urlReferrer && /^0x[a-fA-F0-9]{40}$/.test(urlReferrer)) {
-      referrerInputValue = urlReferrer;
-      referrerInputReadonly = true;
+  
+  // ابتدا بررسی کنیم که آیا کاربر متصل فعال است و ایندکس دارد
+  try {
+    if (contract && connectedAddress) {
+      const connectedUserData = await contract.users(connectedAddress);
+      if (connectedUserData.activated) {
+        // اگر کاربر فعال است، از آدرس خودش به عنوان معرف استفاده کن
+        referrerInputValue = connectedAddress;
+        referrerInputReadonly = true;
+      } else {
+        // اگر کاربر فعال نیست، از روش‌های قبلی استفاده کن
+        // ابتدا از URL بگیر
+        if (typeof getReferrerFromURL === 'function') {
+          referrerInputValue = getReferrerFromURL();
+        }
+        
+        // اگر در URL نبود، از localStorage بگیر
+        if (!referrerInputValue && typeof getReferrerFromStorage === 'function') {
+          referrerInputValue = getReferrerFromStorage();
+        }
+        
+        // اگر هنوز نبود، از deployer استفاده کن
+        if (!referrerInputValue) {
+          referrerInputValue = await contract.deployer();
+        }
+      }
     }
+  } catch (e) {
+    // در صورت خطا، از deployer استفاده کن
+    referrerInputValue = await contract.deployer();
   }
 
   modal.innerHTML = `
@@ -2199,6 +2223,50 @@ window.showRegisterForm = async function(referrerAddress, defaultNewWallet, conn
             margin-bottom: 0.1rem;
           "
         />
+      </div>
+
+      <!-- Referrer Index Input -->
+      <div style="
+        background: rgba(167, 134, 255, 0.05);
+        border: 1px solid #a786ff;
+        border-radius: 8px;
+        padding: 0.6rem 0.7rem;
+        margin-bottom: 0.7rem;
+      ">
+        <label for="register-referrer-index" style="color: #a786ff; font-weight: bold; margin-bottom: 0.3rem; font-size:0.95em; display:block;">🔢 ایندکس معرف (اختیاری):</label>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <input id="register-referrer-index"
+            type="number"
+            placeholder="0"
+            min="0"
+            style="
+              flex: 1;
+              padding: 0.5rem 0.7rem;
+              border-radius: 5px;
+              border: 1.2px solid #a786ff;
+              background: rgba(0,0,0,0.18);
+              color: #fff;
+              font-family: monospace;
+              font-size: 0.95rem;
+              direction: ltr;
+              text-align: left;
+              box-sizing: border-box;
+            "
+          />
+          <button type="button" id="register-get-referrer-address-btn" style="
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #232946;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+          ">🔍 دریافت آدرس</button>
+        </div>
+        <small style="color: #b8c1ec; font-size: 0.8rem; margin-top: 0.2rem; display: block;">ایندکس معرف را وارد کنید تا آدرس ولت به طور خودکار دریافت شود</small>
       </div>
 
       <!-- New Wallet Input -->
@@ -2403,6 +2471,71 @@ window.showRegisterForm = async function(referrerAddress, defaultNewWallet, conn
       document.getElementById('register-required-usdc').textContent = '-';
     }
   })();
+  
+  // دکمه دریافت آدرس از ایندکس در فرم موقت
+  const registerGetReferrerAddressBtn = document.getElementById('register-get-referrer-address-btn');
+  const registerReferrerIndexInput = document.getElementById('register-referrer-index');
+  
+  if (registerGetReferrerAddressBtn && registerReferrerIndexInput) {
+    registerGetReferrerAddressBtn.onclick = async function() {
+      try {
+        const index = parseInt(registerReferrerIndexInput.value);
+        if (isNaN(index) || index < 0) {
+          const statusDiv = document.getElementById('register-form-status');
+          if (statusDiv) {
+            statusDiv.textContent = 'لطفاً ایندکس معتبر وارد کنید';
+          }
+          return;
+        }
+        
+        registerGetReferrerAddressBtn.textContent = 'در حال دریافت...';
+        registerGetReferrerAddressBtn.disabled = true;
+        
+        // دریافت آدرس از ایندکس
+        const address = await contract.indexToAddress(BigInt(index));
+        
+        // بررسی فعال بودن کاربر
+        const userData = await contract.users(address);
+        if (!userData.activated) {
+          const statusDiv = document.getElementById('register-form-status');
+          if (statusDiv) {
+            statusDiv.textContent = `کاربر با ایندکس ${index} فعال نیست`;
+          }
+          return;
+        }
+        
+        // به‌روزرسانی فیلد آدرس معرف
+        const referrerAddressInput = document.getElementById('register-referrer-address');
+        if (referrerAddressInput) {
+          referrerAddressInput.value = address;
+        }
+        
+        const statusDiv = document.getElementById('register-form-status');
+        if (statusDiv) {
+          statusDiv.textContent = `✅ آدرس معرف دریافت شد: ${address.substring(0, 6)}...${address.substring(38)}`;
+        }
+        
+      } catch (error) {
+        console.error('Error getting address from index:', error);
+        let errorMessage = 'خطا در دریافت آدرس';
+        
+        if (error.message.includes('reverted')) {
+          errorMessage = 'ایندکس معتبر نیست یا کاربر وجود ندارد';
+        } else if (error.message.includes('network')) {
+          errorMessage = 'خطا در اتصال شبکه';
+        }
+        
+        const statusDiv = document.getElementById('register-form-status');
+        if (statusDiv) {
+          statusDiv.textContent = errorMessage;
+        }
+      } finally {
+        registerGetReferrerAddressBtn.textContent = '🔍 دریافت آدرس';
+        registerGetReferrerAddressBtn.disabled = false;
+      }
+    };
+  }
+  
   document.getElementById('register-form-confirm').onclick = async function() {
     const statusDiv = document.getElementById('register-form-status');
     let newWallet = document.getElementById('register-new-wallet').value.trim();
@@ -2442,6 +2575,7 @@ function showUserPopup(address, user) {
     const infoLines = [
         `Address:   ${shortAddress(address)}`,
         `Index:     ${user.index}`,
+        `CPA ID:    ${window.generateCPAId ? window.generateCPAId(user.index) : user.index}`,
         `Activated: ${user.activated ? 'Yes' : 'No'}`,
         `BinaryPoints: ${user.binaryPoints}`,
         `Cap:      ${user.binaryPointCap}`,
@@ -2472,3 +2606,991 @@ function showUserPopup(address, user) {
         terminalEl.textContent = infoLines.join('\n');
     }
 }
+
+document.addEventListener('DOMContentLoaded', async function() {
+    // ابتدا قفل‌ها را اعمال کن
+    await lockTabsForDeactivatedUsers();
+    
+    // سپس بررسی کن که آیا کاربر فعال نیست
+    try {
+        if (window.getUserProfile) {
+            const profile = await loadUserProfileOnce();
+            if (!profile.activated) {
+                // اگر کاربر فعال نیست، فرم ثبت‌نام را نمایش بده
+                setTimeout(() => {
+                    showRegistrationFormForInactiveUser();
+                }, 1000); // کمی صبر کن تا صفحه کاملاً لود شود
+            }
+        }
+    } catch (error) {
+        console.log('Could not check user status on load:', error);
+    }
+});
+
+// تابع جدید برای نمایش فرم ثبت‌نام برای کاربران غیرفعال
+window.showRegistrationFormForInactiveUser = async function() {
+    try {
+        // بررسی اینکه آیا قبلاً فرم نمایش داده شده
+        const existingForm = document.getElementById('register-form-modal');
+        if (existingForm) return;
+        
+        // بررسی اتصال کیف پول
+        if (!window.contractConfig || !window.contractConfig.contract) {
+            console.log('Wallet not connected, cannot show registration form');
+            return;
+        }
+        
+        const { contract, address } = window.contractConfig;
+        
+        // دریافت آدرس معرف
+        let referrerAddress = '';
+        try {
+            // ابتدا بررسی کنیم که آیا کاربر متصل فعال است و ایندکس دارد
+            const connectedUserData = await contract.users(address);
+            if (connectedUserData.activated) {
+                // اگر کاربر فعال است، از آدرس خودش به عنوان معرف استفاده کن
+                referrerAddress = address;
+            } else {
+                // اگر کاربر فعال نیست، از روش‌های قبلی استفاده کن
+                // ابتدا از URL بگیر
+                if (typeof getReferrerFromURL === 'function') {
+                    referrerAddress = getReferrerFromURL();
+                }
+                
+                // اگر در URL نبود، از localStorage بگیر
+                if (!referrerAddress && typeof getReferrerFromStorage === 'function') {
+                    referrerAddress = getReferrerFromStorage();
+                }
+                
+                // اگر هنوز نبود، از deployer استفاده کن
+                if (!referrerAddress) {
+                    referrerAddress = await contract.deployer();
+                }
+            }
+        } catch (e) {
+            // در صورت خطا، از deployer استفاده کن
+            referrerAddress = await contract.deployer();
+        }
+        
+        // نمایش فرم ثبت‌نام
+        if (typeof window.showRegisterForm === 'function') {
+            window.showRegisterForm(referrerAddress, address, address, window.contractConfig.provider, contract);
+        } else {
+            // اگر تابع showRegisterForm موجود نبود، از تابع اصلی استفاده کن
+            if (typeof window.loadRegisterData === 'function') {
+                // نمایش تب ثبت‌نام
+                if (typeof window.showTab === 'function') {
+                    window.showTab('register');
+                }
+                
+                // لود کردن داده‌های ثبت‌نام
+                await window.loadRegisterData(contract, address, window.tokenPriceUSDFormatted);
+            }
+        }
+        
+        console.log('✅ Registration form shown for inactive user');
+        
+    } catch (error) {
+        console.error('Error showing registration form for inactive user:', error);
+    }
+};
+
+// تابع مدیریت فرم ثبت‌نام دائمی
+window.initializePermanentRegistrationForm = function() {
+    const form = document.getElementById('permanent-registration-form');
+    const connectBtn = document.getElementById('connect-wallet-btn');
+    const registerBtn = document.getElementById('permanent-register-btn');
+    const userAddressInput = document.getElementById('permanent-user-address');
+    const referrerAddressInput = document.getElementById('permanent-referrer-address');
+    const statusDiv = document.getElementById('permanent-registration-status');
+    const walletStatusDiv = document.getElementById('wallet-connection-status');
+    const balancesDiv = document.getElementById('permanent-balances-display');
+    
+    if (!form) return;
+    
+    // دکمه اتصال کیف پول
+    if (connectBtn) {
+        connectBtn.onclick = async function() {
+            try {
+                connectBtn.textContent = 'در حال اتصال...';
+                connectBtn.disabled = true;
+                
+                const connection = await connectWallet();
+                await updatePermanentRegistrationForm(connection);
+                
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">خطا در اتصال کیف پول: ${error.message}</div>`;
+            } finally {
+                connectBtn.textContent = '🔗 اتصال کیف پول';
+                connectBtn.disabled = false;
+            }
+        };
+    }
+    
+    // دکمه دریافت آدرس از ایندکس
+    const getReferrerAddressBtn = document.getElementById('get-referrer-address-btn');
+    const referrerIndexInput = document.getElementById('permanent-referrer-index');
+    
+    if (getReferrerAddressBtn && referrerIndexInput) {
+        getReferrerAddressBtn.onclick = async function() {
+            try {
+                if (!window.contractConfig || !window.contractConfig.contract) {
+                    statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">لطفاً ابتدا کیف پول را متصل کنید</div>`;
+                    return;
+                }
+                
+                const index = parseInt(referrerIndexInput.value);
+                if (isNaN(index) || index < 0) {
+                    statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">لطفاً ایندکس معتبر وارد کنید</div>`;
+                    return;
+                }
+                
+                getReferrerAddressBtn.textContent = 'در حال دریافت...';
+                getReferrerAddressBtn.disabled = true;
+                
+                const { contract } = window.contractConfig;
+                
+                // دریافت آدرس از ایندکس
+                const address = await contract.indexToAddress(BigInt(index));
+                
+                // بررسی فعال بودن کاربر
+                const userData = await contract.users(address);
+                if (!userData.activated) {
+                    statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">کاربر با ایندکس ${index} فعال نیست</div>`;
+                    return;
+                }
+                
+                // به‌روزرسانی فیلد آدرس معرف
+                if (referrerAddressInput) {
+                    referrerAddressInput.value = address;
+                }
+                
+                statusDiv.innerHTML = `<div style="color:#00ff88;background:rgba(0,255,136,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">✅ آدرس معرف دریافت شد: ${address.substring(0, 6)}...${address.substring(38)}</div>`;
+                
+            } catch (error) {
+                console.error('Error getting address from index:', error);
+                let errorMessage = 'خطا در دریافت آدرس';
+                
+                if (error.message.includes('reverted')) {
+                    errorMessage = 'ایندکس معتبر نیست یا کاربر وجود ندارد';
+                } else if (error.message.includes('network')) {
+                    errorMessage = 'خطا در اتصال شبکه';
+                }
+                
+                statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">${errorMessage}</div>`;
+            } finally {
+                getReferrerAddressBtn.textContent = '🔍 دریافت آدرس';
+                getReferrerAddressBtn.disabled = false;
+            }
+        };
+    }
+    
+    // فرم ثبت‌نام
+    form.onsubmit = async function(e) {
+        e.preventDefault();
+        
+        if (!window.contractConfig || !window.contractConfig.contract) {
+            statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">لطفاً ابتدا کیف پول را متصل کنید</div>`;
+            return;
+        }
+        
+        const userAddress = userAddressInput.value.trim();
+        const referrerAddress = referrerAddressInput.value.trim();
+        
+        if (!userAddress || !/^0x[a-fA-F0-9]{40}$/.test(userAddress)) {
+            statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">آدرس کیف پول کاربر معتبر نیست</div>`;
+            return;
+        }
+        
+        if (!referrerAddress || !/^0x[a-fA-F0-9]{40}$/.test(referrerAddress)) {
+            statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">آدرس معرف معتبر نیست</div>`;
+            return;
+        }
+        
+        try {
+            registerBtn.textContent = 'در حال ثبت‌نام...';
+            registerBtn.disabled = true;
+            statusDiv.innerHTML = '';
+            
+            const { contract } = window.contractConfig;
+            
+            // بررسی معتبر بودن معرف
+            const refData = await contract.users(referrerAddress);
+            if (!refData.activated) {
+                throw new Error('معرف فعال نیست');
+            }
+            
+            // بررسی ثبت‌نام نبودن کاربر جدید
+            const userData = await contract.users(userAddress);
+            if (userData.activated) {
+                throw new Error('این آدرس قبلاً ثبت‌نام کرده است');
+            }
+            
+            // ثبت‌نام
+            const tx = await contract.registerAndActivate(referrerAddress, userAddress);
+            statusDiv.innerHTML = `<div style="color:#00ff88;background:rgba(0,255,136,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">⏳ در انتظار تایید تراکنش...</div>`;
+            
+            await tx.wait();
+            
+            statusDiv.innerHTML = `<div style="color:#00ff88;background:rgba(0,255,136,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">✅ ثبت‌نام با موفقیت انجام شد!</div>`;
+            
+            // پاک کردن فرم
+            userAddressInput.value = '';
+            referrerAddressInput.value = '';
+            
+            // به‌روزرسانی فرم
+            setTimeout(() => {
+                updatePermanentRegistrationForm(window.contractConfig);
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Registration error:', error);
+            let errorMessage = 'خطا در ثبت‌نام';
+            
+            if (error.code === 4001) {
+                errorMessage = 'لغو توسط کاربر';
+            } else if (error.message.includes('activated')) {
+                errorMessage = error.message;
+            } else if (error.message.includes('registered')) {
+                errorMessage = error.message;
+            } else if (error.message.includes('insufficient')) {
+                errorMessage = 'موجودی کافی نیست';
+            }
+            
+            statusDiv.innerHTML = `<div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:0.8rem;border-radius:6px;margin-top:0.5rem;">${errorMessage}</div>`;
+        } finally {
+            registerBtn.textContent = '🚀 ثبت‌نام';
+            registerBtn.disabled = false;
+        }
+    };
+    
+    // مقداردهی اولیه
+    if (window.contractConfig && window.contractConfig.contract) {
+        updatePermanentRegistrationForm(window.contractConfig);
+    }
+};
+
+// تابع به‌روزرسانی فرم ثبت‌نام دائمی
+async function updatePermanentRegistrationForm(connection) {
+    const walletStatusDiv = document.getElementById('wallet-connection-status');
+    const registerBtn = document.getElementById('permanent-register-btn');
+    const userAddressInput = document.getElementById('permanent-user-address');
+    const referrerAddressInput = document.getElementById('permanent-referrer-address');
+    const balancesDiv = document.getElementById('permanent-balances-display');
+    const cpaBalanceDiv = document.getElementById('permanent-cpa-balance');
+    const maticBalanceDiv = document.getElementById('permanent-matic-balance');
+    
+    if (!connection || !connection.contract) {
+        // کیف پول متصل نیست
+        if (walletStatusDiv) {
+            walletStatusDiv.innerHTML = `
+                <div style="color:#ff4444;font-weight:bold;margin-bottom:0.5rem;">⚠️ کیف پول متصل نیست</div>
+                <p style="color:#b8c1ec;margin:0;font-size:0.9rem;">لطفاً ابتدا کیف پول خود را متصل کنید</p>
+                <button type="button" id="connect-wallet-btn" style="background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.7rem 2rem;font-size:1rem;cursor:pointer;margin-top:0.5rem;transition:all 0.3s;">
+                    🔗 اتصال کیف پول
+                </button>
+            `;
+        }
+        
+        if (registerBtn) {
+            registerBtn.textContent = '🔒 ابتدا کیف پول را متصل کنید';
+            registerBtn.disabled = true;
+        }
+        
+        if (balancesDiv) {
+            balancesDiv.style.display = 'none';
+        }
+        
+        return;
+    }
+    
+    try {
+        const { contract, address } = connection;
+        
+        // به‌روزرسانی وضعیت کیف پول
+        if (walletStatusDiv) {
+            walletStatusDiv.innerHTML = `
+                <div style="color:#00ff88;font-weight:bold;margin-bottom:0.5rem;">✅ کیف پول متصل است</div>
+                <p style="color:#b8c1ec;margin:0;font-size:0.9rem;">آدرس: ${address.substring(0, 6)}...${address.substring(38)}</p>
+            `;
+        }
+        
+        // به‌روزرسانی دکمه ثبت‌نام
+        if (registerBtn) {
+            registerBtn.textContent = '🚀 ثبت‌نام';
+            registerBtn.disabled = false;
+        }
+        
+        // مقداردهی آدرس‌ها
+        if (userAddressInput) {
+            userAddressInput.value = address;
+        }
+        
+        if (referrerAddressInput) {
+            // دریافت آدرس معرف
+            let referrerAddress = '';
+            try {
+                // ابتدا بررسی کنیم که آیا کاربر متصل فعال است و ایندکس دارد
+                const connectedUserData = await contract.users(address);
+                if (connectedUserData.activated) {
+                    // اگر کاربر فعال است، از آدرس خودش به عنوان معرف استفاده کن
+                    referrerAddress = address;
+                } else {
+                    // اگر کاربر فعال نیست، از روش‌های قبلی استفاده کن
+                    if (typeof getReferrerFromURL === 'function') {
+                        referrerAddress = getReferrerFromURL();
+                    }
+                    
+                    if (!referrerAddress && typeof getReferrerFromStorage === 'function') {
+                        referrerAddress = getReferrerFromStorage();
+                    }
+                    
+                    if (!referrerAddress) {
+                        referrerAddress = await contract.deployer();
+                    }
+                }
+            } catch (e) {
+                // در صورت خطا، از deployer استفاده کن
+                referrerAddress = await contract.deployer();
+            }
+            
+            referrerAddressInput.value = referrerAddress;
+        }
+        
+        // به‌روزرسانی موجودی‌ها
+        if (balancesDiv && cpaBalanceDiv && maticBalanceDiv) {
+            try {
+                const [cpaBalance, maticBalance] = await Promise.all([
+                    contract.balanceOf(address),
+                    connection.provider.getBalance(address)
+                ]);
+                
+                const cpaFormatted = parseFloat(ethers.formatUnits(cpaBalance, 18)).toFixed(2);
+                const maticFormatted = parseFloat(ethers.formatEther(maticBalance)).toFixed(4);
+                
+                cpaBalanceDiv.textContent = cpaFormatted;
+                maticBalanceDiv.textContent = maticFormatted;
+                
+                balancesDiv.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error fetching balances:', error);
+                balancesDiv.style.display = 'none';
+            }
+        }
+        
+        // به‌روزرسانی هزینه ثبت‌نام
+        try {
+            const price = await window.getRegPrice(contract);
+            const formattedPrice = parseFloat(ethers.formatUnits(price, 18)).toFixed(0);
+            const costDisplay = document.getElementById('permanent-registration-cost');
+            if (costDisplay) {
+                costDisplay.textContent = `${formattedPrice} CPA`;
+            }
+        } catch (e) {
+            console.log('Could not update registration cost:', e);
+        }
+        
+    } catch (error) {
+        console.error('Error updating permanent registration form:', error);
+    }
+}
+
+// مقداردهی فرم ثبت‌نام دائمی در زمان لود صفحه
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof window.initializePermanentRegistrationForm === 'function') {
+        window.initializePermanentRegistrationForm();
+    }
+});
+
+// تابع لود کردن تب ترنسفر
+window.loadTransferTab = async function() {
+    try {
+        console.log('Loading transfer tab...');
+        
+        // بررسی اتصال کیف پول
+        if (!window.contractConfig || !window.contractConfig.contract) {
+            console.log('Wallet not connected, loading transfer tab with connection message');
+            
+            // نمایش پیام اتصال کیف پول
+            const transferContainer = document.querySelector('.transfer-container');
+            if (transferContainer) {
+                const existingMessage = transferContainer.querySelector('.wallet-connection-message');
+                if (!existingMessage) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'wallet-connection-message';
+                    messageDiv.style.cssText = `
+                        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                        color: #fff;
+                        padding: 1.5rem;
+                        border-radius: 12px;
+                        margin-bottom: 1.5rem;
+                        text-align: center;
+                        font-weight: bold;
+                        border: 2px solid #ff4757;
+                        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+                    `;
+                    messageDiv.innerHTML = `
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">🔒</div>
+                        <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">در ترنسفر موجودی شما به ولت متصل نیست</div>
+                        <div style="font-size: 1rem; margin-bottom: 1rem; opacity: 0.9;">
+                            لطفاً ابتدا کیف پول خود را متصل کنید
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                            <button onclick="connectWallet()" style="
+                                background: linear-gradient(135deg, #00ff88, #00cc66);
+                                color: #232946;
+                                border: none;
+                                padding: 0.8rem 1.5rem;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: bold;
+                                font-size: 1rem;
+                            ">اتصال کیف پول</button>
+                            <button onclick="refreshWalletConnection()" style="
+                                background: linear-gradient(135deg, #ff9500, #ff8000);
+                                color: #fff;
+                                border: none;
+                                padding: 0.8rem 1rem;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: bold;
+                                font-size: 0.9rem;
+                            ">🔄 تلاش مجدد</button>
+                        </div>
+                    `;
+                    transferContainer.insertBefore(messageDiv, transferContainer.firstChild);
+                }
+            }
+            
+            // به‌روزرسانی موجودی‌ها با پیام خطا
+            await updateTransferBalances(null, null, null);
+            return;
+        }
+        
+        const { contract, address, provider } = window.contractConfig;
+        console.log('Contract and address available, updating balances...');
+        
+        // حذف پیام اتصال کیف پول اگر وجود دارد
+        const existingMessage = document.querySelector('.wallet-connection-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // به‌روزرسانی موجودی‌ها
+        await updateTransferBalances(contract, address, provider);
+        
+        // شروع به‌روزرسانی خودکار
+        window.startTransferBalanceAutoRefresh();
+        
+        // تنظیم event listener برای جستجوی ایندکس
+        const searchIndexBtn = document.getElementById('searchIndexBtn');
+        const searchIndexInput = document.getElementById('searchIndex');
+        const searchIndexStatus = document.getElementById('searchIndexStatus');
+        
+        if (searchIndexBtn && searchIndexInput) {
+            searchIndexBtn.onclick = async function() {
+                try {
+                    const index = parseInt(searchIndexInput.value);
+                    if (isNaN(index) || index < 0) {
+                        searchIndexStatus.textContent = 'لطفاً ایندکس معتبر وارد کنید';
+                        searchIndexStatus.className = 'transfer-status error';
+                        return;
+                    }
+                    
+                    searchIndexBtn.textContent = 'در حال جستجو...';
+                    searchIndexBtn.disabled = true;
+                    
+                    // دریافت آدرس از ایندکس
+                    const userAddress = await contract.indexToAddress(BigInt(index));
+                    
+                    // بررسی فعال بودن کاربر
+                    const userData = await contract.users(userAddress);
+                    if (!userData.activated) {
+                        searchIndexStatus.textContent = `کاربر با ایندکس ${index} فعال نیست`;
+                        searchIndexStatus.className = 'transfer-status error';
+                        return;
+                    }
+                    
+                    // به‌روزرسانی فیلد آدرس مقصد
+                    const transferToInput = document.getElementById('transferTo');
+                    if (transferToInput) {
+                        transferToInput.value = userAddress;
+                    }
+                    
+                    searchIndexStatus.textContent = `✅ آدرس پیدا شد: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+                    searchIndexStatus.className = 'transfer-status success';
+                    
+                } catch (error) {
+                    console.error('Error searching by index:', error);
+                    let errorMessage = 'خطا در جستجو';
+                    
+                    if (error.message.includes('reverted')) {
+                        errorMessage = 'ایندکس معتبر نیست یا کاربر وجود ندارد';
+                    } else if (error.message.includes('network')) {
+                        errorMessage = 'خطا در اتصال شبکه';
+                    }
+                    
+                    searchIndexStatus.textContent = errorMessage;
+                    searchIndexStatus.className = 'transfer-status error';
+                } finally {
+                    searchIndexBtn.textContent = 'جستجو';
+                    searchIndexBtn.disabled = false;
+                }
+            };
+        }
+        
+        console.log('Transfer tab loaded successfully');
+        
+    } catch (error) {
+        console.error('Error loading transfer tab:', error);
+    }
+};
+
+// تابع به‌روزرسانی موجودی‌ها در قسمت ترنسفر
+async function updateTransferBalances(contract, address, provider) {
+    try {
+        const usdcBalanceDiv = document.getElementById('transfer-usdc-balance');
+        const polyBalanceDiv = document.getElementById('transfer-poly-balance');
+        const cpaBalanceDiv = document.getElementById('transfer-cpa-balance');
+        
+        if (!usdcBalanceDiv || !polyBalanceDiv || !cpaBalanceDiv) {
+            console.log('Transfer balance elements not found');
+            return;
+        }
+        
+        // بررسی اتصال کیف پول
+        if (!contract || !address || !provider) {
+            console.log('Wallet not connected, showing connection message');
+            
+            // نمایش پیام اتصال کیف پول
+            const balanceContainer = document.querySelector('.transfer-container .balance-check');
+            if (balanceContainer) {
+                const existingMessage = balanceContainer.querySelector('.wallet-connection-message');
+                if (!existingMessage) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'wallet-connection-message';
+                    messageDiv.style.cssText = `
+                        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                        color: #fff;
+                        padding: 1rem;
+                        border-radius: 8px;
+                        margin-bottom: 1rem;
+                        text-align: center;
+                        font-weight: bold;
+                        border: 2px solid #ff4757;
+                    `;
+                    messageDiv.innerHTML = `
+                        <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">🔒</div>
+                        <div>در ترنسفر موجودی شما به ولت متصل نیست</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.9;">
+                            لطفاً ابتدا کیف پول خود را متصل کنید
+                        </div>
+                    `;
+                    balanceContainer.insertBefore(messageDiv, balanceContainer.firstChild);
+                }
+            }
+            
+            // تنظیم مقادیر به حالت خطا
+            polyBalanceDiv.textContent = 'متصل نیست';
+            cpaBalanceDiv.textContent = 'متصل نیست';
+            usdcBalanceDiv.textContent = 'متصل نیست';
+            return;
+        }
+        
+        // حذف پیام اتصال کیف پول اگر وجود دارد
+        const existingMessage = document.querySelector('.wallet-connection-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        console.log('Updating transfer balances for address:', address);
+        
+        // دریافت موجودی POL (MATIC)
+        let polyBalance = '-';
+        try {
+            const polyBal = await provider.getBalance(address);
+            polyBalance = parseFloat(ethers.formatEther(polyBal)).toFixed(4);
+            console.log('POL balance:', polyBalance);
+        } catch (e) {
+            console.error('Error getting POL balance:', e);
+            polyBalance = 'خطا';
+        }
+        
+        // دریافت موجودی CPA
+        let cpaBalance = '-';
+        try {
+            const cpaBal = await contract.balanceOf(address);
+            cpaBalance = parseFloat(ethers.formatUnits(cpaBal, 18)).toFixed(2);
+            console.log('CPA balance:', cpaBalance);
+        } catch (e) {
+            console.error('Error getting CPA balance:', e);
+            cpaBalance = 'خطا';
+        }
+        
+        // دریافت موجودی USDC
+        let usdcBalance = '-';
+        try {
+            const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
+            const USDC_ABI = ["function balanceOf(address) view returns (uint256)"];
+            const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider);
+            const usdcBal = await usdcContract.balanceOf(address);
+            usdcBalance = parseFloat(ethers.formatUnits(usdcBal, 6)).toFixed(2);
+            console.log('USDC balance:', usdcBalance);
+        } catch (e) {
+            console.error('Error getting USDC balance:', e);
+            usdcBalance = 'خطا';
+        }
+        
+        // به‌روزرسانی نمایش
+        polyBalanceDiv.textContent = polyBalance;
+        cpaBalanceDiv.textContent = cpaBalance;
+        usdcBalanceDiv.textContent = usdcBalance;
+        
+        console.log('Transfer balances updated successfully');
+        
+    } catch (error) {
+        console.error('Error updating transfer balances:', error);
+        
+        // نمایش پیام خطا
+        const balanceContainer = document.querySelector('.transfer-container .balance-check');
+        if (balanceContainer) {
+            const existingMessage = balanceContainer.querySelector('.wallet-connection-message');
+            if (!existingMessage) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'wallet-connection-message';
+                messageDiv.style.cssText = `
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                    color: #fff;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    margin-bottom: 1rem;
+                    text-align: center;
+                    font-weight: bold;
+                    border: 2px solid #ff4757;
+                `;
+                messageDiv.innerHTML = `
+                    <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">⚠️</div>
+                    <div>خطا در بارگذاری موجودی‌ها</div>
+                    <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.9;">
+                        لطفاً دوباره تلاش کنید
+                    </div>
+                `;
+                balanceContainer.insertBefore(messageDiv, balanceContainer.firstChild);
+            }
+        }
+    }
+}
+
+// تابع به‌روزرسانی موجودی‌های ترنسفر در زمان اتصال کیف پول
+window.updateTransferBalancesOnConnect = async function() {
+    try {
+        if (!window.contractConfig || !window.contractConfig.contract) {
+            console.log('Wallet not connected, cannot update transfer balances');
+            return;
+        }
+        
+        const { contract, address, provider } = window.contractConfig;
+        
+        // حذف پیام اتصال کیف پول اگر وجود دارد
+        const existingMessage = document.querySelector('.wallet-connection-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        await updateTransferBalances(contract, address, provider);
+        
+        // شروع به‌روزرسانی خودکار اگر هنوز شروع نشده
+        if (!window.transferBalanceInterval) {
+            window.startTransferBalanceAutoRefresh();
+        }
+        
+    } catch (error) {
+        console.error('Error updating transfer balances on connect:', error);
+    }
+};
+
+// فراخوانی تابع به‌روزرسانی موجودی‌های ترنسفر در زمان اتصال کیف پول
+document.addEventListener('DOMContentLoaded', function() {
+    // بررسی اتصال کیف پول و به‌روزرسانی موجودی‌های ترنسفر
+    if (window.contractConfig && window.contractConfig.contract) {
+        setTimeout(() => {
+            window.updateTransferBalancesOnConnect();
+        }, 1000);
+    }
+    
+    // اضافه کردن دکمه به‌روزرسانی دستی موجودی‌ها
+    const transferContainer = document.querySelector('.transfer-container');
+    if (transferContainer) {
+        const refreshButton = document.createElement('button');
+        refreshButton.innerHTML = '🔄 به‌روزرسانی موجودی‌ها';
+        refreshButton.style.cssText = `
+            background: linear-gradient(90deg, #a786ff, #8b6bff);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        `;
+        
+        refreshButton.onclick = async function() {
+            try {
+                refreshButton.textContent = 'در حال به‌روزرسانی...';
+                refreshButton.disabled = true;
+                
+                if (window.updateTransferBalancesOnConnect) {
+                    await window.updateTransferBalancesOnConnect();
+                }
+                
+                refreshButton.textContent = '✅ به‌روزرسانی شد';
+                setTimeout(() => {
+                    refreshButton.textContent = '🔄 به‌روزرسانی موجودی‌ها';
+                    refreshButton.disabled = false;
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error refreshing balances:', error);
+                refreshButton.textContent = '❌ خطا در به‌روزرسانی';
+                setTimeout(() => {
+                    refreshButton.textContent = '🔄 به‌روزرسانی موجودی‌ها';
+                    refreshButton.disabled = false;
+                }, 2000);
+            }
+        };
+        
+        // اضافه کردن دکمه به ابتدای فرم
+        const form = transferContainer.querySelector('#transferForm');
+        if (form) {
+            form.insertBefore(refreshButton, form.firstChild);
+        }
+    }
+    
+    // اضافه کردن event listener برای دکمه اتصال کیف پول در تب ترنسفر
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.onclick && e.target.onclick.toString().includes('connectWallet()')) {
+            // اگر دکمه اتصال کیف پول کلیک شد، بعد از اتصال موجودی‌ها را به‌روزرسانی کن
+            setTimeout(() => {
+                if (window.updateTransferBalancesOnConnect) {
+                    window.updateTransferBalancesOnConnect();
+                }
+            }, 2000);
+        }
+    });
+    
+    // حذف دکمه شناور CPA ID در زمان بارگذاری صفحه
+    setTimeout(() => {
+        if (window.removeFloatingCPAId) {
+            window.removeFloatingCPAId();
+        }
+    }, 1000);
+});
+
+// تابع به‌روزرسانی خودکار موجودی‌های ترنسفر
+window.startTransferBalanceAutoRefresh = function() {
+    if (window.transferBalanceInterval) {
+        clearInterval(window.transferBalanceInterval);
+    }
+    
+    window.transferBalanceInterval = setInterval(async () => {
+        try {
+            if (window.contractConfig && window.contractConfig.contract) {
+                const { contract, address, provider } = window.contractConfig;
+                await updateTransferBalances(contract, address, provider);
+            }
+        } catch (error) {
+            console.error('Error in auto-refresh transfer balances:', error);
+        }
+    }, 30000); // هر 30 ثانیه
+};
+
+// تابع توقف به‌روزرسانی خودکار
+window.stopTransferBalanceAutoRefresh = function() {
+    if (window.transferBalanceInterval) {
+        clearInterval(window.transferBalanceInterval);
+        window.transferBalanceInterval = null;
+    }
+};
+
+// تابع تولید ID بر اساس ایندکس کاربر
+function generateCPAId(index) {
+    if (!index || index === 0) return 'CPA00000';
+    
+    // تبدیل به عدد
+    const numIndex = typeof index === 'bigint' ? Number(index) : parseInt(index);
+    if (isNaN(numIndex) || numIndex < 0) return 'CPA00000';
+    
+    // تولید ID با فرمت CPA + 5 رقم
+    return `CPA${numIndex.toString().padStart(5, '0')}`;
+}
+
+// تابع نمایش ID در گوشه بالا سمت راست - غیرفعال شده
+function displayCPAIdInCorner(index) {
+    // حذف ID قبلی اگر وجود دارد
+    const existingId = document.getElementById('cpa-id-corner');
+    if (existingId) existingId.remove();
+    
+    // غیرفعال شده - دیگر نمایش داده نمی‌شود
+    return;
+    
+    /*
+    if (!index || index === 0) return;
+    
+    const cpaId = generateCPAId(index);
+    
+    // ایجاد عنصر ID
+    const idElement = document.createElement('div');
+    idElement.id = 'cpa-id-corner';
+    idElement.textContent = cpaId;
+    idElement.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(135deg, #00ff88, #a786ff);
+        color: #181c2a;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 0.9rem;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,255,136,0.3);
+        border: 1px solid rgba(167,134,255,0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    `;
+    
+    // اضافه کردن hover effect
+    idElement.onmouseover = function() {
+        this.style.transform = 'scale(1.05)';
+        this.style.boxShadow = '0 4px 12px rgba(0,255,136,0.4)';
+    };
+    
+    idElement.onmouseout = function() {
+        this.style.transform = 'scale(1)';
+        this.style.boxShadow = '0 2px 8px rgba(0,255,136,0.3)';
+    };
+    
+    // کلیک برای کپی کردن
+    idElement.onclick = function() {
+        navigator.clipboard.writeText(cpaId);
+        const originalText = this.textContent;
+        this.textContent = 'کپی شد!';
+        this.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+        setTimeout(() => {
+            this.textContent = originalText;
+            this.style.background = 'linear-gradient(135deg, #00ff88, #a786ff)';
+        }, 1000);
+    };
+    
+    document.body.appendChild(idElement);
+    */
+}
+
+// تابع به‌روزرسانی نمایش ID در تمام بخش‌ها
+function updateCPAIdDisplay(index) {
+    const cpaId = generateCPAId(index);
+    
+    // به‌روزرسانی در پروفایل
+    const profileIndexEl = document.getElementById('profile-index');
+    if (profileIndexEl) {
+        profileIndexEl.textContent = cpaId;
+    }
+    
+    // به‌روزرسانی در داشبورد
+    const dashboardIndexEl = document.getElementById('dashboard-user-index');
+    if (dashboardIndexEl) {
+        dashboardIndexEl.textContent = cpaId;
+    }
+    
+    // نمایش بخش اطلاعات کاربر در داشبورد
+    const dashboardUserInfo = document.getElementById('dashboard-user-info');
+    if (dashboardUserInfo) {
+        dashboardUserInfo.style.display = 'block';
+        
+        // به‌روزرسانی آدرس کیف پول
+        const dashboardUserAddress = document.getElementById('dashboard-user-address');
+        if (dashboardUserAddress && window.contractConfig && window.contractConfig.address) {
+            dashboardUserAddress.textContent = shortenAddress(window.contractConfig.address);
+        }
+        
+        // به‌روزرسانی وضعیت
+        const dashboardUserStatus = document.getElementById('dashboard-user-status');
+        if (dashboardUserStatus) {
+            dashboardUserStatus.textContent = 'فعال';
+            dashboardUserStatus.style.color = '#00ff88';
+        }
+    }
+    
+    // به‌روزرسانی در شبکه
+    const networkIndexEl = document.getElementById('network-user-index');
+    if (networkIndexEl) {
+        networkIndexEl.textContent = cpaId;
+    }
+    
+    // نمایش در گوشه - غیرفعال شده
+    // displayCPAIdInCorner(index);
+}
+
+// تابع حذف دکمه شناور CPA ID
+window.removeFloatingCPAId = function() {
+    const existingId = document.getElementById('cpa-id-corner');
+    if (existingId) {
+        existingId.remove();
+        console.log('✅ Floating CPA ID removed');
+    }
+};
+
+// تابع پاک کردن کش و تلاش مجدد اتصال کیف پول
+window.refreshWalletConnection = async function() {
+    try {
+        console.log('🔄 Refreshing wallet connection...');
+        
+        // پاک کردن کش‌ها
+        if (window.clearConnectionCache) {
+            window.clearConnectionCache();
+        }
+        
+        // پاک کردن متغیرهای سراسری
+        if (typeof connectionCache !== 'undefined') {
+            connectionCache = null;
+        }
+        if (typeof globalConnectionPromise !== 'undefined') {
+            globalConnectionPromise = null;
+        }
+        if (typeof pendingAccountRequest !== 'undefined') {
+            pendingAccountRequest = null;
+        }
+        
+        // پاک کردن contractConfig
+        if (window.contractConfig) {
+            window.contractConfig.provider = null;
+            window.contractConfig.signer = null;
+            window.contractConfig.contract = null;
+            window.contractConfig.address = null;
+        }
+        
+        // تلاش مجدد اتصال
+        const connection = await window.connectWallet();
+        
+        if (connection && connection.contract && connection.address) {
+            console.log('✅ Wallet connection refreshed successfully');
+            
+            // به‌روزرسانی موجودی‌های ترنسفر
+            if (window.updateTransferBalancesOnConnect) {
+                await window.updateTransferBalancesOnConnect();
+            }
+            
+            return connection;
+        } else {
+            throw new Error('اتصال کیف پول ناموفق بود');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error refreshing wallet connection:', error);
+        throw error;
+    }
+};
