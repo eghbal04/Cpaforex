@@ -286,26 +286,19 @@ window.renderSimpleBinaryTree = async function() {
         return;
     }
     
-    // Debug: نمایش stack trace برای فهمیدن از کجا فراخوانی شده
-    console.log('🔄 renderSimpleBinaryTree called from:', new Error().stack);
-    
     try {
         isRenderingTree = true;
-        console.log('🔄 Starting to render binary tree...');
         
         const { contract, address } = await window.connectWallet();
         if (!contract || !address) {
             throw new Error('No wallet connection available');
         }
         
-        console.log('✅ Wallet connected, getting user data...');
         const user = await contract.users(address);
         
         if (!user || !user.index) {
             throw new Error('User not found or not registered');
         }
-        
-        console.log('✅ User data retrieved, index:', user.index);
         
         // نمایش وضعیت بارگذاری
         container.innerHTML = '<div style="color:#00ccff;text-align:center;padding:2rem;">🔄 در حال بارگذاری درخت شبکه...</div>';
@@ -320,26 +313,14 @@ window.renderSimpleBinaryTree = async function() {
         lastRenderedIndex = user.index;
         lastRenderedTime = Date.now();
         
-        console.log('✅ Binary tree rendered successfully');
-        
-        // نمایش پیام موفقیت
-        if (typeof window.showSuccessMessage === 'function') {
-            window.showSuccessMessage('درخت باینری با موفقیت به‌روزرسانی شد');
-        }
-        
     } catch (error) {
-        console.error('❌ Error rendering binary tree:', error);
+        console.error('Error rendering binary tree:', error);
         container.innerHTML = `
             <div style="color:#ff4444;text-align:center;padding:2rem;">
                 ❌ خطا در بارگذاری درخت شبکه<br>
                 <small style="color:#ccc;">${error.message}</small>
             </div>
         `;
-        
-        // نمایش پیام خطا
-        if (typeof window.showErrorMessage === 'function') {
-            window.showErrorMessage('خطا در بارگذاری درخت باینری');
-        }
     } finally {
         isRenderingTree = false;
     }
