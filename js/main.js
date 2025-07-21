@@ -40,6 +40,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     await updateContractStats();
+    // به‌روزرسانی همزمان همه کارت‌های داشبورد با Promise.all
+    if (window.contractConfig && window.contractConfig.contract) {
+      const contract = window.contractConfig.contract;
+      try {
+        const [
+          totalSupply,
+          usdcBalance,
+          tokenBalance,
+          wallets,
+          totalPoints
+        ] = await Promise.all([
+          contract.totalSupply(),
+          contract.usdcBalance ? contract.usdcBalance() : Promise.resolve(0),
+          contract.tokenBalance ? contract.tokenBalance() : Promise.resolve(0),
+          contract.wallets(),
+          contract.totalClaimableBinaryPoints()
+        ]);
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('circulating-supply', Number(totalSupply) / 1e18);
+        set('dashboard-usdc-balance', Number(usdcBalance) / 1e6);
+        set('contract-token-balance', Number(tokenBalance) / 1e18);
+        set('dashboard-wallets-count', Number(wallets));
+        set('total-points', Math.floor(Number(totalPoints) / 1e18).toLocaleString('en-US'));
+      } catch (e) {
+        set('total-points', '-');
+      }
+    }
+
     // حذف مقداردهی مستقیم به dashboard-terminal-info برای جلوگیری از تداخل تایپ‌رایتر
     // if (document.getElementById('dashboard-terminal-info')) {
     //     document.getElementById('dashboard-terminal-info').textContent =

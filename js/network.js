@@ -25,7 +25,6 @@ function showUserPopup(address, user) {
     const binaryPointsRemain = binaryPoints - binaryPointsClaimed;
     const infoLines = [
         `شناسه کاربر:  ${window.generateCPAId ? window.generateCPAId(user.index) : user.index}`,
-        `وضعیت فعال بودن:  ${user.activated ? 'بله' : 'خیر'}`,
         `امتیاز باینری:  ${user.binaryPoints}`,
         `امتیاز باینری دریافت‌شده:  ${binaryPointsClaimed}`,
         `امتیاز باینری مانده:  ${binaryPointsRemain}`,
@@ -43,71 +42,72 @@ function showUserPopup(address, user) {
     popup.style = `
       position: fixed;
       z-index: 9999;
-      top: 0;
+      top: 64px;
       left: 0;
+      right: 0;
       width: 100vw;
-      height: 40px;
-      background: rgba(0,0,0,0.95);
+      min-width: 100vw;
+      max-width: 100vw;
+      background: linear-gradient(90deg, rgba(10,13,26,0.98) 70%, rgba(0,255,136,0.08) 100%);
+      box-shadow: 0 8px 32px rgba(0,255,136,0.10), 0 2px 8px rgba(0,0,0,0.18);
+      border-radius: 0 0 18px 18px;
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: 0.3rem 1rem;
+      padding: 0.7rem 1vw 0.7rem 1vw;
       box-sizing: border-box;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       transition: height 0.3s ease;
       cursor: pointer;
       border-bottom: 2px solid #00ff88;
+      font-family: 'Montserrat', 'Noto Sans Arabic', monospace;
+      font-size: 0.92rem;
     `;
-    
     function formatDateTime(val) {
-      if (!val || isNaN(Number(val)) || Number(val) === 0) return 'N/A';
+      if (!val || isNaN(Number(val)) || Number(val) === 0) return '-';
       const d = new Date(Number(val) * 1000);
-      if (isNaN(d.getTime())) return 'N/A';
+      if (isNaN(d.getTime())) return '-';
       return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
     }
-    const allItems = [
-      `Binary Points: ${user.binaryPoints}`,
-      `Point Cap: ${user.binaryPointCap}`,
-      `Points Claimed: ${user.binaryPointsClaimed}`,
-      `Activated: ${user.activated ? 'Yes' : 'No'}`,
-      `Total Purchased: ${user.totalPurchasedKind}`,
-      `Upgrade Time: ${formatDateTime(user.upgradeTime)}`,
-      `Last Claim: ${formatDateTime(user.lastClaimTime)}`,
-      `Left Points: ${user.leftPoints}`,
-      `Right Points: ${user.rightPoints}`,
-      `Last Monthly Claim: ${formatDateTime(user.lastMonthlyClaim)}`,
-      `Total Monthly Rewarded: ${user.totalMonthlyRewarded}`,
-      `Referral Rewards: ${user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : '0'}`,
-      `Deposited Amount: ${user.depositedAmount ? parseInt(user.depositedAmount) : '0'}`,
-      `POL Balance: ${user.maticBalance ? user.maticBalance : '0'}`,
-      `CPA Balance: ${user.lvlBalance ? user.lvlBalance : '0'}`,
-      `USDC Balance: ${user.usdcBalance ? user.usdcBalance : '0'}`
-    ];
-    const leftColumn = [];
-    const rightColumn = [];
-    allItems.forEach((item, i) => {
-      if (i % 2 === 0) leftColumn.push(item);
-      else rightColumn.push(item);
-    });
-
-    popup.innerHTML = `
-      <div style="background: #181c2a; padding: 0.2rem; width: 100%; max-width: 500px; overflow: hidden; direction: ltr; position: relative; font-family: 'Courier New', monospace;">
-        <div class="popup-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; padding-bottom: 0.1rem; border-bottom: none; cursor: pointer;">
-          <h3 style="color: #00ff88; margin: 0; font-size: 0.9rem; font-weight: bold; text-align: center; flex: 1; cursor: pointer; font-family: 'Courier New', monospace;">👤 USER INFO (${shortAddress(address)})</h3>
-          <button id="close-user-popup" style="background: #ff6b6b; color: white; border: none; border-radius: 0; width: 20px; height: 20px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace;" onmouseover="this.style.background='#ff4444'" onmouseout="this.style.background='#ff6b6b'">×</button>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem; background:#181c2a; padding:0.2rem; color:#00ff88; font-size:0.75rem; line-height:1.5; font-family:'Courier New',monospace; min-width:200px; direction:ltr; text-align:left; min-height:120px; max-height:320px; overflow-y:auto;">
-          <div id="user-popup-left-column"></div>
-          <div id="user-popup-right-column"></div>
-        </div>
-      </div>
-    `;
-    const leftColumnEl = popup.querySelector('#user-popup-left-column');
-    const rightColumnEl = popup.querySelector('#user-popup-right-column');
-    if (leftColumnEl && rightColumnEl) {
-      leftColumnEl.innerHTML = leftColumn.map(item => `<div style='padding:0.1rem 0;word-break:break-word;'>${item}</div>`).join('');
-      rightColumnEl.innerHTML = rightColumn.map(item => `<div style='padding:0.1rem 0;word-break:break-word;'>${item}</div>`).join('');
+    let expanded = true;
+    function renderPopupContent() {
+      if (expanded) {
+        popup.innerHTML = `
+          <div style="width:100%;max-width:900px;display:grid;grid-template-columns:1fr 1fr;gap:1.2rem 2.2rem;align-items:start;justify-content:center;text-align:left;background:rgba(24,28,42,0.98);border-radius:16px;box-shadow:0 8px 32px rgba(0,255,136,0.10),0 2px 8px rgba(0,0,0,0.18);padding:1.5rem 2vw;margin:0 auto;">
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>CPA ID:</b> <span>${window.generateCPAId ? window.generateCPAId(user.index) : user.index}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Binary Points:</b> <span>${user.binaryPoints}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Points Claimed:</b> <span>${user.binaryPointsClaimed}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Point Cap:</b> <span>${user.binaryPointCap}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Left Points:</b> <span>${user.leftPoints}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Right Points:</b> <span>${user.rightPoints}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Referral Rewards:</b> <span>${user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : '0'}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>CPA Balance:</b> <span>${user.lvlBalance ? user.lvlBalance : '0'}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>POL Balance:</b> <span>${user.maticBalance ? user.maticBalance : '0'}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>USDC Balance:</b> <span>${user.usdcBalance ? user.usdcBalance : '0'}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Deposited Amount:</b> <span style='font-weight:bold;font-style:italic;'>${user.depositedAmount ? Math.floor(Number(user.depositedAmount) / 1e18) : '0'}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Total Monthly Rewarded:</b> <span>${user.totalMonthlyRewarded}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Total Purchased:</b> <span>${user.totalPurchasedKind}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Upgrade Time:</b> <span>${formatDateTime(user.upgradeTime)}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Last Claim:</b> <span>${formatDateTime(user.lastClaimTime)}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Last Monthly Claim:</b> <span>${formatDateTime(user.lastMonthlyClaim)}</span></div>
+            <div style='border-left:2px solid #222;padding-left:1rem;'><b>Address:</b> <span style='font-family:monospace;color:#a786ff;'>${shortAddress(address)}</span></div>
+          </div>
+        `;
+      } else {
+        popup.innerHTML = `
+          <div style="width:100%;max-width:900px;display:flex;gap:1.5rem;align-items:center;justify-content:flex-start;text-align:left;">
+            <div><b>Left Points:</b> <span>${user.leftPoints}</span></div>
+            <div style="border-left:1.5px solid #444;padding-left:0.7rem;"><b>Right Points:</b> <span>${user.rightPoints}</span></div>
+            <div style="border-left:1.5px solid #444;padding-left:0.7rem;"><b>Address:</b> <span style='font-family:monospace;color:#a786ff;'>${shortAddress(address)}</span></div>
+          </div>
+        `;
+      }
     }
+    renderPopupContent();
+    popup.onclick = function() {
+      expanded = !expanded;
+      renderPopupContent();
+    };
     
     document.body.appendChild(popup);
     
