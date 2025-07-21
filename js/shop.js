@@ -156,15 +156,13 @@ function setupProductPurchases() {
             // درصد ثابت هر محصول
             const product = products.find(p => p.id === productId);
             const percent = product ? product.percent : 30;
-            const seller = product ? product.seller : null;
-            const discount = product ? product.discount : 0;
-            await purchaseProduct(productId, price, percent, seller, discount, e.target);
+            await purchaseProduct(productId, price, percent, e.target);
         }
     });
 }
 
 // خرید محصول
-async function purchaseProduct(productId, price, percent, seller, discount, button) {
+async function purchaseProduct(productId, price, percent, button) {
     try {
         // بررسی اتصال کیف پول
         const connection = await checkConnection();
@@ -177,18 +175,13 @@ async function purchaseProduct(productId, price, percent, seller, discount, butt
         const profile = await fetchUserProfile();
         const userBalance = parseFloat(profile.cpaBalance);
         
-        let finalPrice = price;
-        if (discount && discount > 0 && discount < 100) {
-            finalPrice = price * (1 - discount / 100);
-        }
-
-        if (userBalance < finalPrice) {
+        if (userBalance < price) {
             showShopError("موجودی شما کافی نیست. موجودی: " + userBalance + " CPA");
             return;
         }
 
         // تأیید خرید
-        const confirmed = confirm(`آیا از خرید این محصول به قیمت ${finalPrice} CPA با ${percent}% ورود به باینری اطمینان دارید؟${discount ? `\n(تخفیف: ${discount}%)` : ''}`);
+        const confirmed = confirm(`آیا از خرید این محصول به قیمت ${price} CPA با ${percent}% ورود به باینری اطمینان دارید؟`);
         if (!confirmed) return;
 
         // غیرفعال کردن دکمه
@@ -197,12 +190,12 @@ async function purchaseProduct(productId, price, percent, seller, discount, butt
 
         // انجام تراکنش خرید - استفاده از آدرس deployer به عنوان فروشگاه
         const { contract, address } = await connectWallet();
-        const priceFixed = Number(finalPrice).toFixed(6);
+        const priceFixed = Number(price).toFixed(6);
         const amountInWei = ethers.parseUnits(priceFixed, 18);
         const payoutPercent = percent; // عدد صحیح درصد
         // استفاده از آدرس deployer قرارداد به عنوان آدرس فروشگاه
         const deployerAddress = await contract.deployer();
-        const tx = await contract.purchase(amountInWei, payoutPercent, seller);
+        const tx = await contract.purchase(amountInWei, payoutPercent);
         await tx.wait();
 
         // ثبت سفارش
@@ -212,7 +205,7 @@ async function purchaseProduct(productId, price, percent, seller, discount, butt
             productId: productId,
             productName: product ? product.name : 'محصول ناشناخته',
             customerAddress: address,
-            price: finalPrice,
+            price: price,
             percent: percent,
             transactionHash: tx.hash,
             timestamp: new Date().toLocaleString('fa-IR'),
@@ -469,8 +462,6 @@ function showAddProductForm() {
             <input type="text" id="new-product-icon" placeholder="ایموجی یا آیکون" maxlength="2" style="margin:0.5rem;width:90%;"><br>
             <input type="color" id="new-product-color" value="#00ccff" style="margin:0.5rem;"><br>
             <input type="number" id="new-product-percent" placeholder="درصد سود (مثلاً 30)" required min="1" max="100" style="margin:0.5rem;width:90%;"><br>
-            <input type="text" id="new-product-seller" placeholder="آدرس فروشنده (0x...)" required style="margin:0.5rem;width:90%;"><br>
-            <input type="number" id="new-product-discount" placeholder="درصد تخفیف (مثلاً 10)" min="0" max="100" style="margin:0.5rem;width:90%;"><br>
             <button type="submit" style="margin:0.5rem;background:#00ff88;color:#000;">ثبت محصول</button>
             <button type="button" id="cancel-add-product" style="margin:0.5rem;">انصراف</button>
         </form>
@@ -490,9 +481,7 @@ function handleAddProductSubmit(e) {
     const icon = document.getElementById('new-product-icon').value.trim() || '🛒';
     const color = document.getElementById('new-product-color').value || '#00ccff';
     const percent = parseInt(document.getElementById('new-product-percent').value) || 30;
-    const seller = document.getElementById('new-product-seller').value.trim();
-    const discount = parseInt(document.getElementById('new-product-discount').value) || 0;
-    if (!name || !description || isNaN(price) || price <= 0 || !seller) {
+    if (!name || !description || isNaN(price) || price <= 0) {
         return;
     }
     // افزودن محصول به لیست (در حافظه موقت)
@@ -504,9 +493,7 @@ function handleAddProductSubmit(e) {
         currency: 'USD',
         icon,
         color,
-        percent,
-        seller,
-        discount
+        percent
     };
     products.push(newProduct);
     // بستن فرم و رفرش محصولات
@@ -561,8 +548,6 @@ function showEditProductsForm() {
                     <input type="text" id="edit-icon-${product.id}" value="${product.icon}" placeholder="آیکون" maxlength="2" style="padding:0.3rem;">
                     <input type="color" id="edit-color-${product.id}" value="${product.color}" style="padding:0.3rem;width:100%;">
                     <input type="number" id="edit-percent-${product.id}" value="${product.percent}" placeholder="درصد سود" min="1" max="100" style="padding:0.3rem;">
-                    <input type="text" id="edit-seller-${product.id}" value="${product.seller || ''}" placeholder="آدرس فروشنده" style="padding:0.3rem;">
-                    <input type="number" id="edit-discount-${product.id}" value="${product.discount || 0}" placeholder="درصد تخفیف" min="0" max="100" style="padding:0.3rem;">
                 </div>
                 <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
                     <button type="button" onclick="handleEditProduct(${product.id})" style="background:#00ff88;color:#000;padding:0.3rem 0.8rem;border:none;border-radius:4px;cursor:pointer;">ذخیره تغییرات</button>
@@ -608,10 +593,8 @@ function handleEditProduct(productId) {
     const icon = document.getElementById(`edit-icon-${productId}`).value.trim() || '🛒';
     const color = document.getElementById(`edit-color-${productId}`).value || '#00ccff';
     const percent = parseInt(document.getElementById(`edit-percent-${productId}`).value) || 30;
-    const seller = document.getElementById(`edit-seller-${productId}`).value.trim();
-    const discount = parseInt(document.getElementById(`edit-discount-${productId}`).value) || 0;
     
-    if (!name || !description || isNaN(price) || price <= 0 || isNaN(percent) || percent <= 0 || !seller) {
+    if (!name || !description || isNaN(price) || price <= 0 || isNaN(percent) || percent <= 0) {
         alert('لطفاً همه فیلدها را به درستی وارد کنید.');
         return;
     }
@@ -623,8 +606,6 @@ function handleEditProduct(productId) {
     product.icon = icon;
     product.color = color;
     product.percent = percent;
-    product.seller = seller;
-    product.discount = discount;
     
     // رفرش محصولات
     loadProducts();
@@ -680,7 +661,7 @@ function showOrdersList() {
     } else {
         let ordersHtml = '';
         orders.forEach((order, index) => {
-            const shortAddress = order.customerAddress.substring(0, 3) + '...' + order.customerAddress.substring(order.customerAddress.length - 2);
+            const shortAddress = order.customerAddress.substring(0, 6) + '...' + order.customerAddress.substring(order.customerAddress.length - 4);
             const shortHash = order.transactionHash.substring(0, 10) + '...' + order.transactionHash.substring(order.transactionHash.length - 8);
             
             ordersHtml += `

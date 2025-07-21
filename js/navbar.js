@@ -165,11 +165,10 @@
   navbar.innerHTML = `
     <div class="cpa-navbar-links">
       <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
-      <a href="shop.html" class="cpa-navbar-link">فروشگاه</a>
-      <a href="news.html" class="cpa-navbar-link">اخبار</a>
-      <a href="learning.html" class="cpa-navbar-link">آموزش</a>
-      <a href="signal.html" class="cpa-navbar-link">سیگنال</a>
-      <a href="professional-tree.html" class="cpa-navbar-link">شبکه</a>
+      <a href="shop.html" class="cpa-navbar-link">🏫 آموزشگاه</a>
+      <a href="khadamat.html" class="cpa-navbar-link">🛠 خدمات</a>
+      <a href="professional-tree.html" class="cpa-navbar-link">💼 بازاریابی</a>
+      <a href="forum.html" class="cpa-navbar-link">💬 چت روم</a>
       <a href="about.html" class="cpa-navbar-link">درباره ما</a>
     </div>
   `;

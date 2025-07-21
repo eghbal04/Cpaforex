@@ -32,7 +32,9 @@ function showUserPopup(address, user) {
     const maticBalance = user.maticBalance ? Number(user.maticBalance) : null;
     const usdcBalance = user.usdcBalance ? Number(user.usdcBalance) : null;
     // آیتم‌های کامل با عنوان انگلیسی کامل
-    const items = [
+    const items = [];
+    if (cpaBalance !== null) items.push({icon:'🟢', val:cpaBalance, label:'CPA Balance'});
+    items.push(
       {icon:'🆔', val:cpaId, label:'CPA ID'},
       {icon:'🔗', val:shortAddress(address), label:'Wallet', short:true},
       {icon:'🎯', val:binaryPoints, label:'Binary Points'},
@@ -43,8 +45,7 @@ function showUserPopup(address, user) {
       {icon:'💰', val:deposited, label:'Total Deposit'},
       {icon:'⬅️', val:leftCount, label:'Left Count'},
       {icon:'➡️', val:rightCount, label:'Right Count'}
-    ];
-    if (cpaBalance !== null) items.push({icon:'🟢', val:cpaBalance, label:'CPA Balance'});
+    );
     if (maticBalance !== null) items.push({icon:'🟣', val:maticBalance, label:'MATIC Balance'});
     if (usdcBalance !== null) items.push({icon:'💵', val:usdcBalance, label:'USDC Balance'});
     if (isActive !== undefined) items.push({icon:isActive?'✅':'❌', val:isActive?'Active':'Inactive', label:'Active Status'});
@@ -72,10 +73,14 @@ function showUserPopup(address, user) {
       font-size: 0.93rem;
     `;
     popup.innerHTML = `
-      <div style="width:100%;max-width:1200px;background:rgba(35,41,70,0.98);border-radius:14px;padding:0.7rem 1.2rem 0.7rem 1.2rem;margin:0 auto;position:relative;overflow-x:auto;">
-        <button id="close-user-popup" style="position:absolute;top:0.7rem;left:0.7rem;background:#ff6b6b;color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:1em;cursor:pointer;">×</button>
-        <div style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:0.5em;align-items:center;justify-content:flex-start;overflow-x:auto;scrollbar-width:thin;">
-          ${items.map(i=>`<span class='user-info-item' style='display:flex;flex-direction:row;align-items:center;gap:0.35em;background:linear-gradient(90deg,#232946,#181c2a);border-radius:8px;padding:0.7em 0.7em;font-size:0.97em;min-width:180px;max-width:180px;width:180px;justify-content:center;transition:background 0.2s,transform 0.2s;box-shadow:0 2px 8px #00ff8820;cursor:default;white-space:nowrap;overflow:hidden;'><span style='font-size:1.1em;'>${i.icon}</span><span style='font-weight:bold;color:#fff;margin:0 0.2em;${i.short ? 'overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;' : ''}'>${typeof i.val==='number'?i.val.toLocaleString():i.val}</span><span style='color:#a786ff;font-size:0.97em;display:inline-block;max-width:90px;overflow:visible;'>${i.label}</span></span>`).join('')}
+      <div style="width:100%;max-width:1200px;background:rgba(35,41,70,0.98);border-radius:14px;padding:0.7rem 1.2rem 0.7rem 1.2rem;margin:0 auto;position:relative;overflow-x:visible;">
+        <div style="width:100%;overflow-x:auto;overflow-y:hidden;padding-bottom:0.3em;">
+          <div style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:0.5em;align-items:center;justify-content:flex-start;min-height:1px;">
+            ${items.map(i=>{
+              const wide = i.label === 'Last Claim Date';
+              return `<span class='user-info-item' style='display:flex;flex-direction:row;align-items:center;gap:0.35em;background:linear-gradient(90deg,#232946,#181c2a);border-radius:8px;padding:0.7em 0.7em;font-size:0.97em;min-width:${wide ? '320px' : '240px'};max-width:${wide ? '320px' : '240px'};width:${wide ? '320px' : '240px'};justify-content:center;transition:background 0.2s,transform 0.2s;box-shadow:0 2px 8px #00ff8820;cursor:default;white-space:nowrap;overflow:hidden;'><span style='font-size:1.1em;'>${i.icon}</span><span style='font-weight:bold;color:#fff;margin:0 0.2em;${i.short ? 'overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;' : ''}'>${typeof i.val==='number'?i.val.toLocaleString():i.val}</span><span style='color:#a786ff;font-size:0.97em;display:inline-block;max-width:90px;overflow:visible;'>${i.label}</span></span>`;
+            }).join('')}
+          </div>
         </div>
       </div>
       <style>
@@ -83,7 +88,6 @@ function showUserPopup(address, user) {
       </style>
     `;
     document.body.appendChild(popup);
-    document.getElementById('close-user-popup').onclick = () => popup.remove();
 }
 
 // تابع جدید: رندر عمودی ساده با حفظ رفتارها
@@ -206,18 +210,17 @@ async function renderVerticalNodeLazy(index, container, level = 0, autoExpand = 
         // اگر جایگاه خالی وجود دارد، فقط یک دکمه کوچک "نیو" نمایش بده
         if (!leftActive || !rightActive) {
             let newBtn = document.createElement('button');
-            newBtn.textContent = 'نیو';
+            newBtn.textContent = 'ثبت جدید';
+            newBtn.style.whiteSpace = 'nowrap';
+            newBtn.style.fontSize = '0.93em';
+            newBtn.style.padding = '0.18em 0.7em';
             newBtn.title = 'ثبت‌نام زیرمجموعه جدید';
             newBtn.style.background = 'linear-gradient(90deg,#a786ff,#00ff88)';
             newBtn.style.color = '#181c2a';
             newBtn.style.fontWeight = 'bold';
             newBtn.style.border = 'none';
             newBtn.style.borderRadius = '6px';
-            newBtn.style.padding = '0.2em 0.9em';
             newBtn.style.cursor = 'pointer';
-            newBtn.style.fontSize = '0.95em';
-            newBtn.style.marginRight = '0.7em';
-            newBtn.style.marginLeft = '0.7em';
             newBtn.onclick = async function(e) {
                 e.stopPropagation();
                 // اگر modal قبلی باز است، حذف کن
