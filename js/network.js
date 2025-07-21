@@ -24,17 +24,33 @@ function showUserPopup(address, user) {
     const deposited = user.depositedAmount ? Math.floor(Number(user.depositedAmount) / 1e18) : 0;
     const leftCount = user.leftCount ? Number(user.leftCount) : 0;
     const rightCount = user.rightCount ? Number(user.rightCount) : 0;
-    // ساخت گره عمودی (همانند قبل)
+    // اطلاعات تکمیلی
+    const isActive = user.activated ? true : false;
+    const lastClaim = user.lastClaimTime ? Number(user.lastClaimTime) : 0;
+    const joinTime = user.joinTime ? Number(user.joinTime) : 0;
+    const cpaBalance = user.lvlBalance ? Number(user.lvlBalance) : null;
+    const maticBalance = user.maticBalance ? Number(user.maticBalance) : null;
+    const usdcBalance = user.usdcBalance ? Number(user.usdcBalance) : null;
+    // آیتم‌های کامل با عنوان انگلیسی کامل
     const items = [
-      {icon:'🎯', val:binaryPoints, label:'پوینت'},
-      {icon:'🏆', val:binaryPointCap, label:'کپ'},
-      {icon:'💎', val:totalBinaryReward, label:'ریوارد'},
-      {icon:'✅', val:binaryPointsClaimed, label:'کلایمد'},
-      {icon:'🤝', val:referral, label:'رفرال'},
-      {icon:'💰', val:deposited, label:'دپوزیت'},
-      {icon:'⬅️', val:leftCount, label:'چپ'},
-      {icon:'➡️', val:rightCount, label:'راست'}
+      {icon:'🆔', val:cpaId, label:'CPA ID'},
+      {icon:'🔗', val:shortAddress(address), label:'Wallet', short:true},
+      {icon:'🎯', val:binaryPoints, label:'Binary Points'},
+      {icon:'🏆', val:binaryPointCap, label:'Binary Cap'},
+      {icon:'💎', val:totalBinaryReward, label:'Total Binary Reward'},
+      {icon:'✅', val:binaryPointsClaimed, label:'Claimed Points'},
+      {icon:'🤝', val:referral, label:'Referral Income'},
+      {icon:'💰', val:deposited, label:'Total Deposit'},
+      {icon:'⬅️', val:leftCount, label:'Left Count'},
+      {icon:'➡️', val:rightCount, label:'Right Count'}
     ];
+    if (cpaBalance !== null) items.push({icon:'🟢', val:cpaBalance, label:'CPA Balance'});
+    if (maticBalance !== null) items.push({icon:'🟣', val:maticBalance, label:'MATIC Balance'});
+    if (usdcBalance !== null) items.push({icon:'💵', val:usdcBalance, label:'USDC Balance'});
+    if (isActive !== undefined) items.push({icon:isActive?'✅':'❌', val:isActive?'Active':'Inactive', label:'Active Status'});
+    if (lastClaim) items.push({icon:'⏰', val:new Date(lastClaim*1000).toLocaleDateString('en-GB'), label:'Last Claim Date'});
+    if (joinTime) items.push({icon:'📅', val:new Date(joinTime*1000).toLocaleDateString('en-GB'), label:'Join Date'});
+    // ساخت popup
     const popup = document.createElement('div');
     popup.id = 'user-popup';
     popup.style = `
@@ -56,16 +72,15 @@ function showUserPopup(address, user) {
       font-size: 0.93rem;
     `;
     popup.innerHTML = `
-      <div style="width:100%;max-width:520px;background:rgba(35,41,70,0.98);border-radius:12px;padding:0.7rem 1.2rem 0.7rem 1.2rem;margin:0 auto;position:relative;">
+      <div style="width:100%;max-width:1200px;background:rgba(35,41,70,0.98);border-radius:14px;padding:0.7rem 1.2rem 0.7rem 1.2rem;margin:0 auto;position:relative;overflow-x:auto;">
         <button id="close-user-popup" style="position:absolute;top:0.7rem;left:0.7rem;background:#ff6b6b;color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:1em;cursor:pointer;">×</button>
-        <div style="text-align:center;margin-bottom:0.5rem;">
-          <span style="color:#00ff88;font-size:0.98em;font-weight:bold;">${cpaId}</span>
-          <span style="color:#a786ff;font-size:0.93em;font-family:monospace;margin-right:0.7em;">${shortAddress(address)}</span>
-        </div>
-        <div style="display:flex;flex-direction:row;flex-wrap:wrap;gap:0.5em 0.7em;align-items:center;justify-content:center;">
-          ${items.map(i=>`<span style='display:flex;align-items:center;gap:0.18em;background:rgba(0,255,136,0.07);border-radius:7px;padding:0.18em 0.7em 0.18em 0.7em;font-size:0.98em;min-width:70px;justify-content:center;'><span style='font-size:1.1em;'>${i.icon}</span><span style='font-weight:bold;color:#fff;margin:0 0.2em;'>${i.val.toLocaleString()}</span><span style='color:#a786ff;font-size:0.93em;'>${i.label}</span></span>`).join('')}
+        <div style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:0.5em;align-items:center;justify-content:flex-start;overflow-x:auto;scrollbar-width:thin;">
+          ${items.map(i=>`<span class='user-info-item' style='display:flex;flex-direction:row;align-items:center;gap:0.35em;background:linear-gradient(90deg,#232946,#181c2a);border-radius:8px;padding:0.7em 0.7em;font-size:0.97em;min-width:180px;max-width:180px;width:180px;justify-content:center;transition:background 0.2s,transform 0.2s;box-shadow:0 2px 8px #00ff8820;cursor:default;white-space:nowrap;overflow:hidden;'><span style='font-size:1.1em;'>${i.icon}</span><span style='font-weight:bold;color:#fff;margin:0 0.2em;${i.short ? 'overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;' : ''}'>${typeof i.val==='number'?i.val.toLocaleString():i.val}</span><span style='color:#a786ff;font-size:0.97em;display:inline-block;max-width:90px;overflow:visible;'>${i.label}</span></span>`).join('')}
         </div>
       </div>
+      <style>
+      .user-info-item:hover { background: #00ff8840 !important; transform: scale(1.07); }
+      </style>
     `;
     document.body.appendChild(popup);
     document.getElementById('close-user-popup').onclick = () => popup.remove();
