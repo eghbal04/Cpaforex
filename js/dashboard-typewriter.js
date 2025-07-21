@@ -204,7 +204,7 @@ window.updateDashboardTerminalInfo = async function() {
     lines.push(`  Total Monthly Rewarded: ${profile.totalMonthlyRewarded}`);
     lines.push(`  Last Monthly Claim: ${profile.lastMonthlyClaim}`);
     lines.push(`  Last Claim: ${profile.lastClaimTime}`);
-    lines.push(`  Referrer Reward: ${profile.refclimed}`);
+    lines.push(`  Referrer Reward: ${profile.refclimed ? Math.floor(Number(profile.refclimed) / 1e18) : '0'}`);
     lines.push('');
     lines.push('Purchases & Deposits:');
     lines.push(`  Total CPA Purchased: ${profile.totalPurchasedKind}`);

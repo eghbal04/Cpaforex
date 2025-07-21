@@ -394,7 +394,7 @@ function displayRegistrationInfo(registrationPrice, regprice, tokenPriceUSD, tok
 }
 
 // تابع نمایش فرم ثبت‌نام
-async function showRegistrationForm() {
+window.showRegistrationForm = async function() {
     const registrationForm = document.getElementById('registration-form');
     if (!registrationForm) return;
     registrationForm.style.display = 'block';

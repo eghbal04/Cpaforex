@@ -1675,7 +1675,7 @@ window.updateUserBalanceBoxWithNode = async function(address, userData) {
     box.style.display = 'block';
     
     // آدرس کوتاه شده
-    const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '-';
+    const shortAddress = address ? `${address.slice(0, 3)}...${address.slice(-2)}` : '-';
     console.log('Short address:', shortAddress);
     
     // دریافت معرف از قرارداد
@@ -2472,23 +2472,47 @@ function showUserPopup(address, user) {
     // تابع کوتاه‌کننده آدرس
     function shortAddress(addr) {
         if (!addr) return '-';
-        return addr.slice(0, 6) + '...' + addr.slice(-4);
+        return addr.slice(0, 3) + '...' + addr.slice(-2);
     }
-    // اطلاعات struct را به صورت رشته آماده کن
-    const infoLines = [
+    // اطلاعات struct را در دو ستون آماده کن
+    const leftColumn = [
         `Address:   ${shortAddress(address)}`,
         `Index:     ${user.index}`,
         `CPA ID:    ${window.generateCPAId ? window.generateCPAId(user.index) : user.index}`,
-        `Activated: ${user.activated ? 'Yes' : 'No'}`,
+        `Activated: ${user.activated ? 'Yes' : 'No'}`
+    ];
+    
+    const rightColumn = [
         `BinaryPoints: ${user.binaryPoints}`,
         `Cap:      ${user.binaryPointCap}`,
         `Left:     ${user.leftPoints}`,
         `Right:    ${user.rightPoints}`,
-        `Refclimed:${user.refclimed}`
+        `Refclimed:${user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : '0'}`
     ];
     let html = `
-      <div style="direction:ltr;font-family:monospace;background:#181c2a;color:#00ff88;padding:1.5rem 2.5rem;border-radius:16px;box-shadow:0 2px 12px #00ff8840;min-width:320px;max-width:95vw;position:relative;">
-        <pre id="user-popup-terminal" style="background:#232946;border:1.5px solid #333;padding:1.2rem 1.5rem;border-radius:12px;color:#00ff88;font-size:1.05rem;line-height:2;font-family:monospace;overflow-x:auto;margin-bottom:1.2rem;box-shadow:0 2px 12px #00ff8840;min-width:280px;" title="${address}"></pre>
+      <div style="direction:ltr;font-family:monospace;background:#181c2a;color:#00ff88;padding:0.2rem;min-width:400px;max-width:95vw;position:relative;">
+        <div id="user-popup-two-columns" style="
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.2rem;
+          background:#181c2a;
+          padding:0.2rem;
+          color:#00ff88;
+          font-size:1.05rem;
+          line-height:2;
+          font-family:monospace;
+          min-width:350px;
+          margin-bottom:0.5rem;
+        ">
+          <div id="user-popup-left-column" style="
+            background:#181c2a;
+            padding:0.2rem;
+          "></div>
+          <div id="user-popup-right-column" style="
+            background:#181c2a;
+            padding:0.2rem;
+          "></div>
+        </div>
         <button id="close-user-popup" style="position:absolute;top:10px;right:10px;font-size:1.3rem;background:none;border:none;color:#fff;cursor:pointer;">×</button>
       </div>
     `;
@@ -2504,9 +2528,12 @@ function showUserPopup(address, user) {
     document.getElementById('close-user-popup').onclick = () => popup.remove();
 
   
-    const terminalEl = document.getElementById('user-popup-terminal');
-    if (terminalEl) {
-        terminalEl.textContent = infoLines.join('\n');
+    const leftColumnEl = document.getElementById('user-popup-left-column');
+    const rightColumnEl = document.getElementById('user-popup-right-column');
+    
+    if (leftColumnEl && rightColumnEl) {
+        leftColumnEl.textContent = leftColumn.join('\n');
+        rightColumnEl.textContent = rightColumn.join('\n');
     }
 }
 

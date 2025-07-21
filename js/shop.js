@@ -680,7 +680,7 @@ function showOrdersList() {
     } else {
         let ordersHtml = '';
         orders.forEach((order, index) => {
-            const shortAddress = order.customerAddress.substring(0, 6) + '...' + order.customerAddress.substring(order.customerAddress.length - 4);
+            const shortAddress = order.customerAddress.substring(0, 3) + '...' + order.customerAddress.substring(order.customerAddress.length - 2);
             const shortHash = order.transactionHash.substring(0, 10) + '...' + order.transactionHash.substring(order.transactionHash.length - 8);
             
             ordersHtml += `

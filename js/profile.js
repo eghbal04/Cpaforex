@@ -190,7 +190,7 @@ function updateProfileUI(profile) {
     }
 
     const refclimedEl = document.getElementById('profile-refclimed');
-    if (refclimedEl) refclimedEl.textContent = profile.userStruct.refclimed ? Number(profile.userStruct.refclimed) / 1e18 + ' LVL' : '۰';
+    if (refclimedEl) refclimedEl.textContent = profile.userStruct.refclimed ? Math.floor(Number(profile.userStruct.refclimed) / 1e18) + ' LVL' : '۰';
 
     // مدیریت وضعیت دکمه کلایم بر اساس پوینت‌های باینری
     const claimBtn = document.getElementById('profile-claim-btn');

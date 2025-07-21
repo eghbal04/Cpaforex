@@ -2,40 +2,42 @@
 
 function shortAddress(addr) {
     if (!addr) return '-';
-    return addr.slice(0, 5) + '...' + addr.slice(-4);
+    return addr.slice(0, 3) + '...' + addr.slice(-2);
 }
 
 function showUserPopup(address, user) {
     // تابع کوتاه‌کننده آدرس
     function shortAddress(addr) {
         if (!addr) return '-';
-        return addr.slice(0, 6) + '...' + addr.slice(-4);
+        return addr.slice(0, 3) + '...' + addr.slice(-2);
     }
     
-    // حذف popup قبلی اگر وجود دارد
-    let oldPopup = document.getElementById('user-popup');
-    if (oldPopup) oldPopup.remove();
+    // بررسی popup موجود
+    let existingPopup = document.getElementById('user-popup');
+    if (existingPopup) {
+        // اگر popup وجود دارد، آن را حذف کن تا popup جدید با اطلاعات جدید نمایش داده شود
+        existingPopup.remove();
+    }
     
-    // اطلاعات برای نمایش
+    // اطلاعات برای نمایش (فشرده و ترمینال) به فارسی
+    const binaryPointsClaimed = user.binaryPointsClaimed ? Number(user.binaryPointsClaimed) : 0;
+    const binaryPoints = user.binaryPoints ? Number(user.binaryPoints) : 0;
+    const binaryPointsRemain = binaryPoints - binaryPointsClaimed;
     const infoLines = [
-        `🔗 Address:   ${address}`,
-        `📋 Index:     ${user.index}`,
-        `🆔 CPA ID:    ${window.generateCPAId ? window.generateCPAId(user.index) : user.index}`,
-        `✅ Activated: ${user.activated ? 'بله' : 'خیر'}`,
-        `🎯 BinaryPoints: ${user.binaryPoints}`,
-        `📈 Cap:      ${user.binaryPointCap}`,
-        `⬅️ Left:     ${user.leftPoints}`,
-        `➡️ Right:    ${user.rightPoints}`,
-        `💰 Refclimed:${user.refclimed}`,
-        '',
-        '--- Financial Info ---',
-        `🏆 Binary Claimed: ${user.binaryPointsClaimed}`,
-        `🗓️ Monthly Withdrawn: ${user.totalMonthlyRewarded}`,
-        `💳 Total Deposited: ${user.depositedAmount}`,
-        `🛒 Total Purchased: ${user.totalPurchasedKind}`
+        `شناسه کاربر:  ${window.generateCPAId ? window.generateCPAId(user.index) : user.index}`,
+        `وضعیت فعال بودن:  ${user.activated ? 'بله' : 'خیر'}`,
+        `امتیاز باینری:  ${user.binaryPoints}`,
+        `امتیاز باینری دریافت‌شده:  ${binaryPointsClaimed}`,
+        `امتیاز باینری مانده:  ${binaryPointsRemain}`,
+        `سقف امتیاز:  ${user.binaryPointCap}`,
+        `امتیاز چپ:  ${user.leftPoints}`,
+        `امتیاز راست:  ${user.rightPoints}`,
+        `پاداش رفرال:  ${user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : '0'}`,
+        `موجودی CPA:  ${user.lvlBalance ? user.lvlBalance : '0'}`,
+        `موجودی POL:  ${user.maticBalance ? user.maticBalance : '0'}`
     ];
     
-    // ساخت popup بهینه‌سازی شده برای موبایل
+    // ساخت popup ثابت و شناور در بالای صفحه
     const popup = document.createElement('div');
     popup.id = 'user-popup';
     popup.style = `
@@ -44,61 +46,116 @@ function showUserPopup(address, user) {
       top: 0;
       left: 0;
       width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.8);
+      height: 40px;
+      background: rgba(0,0,0,0.95);
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 1rem;
+      padding: 0.3rem 1rem;
       box-sizing: border-box;
+      backdrop-filter: blur(10px);
+      transition: height 0.3s ease;
+      cursor: pointer;
+      border-bottom: 2px solid #00ff88;
     `;
     
+    function formatDateTime(val) {
+      if (!val || isNaN(Number(val)) || Number(val) === 0) return 'N/A';
+      const d = new Date(Number(val) * 1000);
+      if (isNaN(d.getTime())) return 'N/A';
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    }
+    const allItems = [
+      `Binary Points: ${user.binaryPoints}`,
+      `Point Cap: ${user.binaryPointCap}`,
+      `Points Claimed: ${user.binaryPointsClaimed}`,
+      `Activated: ${user.activated ? 'Yes' : 'No'}`,
+      `Total Purchased: ${user.totalPurchasedKind}`,
+      `Upgrade Time: ${formatDateTime(user.upgradeTime)}`,
+      `Last Claim: ${formatDateTime(user.lastClaimTime)}`,
+      `Left Points: ${user.leftPoints}`,
+      `Right Points: ${user.rightPoints}`,
+      `Last Monthly Claim: ${formatDateTime(user.lastMonthlyClaim)}`,
+      `Total Monthly Rewarded: ${user.totalMonthlyRewarded}`,
+      `Referral Rewards: ${user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : '0'}`,
+      `Deposited Amount: ${user.depositedAmount ? parseInt(user.depositedAmount) : '0'}`,
+      `POL Balance: ${user.maticBalance ? user.maticBalance : '0'}`,
+      `CPA Balance: ${user.lvlBalance ? user.lvlBalance : '0'}`,
+      `USDC Balance: ${user.usdcBalance ? user.usdcBalance : '0'}`
+    ];
+    const leftColumn = [];
+    const rightColumn = [];
+    allItems.forEach((item, i) => {
+      if (i % 2 === 0) leftColumn.push(item);
+      else rightColumn.push(item);
+    });
+
     popup.innerHTML = `
-      <div style="
-        background: linear-gradient(135deg, #181c2a, #232946);
-        padding: 1.5rem;
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        width: 100%;
-        max-width: 500px;
-        max-height: 90vh;
-        overflow-y: auto;
-        direction: rtl;
-        position: relative;
-        border: 2px solid #a786ff;
-      ">
-        <!-- Header -->
-        <div style="
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 2px solid #a786ff;
-        ">
-          <h3 style="
-            color: #00ff88;
-            margin: 0;
-            font-size: 1.3rem;
-            font-weight: bold;
-            text-align: center;
-          ">👤 اطلاعات کاربر</h3>
+      <div style="background: #181c2a; padding: 0.2rem; width: 100%; max-width: 500px; overflow: hidden; direction: ltr; position: relative; font-family: 'Courier New', monospace;">
+        <div class="popup-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; padding-bottom: 0.1rem; border-bottom: none; cursor: pointer;">
+          <h3 style="color: #00ff88; margin: 0; font-size: 0.9rem; font-weight: bold; text-align: center; flex: 1; cursor: pointer; font-family: 'Courier New', monospace;">👤 USER INFO (${shortAddress(address)})</h3>
+          <button id="close-user-popup" style="background: #ff6b6b; color: white; border: none; border-radius: 0; width: 20px; height: 20px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace;" onmouseover="this.style.background='#ff4444'" onmouseout="this.style.background='#ff6b6b'">×</button>
         </div>
-        <pre id="user-popup-typewriter" style="background:rgba(0,0,0,0.2);border:1.5px solid #333;padding:1.2rem 1.5rem;border-radius:12px;color:#00ff88;font-size:1.05rem;line-height:2;font-family:monospace;overflow-x:auto;margin-bottom:0;box-shadow:0 2px 12px #00ff8840;min-width:180px;direction:ltr;text-align:left;white-space:pre-wrap;min-height:220px;"></pre>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem; background:#181c2a; padding:0.2rem; color:#00ff88; font-size:0.75rem; line-height:1.5; font-family:'Courier New',monospace; min-width:200px; direction:ltr; text-align:left; min-height:120px; max-height:320px; overflow-y:auto;">
+          <div id="user-popup-left-column"></div>
+          <div id="user-popup-right-column"></div>
+        </div>
       </div>
     `;
+    const leftColumnEl = popup.querySelector('#user-popup-left-column');
+    const rightColumnEl = popup.querySelector('#user-popup-right-column');
+    if (leftColumnEl && rightColumnEl) {
+      leftColumnEl.innerHTML = leftColumn.map(item => `<div style='padding:0.1rem 0;word-break:break-word;'>${item}</div>`).join('');
+      rightColumnEl.innerHTML = rightColumn.map(item => `<div style='padding:0.1rem 0;word-break:break-word;'>${item}</div>`).join('');
+    }
     
     document.body.appendChild(popup);
     
-    // Close when clicking anywhere outside the content area
-    popup.onclick = (e) => {
-        // Check if click is on the popup background or outside the content div
-        if (e.target === popup || !e.target.closest('div[style*="background: linear-gradient"]')) {
-            popup.remove();
+    // Toggle functionality for header click
+    const header = popup.querySelector('.popup-header');
+    header.onclick = (e) => {
+        if (e.target.id === 'close-user-popup') return; // Don't toggle if clicking close button
+        
+        const content = popup.querySelector('.popup-content');
+        const isExpanded = content.style.display !== 'none';
+        
+        if (isExpanded) {
+            // collapse
+            content.style.display = 'none';
+            popup.querySelector('.popup-header h3').textContent = `👤 USER INFO (${shortAddress(address)})`;
+            popup.style.height = '40px';
+            popup.style.background = 'rgba(0,0,0,0.95)';
+        } else {
+            // expand
+            content.style.display = 'block';
+            popup.querySelector('.popup-header h3').textContent = `👤 USER INFO (${shortAddress(address)}) - EXPANDED`;
+            popup.style.height = 'auto';
+            popup.style.background = 'rgba(0,0,0,0.98)';
         }
     };
+    
+    // Close button functionality
+    const closeBtn = document.getElementById('close-user-popup');
+    closeBtn.onclick = (e) => {
+        e.stopPropagation(); // Prevent header click
+        popup.remove();
+    };
+    
+    // Close with Escape key
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            popup.remove();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+    
+    // Remove event listener when popup is removed
+    popup.addEventListener('remove', () => {
+        document.removeEventListener('keydown', handleEscape);
+    });
 
-    // Typewriter effect
+    // افکت تایپ‌رایت
     function typeWriter(lines, el, lineIdx = 0, charIdx = 0) {
         if (lineIdx >= lines.length) return;
         if (charIdx === 0 && lineIdx > 0) el.textContent += '\n';
@@ -109,7 +166,7 @@ function showUserPopup(address, user) {
             setTimeout(() => typeWriter(lines, el, lineIdx + 1, 0), 120);
         }
     }
-    const typewriterEl = document.getElementById('user-popup-typewriter');
+    const typewriterEl = popup.querySelector('#user-popup-typewriter');
     if (typewriterEl) {
         typewriterEl.textContent = '';
         typeWriter(infoLines, typewriterEl);
@@ -177,7 +234,17 @@ async function renderNodeLazy(index, container) {
         childrenDiv.style.justifyContent = 'center';
         childrenDiv.style.gap = '2em';
         childrenDiv.style.marginTop = '1em';
+        childrenDiv.style.flexDirection = 'row';
+        childrenDiv.style.flexWrap = 'nowrap';
+        
+        // محاسبه margin افقی بر اساس سطح درخت
+        const treeLevel = Math.floor(Math.log2(Number(index)));
+        const horizontalMargin = Math.max(2, treeLevel * 1.5); // افزایش margin با عمق درخت
+        childrenDiv.style.marginLeft = `${horizontalMargin}em`;
+        childrenDiv.style.marginRight = `${horizontalMargin}em`;
+        
         childrenDiv.setAttribute('data-index', index.toString());
+        childrenDiv.setAttribute('data-level', treeLevel.toString());
         nodeDiv.appendChild(childrenDiv);
         
         // مدیریت expand/collapse
@@ -263,7 +330,594 @@ function renderEmptyNode(index, container) {
         this.style.transform = 'scale(1)';
     };
     
+    // اضافه کردن کلیک برای نمایش فرم ثبت‌نام
+    emptyNode.onclick = async function() {
+        console.log('🖱️ Empty node clicked, index:', index);
+        
+        try {
+            // بررسی اتصال کیف پول
+            const { contract, address } = await window.connectWallet();
+            if (!contract || !address) {
+                alert('اتصال کیف پول در دسترس نیست!');
+                return;
+            }
+            
+            // دریافت آدرس معرف (parent)
+            const parentIndex = Math.floor(Number(index) / 2);
+            console.log('📊 Parent index calculated:', parentIndex);
+            
+            // بررسی معتبر بودن parentIndex
+            if (parentIndex < 0 || !Number.isInteger(parentIndex)) {
+                console.error('❌ Invalid parent index:', parentIndex);
+                alert('خطا در محاسبه معرف!');
+                return;
+            }
+            
+            const parentAddress = await contract.indexToAddress(parentIndex);
+            console.log('🔗 Parent address from contract:', parentAddress);
+            
+            if (!parentAddress || parentAddress === '0x0000000000000000000000000000000000000000') {
+                console.error('❌ Invalid parent address:', parentAddress);
+                alert('معرف معتبری پیدا نشد!');
+                return;
+            }
+            
+            // بررسی اینکه معرف فعال است
+            try {
+                const parentUser = await contract.users(parentAddress);
+                if (!parentUser || !parentUser.activated) {
+                    console.error('❌ Parent user not activated:', parentUser);
+                    alert('معرف فعال نیست!');
+                    return;
+                }
+            } catch (error) {
+                console.error('❌ Error checking parent user:', error);
+                alert('خطا در بررسی معرف!');
+                return;
+            }
+            
+            console.log('✅ Showing registration modal for index:', parentIndex, 'referrer:', parentAddress);
+            
+            // استفاده از سیستم ثبت‌نام موجود
+            console.log('📝 Using existing registration system');
+            
+            // بررسی اتصال کیف پول
+            if (!window.contractConfig || !window.contractConfig.contract) {
+                alert('❌ ابتدا کیف پول را متصل کنید!');
+                return;
+            }
+            
+            // دریافت اطلاعات موجودی کاربر و شبکه
+            let userBalance = 'در حال بارگذاری...';
+            let registrationPrice = '100 CPA';
+            let totalUsers = 'در حال بارگذاری...';
+            let tokenPrice = 'در حال بارگذاری...';
+            try {
+                const { contract } = window.contractConfig;
+                const balance = await contract.balanceOf(window.contractConfig.address);
+                userBalance = window.ethers ? window.ethers.formatUnits(balance, 18) : balance.toString();
+                
+                // دریافت قیمت ثبت‌نام از قرارداد
+                try {
+                    let regPrice;
+                    if (typeof contract.getRegPrice === 'function') {
+                        regPrice = await contract.getRegPrice();
+                    } else if (typeof contract.regPrice === 'function') {
+                        regPrice = await contract.regPrice();
+                    } else {
+                        regPrice = window.ethers ? window.ethers.parseUnits('100', 18) : '100000000000000000000';
+                    }
+                    registrationPrice = window.ethers ? window.ethers.formatUnits(regPrice, 18) : regPrice.toString();
+                } catch (e) {
+                    console.log('Using default registration price');
+                    registrationPrice = '100';
+                }
+                
+                // دریافت تعداد کل کاربران
+                try {
+                    const wallets = await contract.wallets();
+                    totalUsers = wallets.toString();
+                } catch (e) {
+                    console.log('Error getting total users:', e);
+                }
+                
+                // دریافت قیمت توکن
+                try {
+                    const price = await contract.getTokenPrice();
+                    tokenPrice = window.ethers ? window.ethers.formatUnits(price, 18) : price.toString();
+                } catch (e) {
+                    console.log('Error getting token price:', e);
+                }
+            } catch (e) {
+                console.error('Error getting user balance:', e);
+            }
+            
+            // نمایش modal ساده برای دریافت آدرس جدید
+            const shortParentAddress = parentAddress.substring(0, 6) + '...' + parentAddress.substring(parentAddress.length - 4);
+            const balanceStatus = parseFloat(userBalance) >= parseFloat(registrationPrice) ? '✅ کافی' : '❌ ناکافی';
+            
+            // بررسی کافی بودن موجودی
+            if (parseFloat(userBalance) < parseFloat(registrationPrice)) {
+                alert(`❌ موجودی ناکافی!\n\n💰 هزینه ثبت‌نام: ${registrationPrice} CPA\n💳 موجودی شما: ${userBalance} CPA\n\nلطفاً ابتدا توکن خریداری کنید.`);
+                return;
+            }
+            
+            // نمایش فرم زیبای ثبت‌نام
+            const newAddress = await showBeautifulRegistrationForm(parentAddress, shortParentAddress, parentIndex, registrationPrice, userBalance, balanceStatus, tokenPrice, totalUsers);
+            
+            if (newAddress && /^0x[a-fA-F0-9]{40}$/.test(newAddress)) {
+                try {
+                    console.log('🔄 Starting registration for:', newAddress, 'with referrer:', parentAddress);
+                    
+                    // بررسی اینکه کاربر قبلاً ثبت‌نام نکرده باشد
+                    const { contract } = window.contractConfig;
+                    const existingUser = await contract.users(newAddress);
+                    if (existingUser && existingUser.activated) {
+                        alert('❌ این آدرس قبلاً ثبت‌نام کرده است!');
+                        return;
+                    }
+                    
+                    // بررسی اینکه آدرس جدید با آدرس فعلی متفاوت است
+                    if (newAddress.toLowerCase() === window.contractConfig.address.toLowerCase()) {
+                        alert('❌ نمی‌توانید خودتان را ثبت‌نام کنید!');
+                        return;
+                    }
+                    
+                    // استفاده از تابع ثبت‌نام موجود در config.js
+                    if (typeof window.registerNewUserWithReferrer === 'function') {
+                        console.log('🔄 Calling registerNewUserWithReferrer...');
+                        
+                        // ایجاد یک element موقت برای نمایش وضعیت
+                        const tempStatus = document.createElement('div');
+                        tempStatus.style.cssText = `
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: rgba(0,0,0,0.9);
+                            color: #00ff88;
+                            padding: 2rem;
+                            border-radius: 12px;
+                            z-index: 10000;
+                            text-align: center;
+                            font-weight: bold;
+                        `;
+                        document.body.appendChild(tempStatus);
+                        
+                        try {
+                            const success = await window.registerNewUserWithReferrer(parentAddress, newAddress, tempStatus);
+                            
+                            if (success) {
+                                alert('✅ ثبت‌نام با موفقیت انجام شد!');
+                                
+                                // منتظر تایید MetaMask و سپس بروزرسانی درخت
+                                console.log('⏳ Waiting for MetaMask confirmation...');
+                                
+                                let checkCount = 0;
+                                const maxChecks = 30; // حداکثر 60 ثانیه (30 بار × 2 ثانیه)
+                                
+                                // بررسی وضعیت تراکنش هر 2 ثانیه
+                                const checkTransaction = async () => {
+                                    checkCount++;
+                                    
+                                    try {
+                                        const { contract } = window.contractConfig;
+                                        const newUser = await contract.users(newAddress);
+                                        
+                                        if (newUser && newUser.activated) {
+                                            console.log('✅ New user confirmed on blockchain');
+                                            
+                                            // بروزرسانی درخت شبکه بدون رفرش
+                                            if (typeof window.renderSimpleBinaryTree === 'function') {
+                                                console.log('🔄 Refreshing network tree...');
+                                                await window.renderSimpleBinaryTree();
+                                                
+                                                // منتظر بروزرسانی کامل درخت
+                                                setTimeout(() => {
+                                                    console.log('✅ Tree refresh completed');
+                                                }, 1000);
+                                            }
+                                            
+                                            // Expand کردن گره جدید
+                                            setTimeout(async () => {
+                                                try {
+                                                    console.log('🔄 Expanding new node...');
+                                                    
+                                                    // پیدا کردن گره parent و expand کردن آن
+                                                    const parentIndex = Math.floor(Number(index) / 2);
+                                                    const parentNode = document.querySelector(`[data-index="${parentIndex}"]`);
+                                                    
+                                                    if (parentNode) {
+                                                        // پیدا کردن دکمه expand در گره parent
+                                                        const expandBtn = parentNode.querySelector('button');
+                                                        if (expandBtn) {
+                                                            // اگر دکمه بسته است، آن را باز کن
+                                                            if (expandBtn.textContent === '+') {
+                                                                console.log('🔄 Clicking expand button for parent node...');
+                                                                expandBtn.click();
+                                                            }
+                                                            
+                                                            // منتظر رندر شدن فرزندان
+                                                            setTimeout(() => {
+                                                                // پیدا کردن گره جدید و highlight کردن آن
+                                                                const newNode = document.querySelector(`[data-index="${index}"]`);
+                                                                if (newNode) {
+                                                                    console.log('✅ New node found and highlighted');
+                                                                    newNode.style.animation = 'pulse 2s ease-in-out';
+                                                                    newNode.style.boxShadow = '0 0 20px rgba(0, 255, 136, 0.8)';
+                                                                    
+                                                                    // اسکرول به گره جدید
+                                                                    newNode.scrollIntoView({ 
+                                                                        behavior: 'smooth', 
+                                                                        block: 'center' 
+                                                                    });
+                                                                    
+                                                                    // حذف highlight بعد از 3 ثانیه
+                                                                    setTimeout(() => {
+                                                                        newNode.style.animation = '';
+                                                                        newNode.style.boxShadow = '';
+                                                                    }, 3000);
+                                                                } else {
+                                                                    console.log('⚠️ New node not found, trying again...');
+                                                                    // اگر گره پیدا نشد، دوباره تلاش کن
+                                                                    setTimeout(() => {
+                                                                        const retryNode = document.querySelector(`[data-index="${index}"]`);
+                                                                        if (retryNode) {
+                                                                            console.log('✅ New node found on retry');
+                                                                            retryNode.style.animation = 'pulse 2s ease-in-out';
+                                                                            retryNode.style.boxShadow = '0 0 20px rgba(0, 255, 136, 0.8)';
+                                                                            retryNode.scrollIntoView({ 
+                                                                                behavior: 'smooth', 
+                                                                                block: 'center' 
+                                                                            });
+                                                                            setTimeout(() => {
+                                                                                retryNode.style.animation = '';
+                                                                                retryNode.style.boxShadow = '';
+                                                                            }, 3000);
+                                                                        } else {
+                                                                            console.log('⚠️ New node still not found after retry');
+                                                                        }
+                                                                    }, 2000);
+                                                                }
+                                                            }, 1000);
+                                                        } else {
+                                                            console.log('⚠️ Expand button not found in parent node');
+                                                        }
+                                                    } else {
+                                                        console.log('⚠️ Parent node not found');
+                                                    }
+                                                } catch (error) {
+                                                    console.error('❌ Error expanding new node:', error);
+                                                }
+                                            }, 2000);
+                                            
+                                            // نمایش پیام موفقیت
+                                            alert('🎉 کاربر جدید با موفقیت به درخت اضافه شد!');
+                                        } else if (checkCount >= maxChecks) {
+                                            console.log('⏰ Timeout reached, forcing refresh...');
+                                            alert('⏰ زمان انتظار به پایان رسید. درخت در حال بروزرسانی...');
+                                            
+                                            // بروزرسانی اجباری درخت
+                                            if (typeof window.renderSimpleBinaryTree === 'function') {
+                                                await window.renderSimpleBinaryTree();
+                                            }
+                                        } else {
+                                            console.log(`⏳ Transaction still pending... (${checkCount}/${maxChecks})`);
+                                            // ادامه بررسی بعد از 2 ثانیه
+                                            setTimeout(checkTransaction, 2000);
+                                        }
+                                    } catch (error) {
+                                        console.error('❌ Error checking transaction:', error);
+                                        
+                                        if (checkCount >= maxChecks) {
+                                            console.log('⏰ Timeout reached due to errors...');
+                                            alert('⏰ خطا در بررسی تراکنش. درخت در حال بروزرسانی...');
+                                            
+                                            // بروزرسانی اجباری درخت
+                                            if (typeof window.renderSimpleBinaryTree === 'function') {
+                                                await window.renderSimpleBinaryTree();
+                                            }
+                                        } else {
+                                            // در صورت خطا، بعد از 5 ثانیه دوباره بررسی کن
+                                            setTimeout(checkTransaction, 5000);
+                                        }
+                                    }
+                                };
+                                
+                                // شروع بررسی بعد از 3 ثانیه
+                                setTimeout(checkTransaction, 3000);
+                                
+                                // نمایش اطلاعات تراکنش
+                                console.log('📋 Transaction submitted successfully');
+                                console.log('⏳ Waiting for blockchain confirmation...');
+                                
+                            } else {
+                                alert('❌ ثبت‌نام ناموفق بود!');
+                            }
+                        } finally {
+                            // حذف element موقت
+                            if (tempStatus.parentNode) {
+                                tempStatus.parentNode.removeChild(tempStatus);
+                            }
+                        }
+                    } else {
+                        alert('❌ تابع ثبت‌نام در دسترس نیست!');
+                    }
+                } catch (error) {
+                    console.error('❌ Registration error:', error);
+                    alert(`❌ خطا در ثبت‌نام: ${error.message}`);
+                }
+            } else if (newAddress) {
+                alert('❌ آدرس کیف پول معتبر نیست!');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error showing registration modal:', error);
+            alert(`خطا: ${error.message}`);
+        }
+    };
+    
     container.appendChild(emptyNode);
+}
+
+// تابع نمایش فرم زیبای ثبت‌نام
+function showBeautifulRegistrationForm(parentAddress, shortParentAddress, parentIndex, registrationPrice, userBalance, balanceStatus, tokenPrice, totalUsers) {
+    return new Promise((resolve) => {
+        // حذف modal قبلی
+        let oldModal = document.getElementById('beautiful-registration-modal');
+        if (oldModal) oldModal.remove();
+        
+        // ساخت modal زیبا
+        const modal = document.createElement('div');
+        modal.id = 'beautiful-registration-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        `;
+        
+        modal.innerHTML = `
+            <div style="
+                background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+                border: 2px solid #00ff88;
+                border-radius: 20px;
+                padding: 2rem;
+                max-width: 500px;
+                width: 90%;
+                max-height: 90vh;
+                overflow-y: auto;
+                position: relative;
+                box-shadow: 0 20px 40px rgba(0, 255, 136, 0.3);
+                direction: rtl;
+            ">
+                <!-- Header -->
+                <div style="
+                    text-align: center;
+                    margin-bottom: 2rem;
+                    padding-bottom: 1rem;
+                    border-bottom: 2px solid #00ff88;
+                ">
+                    <h2 style="
+                        color: #00ff88;
+                        margin: 0;
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+                    ">🌳 ثبت‌نام زیرمجموعه جدید</h2>
+                    <p style="color: #ccc; margin: 0.5rem 0 0 0;">اطلاعات کامل ثبت‌نام</p>
+                </div>
+                
+                <!-- Referrer Info -->
+                <div style="
+                    background: rgba(0, 255, 136, 0.1);
+                    border: 1px solid #00ff88;
+                    border-radius: 12px;
+                    padding: 1rem;
+                    margin-bottom: 1.5rem;
+                ">
+                    <h3 style="color: #00ff88; margin: 0 0 0.5rem 0; font-size: 1.1rem;">👤 اطلاعات معرف</h3>
+                    <div style="display: grid; gap: 0.5rem; color: #fff;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>آدرس:</span>
+                            <span style="font-family: monospace; color: #00ff88;">${shortParentAddress}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Index:</span>
+                            <span style="color: #00ff88; font-weight: bold;">${parentIndex}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Registration Info -->
+                <div style="
+                    background: rgba(255, 107, 107, 0.1);
+                    border: 1px solid #ff6b6b;
+                    border-radius: 12px;
+                    padding: 1rem;
+                    margin-bottom: 1.5rem;
+                ">
+                    <h3 style="color: #ff6b6b; margin: 0 0 0.5rem 0; font-size: 1.1rem;">💰 اطلاعات ثبت‌نام</h3>
+                    <div style="display: grid; gap: 0.5rem; color: #fff;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>هزینه:</span>
+                            <span style="color: #ff6b6b; font-weight: bold;">${registrationPrice} CPA</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>موجودی شما:</span>
+                            <span style="color: ${balanceStatus.includes('✅') ? '#00ff88' : '#ff6b6b'}; font-weight: bold;">${userBalance} CPA ${balanceStatus}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>قیمت توکن:</span>
+                            <span style="color: #00ff88;">${tokenPrice} USDC</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Network Info -->
+                <div style="
+                    background: rgba(167, 134, 255, 0.1);
+                    border: 1px solid #a786ff;
+                    border-radius: 12px;
+                    padding: 1rem;
+                    margin-bottom: 1.5rem;
+                ">
+                    <h3 style="color: #a786ff; margin: 0 0 0.5rem 0; font-size: 1.1rem;">🌐 اطلاعات شبکه</h3>
+                    <div style="display: grid; gap: 0.5rem; color: #fff;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>تعداد کل کاربران:</span>
+                            <span style="color: #a786ff; font-weight: bold;">${totalUsers}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>زمان تقریبی:</span>
+                            <span style="color: #a786ff;">30-60 ثانیه</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Address Input -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="new-user-address" style="
+                        display: block;
+                        color: #fff;
+                        font-weight: bold;
+                        margin-bottom: 0.5rem;
+                        font-size: 1.1rem;
+                    ">🔑 آدرس کیف پول جدید</label>
+                    <input id="new-user-address" 
+                        type="text" 
+                        placeholder="0x..." 
+                        style="
+                            width: 100%;
+                            padding: 1rem;
+                            border-radius: 12px;
+                            border: 2px solid #a786ff;
+                            background: rgba(0,0,0,0.3);
+                            color: #fff;
+                            font-family: monospace;
+                            font-size: 1rem;
+                            direction: ltr;
+                            text-align: left;
+                            box-sizing: border-box;
+                            transition: all 0.3s;
+                        "
+                        onfocus="this.style.borderColor='#00ff88'; this.style.boxShadow='0 0 10px rgba(0,255,136,0.3)'"
+                        onblur="this.style.borderColor='#a786ff'; this.style.boxShadow='none'"
+                    />
+                    <small style="color: #ccc; font-size: 0.9rem; display: block; margin-top: 0.5rem;">
+                        آدرس باید با 0x شروع شود و 42 کاراکتر باشد
+                    </small>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <button id="register-submit-btn" style="
+                        flex: 1;
+                        background: linear-gradient(135deg, #00ff88, #00cc66);
+                        color: #1a1a2e;
+                        font-weight: bold;
+                        padding: 1rem;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 1.1rem;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+                    " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,255,136,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(0,255,136,0.3)'">
+                        ✅ ثبت‌نام
+                    </button>
+                    <button id="register-cancel-btn" style="
+                        flex: 1;
+                        background: linear-gradient(135deg, #ff6b6b, #ff4444);
+                        color: #fff;
+                        font-weight: bold;
+                        padding: 1rem;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 1.1rem;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+                    " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(255,107,107,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(255,107,107,0.3)'">
+                        ❌ انصراف
+                    </button>
+                </div>
+                
+                <!-- Status Message -->
+                <div id="registration-status" style="
+                    padding: 1rem;
+                    border-radius: 8px;
+                    text-align: center;
+                    font-weight: bold;
+                    min-height: 20px;
+                    display: none;
+                "></div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Event listeners
+        const submitBtn = document.getElementById('register-submit-btn');
+        const cancelBtn = document.getElementById('register-cancel-btn');
+        const addressInput = document.getElementById('new-user-address');
+        const statusDiv = document.getElementById('registration-status');
+        
+        // Submit button
+        submitBtn.onclick = () => {
+            const address = addressInput.value.trim();
+            if (!address) {
+                showStatus('لطفاً آدرس کیف پول را وارد کنید', 'error');
+                return;
+            }
+            if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+                showStatus('آدرس کیف پول معتبر نیست', 'error');
+                return;
+            }
+            resolve(address);
+            modal.remove();
+        };
+        
+        // Cancel button
+        cancelBtn.onclick = () => {
+            resolve(null);
+            modal.remove();
+        };
+        
+        // Close on background click
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                resolve(null);
+                modal.remove();
+            }
+        };
+        
+        // Enter key on input
+        addressInput.onkeyup = (e) => {
+            if (e.key === 'Enter') {
+                submitBtn.click();
+            }
+        };
+        
+        // Focus on input
+        setTimeout(() => addressInput.focus(), 100);
+        
+        function showStatus(message, type) {
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = type === 'error' ? '#ff6b6b' : '#00ff88';
+            statusDiv.textContent = message;
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+    });
 }
 
 // متغیر برای جلوگیری از رندر همزمان
@@ -277,6 +931,18 @@ window.renderSimpleBinaryTree = async function() {
         console.error('❌ Network tree container not found');
         return;
     }
+    
+    // تنظیم container برای پیمایش افقی
+    container.style.overflowX = 'auto';
+    container.style.overflowY = 'hidden';
+    container.style.whiteSpace = 'nowrap';
+    container.style.padding = '2rem';
+    container.style.minWidth = 'fit-content';
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.alignItems = 'flex-start';
+    container.style.width = '100%';
+    container.style.maxWidth = 'none';
     
     // جلوگیری از رندر همزمان
     if (isRenderingTree) {
@@ -312,6 +978,18 @@ window.renderSimpleBinaryTree = async function() {
         
         // رندر کردن گره اصلی
         await renderNodeLazy(BigInt(user.index), container);
+        
+        // تنظیم عرض container بر اساس محتوا
+        setTimeout(() => {
+            const treeContent = container.querySelector('[data-index]');
+            if (treeContent) {
+                const contentWidth = treeContent.scrollWidth;
+                const containerWidth = container.clientWidth;
+                if (contentWidth > containerWidth) {
+                    container.style.minWidth = `${contentWidth + 100}px`;
+                }
+            }
+        }, 100);
         
         // ذخیره index رندر شده
         lastRenderedIndex = user.index;
@@ -504,302 +1182,52 @@ window.initializeNetworkTab = async function() {
 
 function getReferrerFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('ref') || urlParams.get('referrer');
+  const referrer = urlParams.get('ref') || urlParams.get('referrer') || urlParams.get('r');
+  if (referrer && /^0x[a-fA-F0-9]{40}$/.test(referrer)) {
+    return referrer;
+  }
+  return null;
 }
 
 // تابع گرفتن معرف نهایی (کد رفرال یا دیپلویر)
 async function getFinalReferrer(contract) {
-  let ref = getReferrerFromURL();
-  if (ref && /^0x[a-fA-F0-9]{40}$/.test(ref)) return ref;
-  // اگر کد رفرال نبود، دیپلویر را بگیر
+  // ابتدا از URL بررسی کن
+  const urlReferrer = getReferrerFromURL();
+  if (urlReferrer) {
+    try {
+      const user = await contract.users(urlReferrer);
+      if (user && user.activated) {
+        return urlReferrer;
+      }
+    } catch (e) {
+      console.warn('URL referrer not valid:', e);
+    }
+  }
+  
+  // اگر URL معرف نداشت، از آدرس فعلی استفاده کن
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const currentAddress = accounts[0];
+    const user = await contract.users(currentAddress);
+    if (user && user.activated) {
+      return currentAddress;
+    }
+  } catch (e) {
+    console.error('Error getting current address as referrer:', e);
+  }
+  
+  // اگر هیچ‌کدام نبود، دیپلویر را برگردان
   try {
     return await contract.deployer();
   } catch (e) {
+    console.error('Error getting deployer:', e);
     return null;
   }
 }
 
-// نمایش modal ثبت‌نام برای گره خالی - بهینه‌سازی شده برای موبایل
-function showRegisterModal(parentIndex, parentAddress) {
-    // ابتدا modal قبلی را حذف کن
-    let old = document.getElementById('register-modal');
-    if (old) old.remove();
-    
-    // ساخت modal
-    const modal = document.createElement('div');
-    modal.id = 'register-modal';
-    modal.style = `
-      position: fixed;
-      z-index: 3000;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      box-sizing: border-box;
-    `;
-    
-    modal.innerHTML = `
-      <div style="
-        background: linear-gradient(135deg, #232946, #181c2a);
-        padding: 1.5rem;
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        width: 100%;
-        max-width: 500px;
-        max-height: 90vh;
-        overflow-y: auto;
-        direction: rtl;
-        position: relative;
-        border: 2px solid #a786ff;
-      ">
-        <!-- Header -->
-        <div style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 2px solid #a786ff;
-        ">
-          <h3 style="
-            color: #00ff88;
-            margin: 0;
-            font-size: 1.3rem;
-            font-weight: bold;
-            text-align: center;
-            flex: 1;
-          ">🌳 ثبت‌نام زیرمجموعه</h3>
-          <button id="register-modal-close" style="
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.3s;
-          " onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">×</button>
-        </div>
 
-        <!-- Referrer Info -->
-        <div style="
-          background: rgba(167, 134, 255, 0.1);
-          border: 1px solid #a786ff;
-          border-radius: 12px;
-          padding: 1rem;
-          margin-bottom: 1.5rem;
-        ">
-          <div style="color: #a786ff; font-weight: bold; margin-bottom: 0.8rem;">👤 اطلاعات معرف:</div>
-          <div style="display: grid; gap: 0.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #fff;">📊 Index:</span>
-              <span style="color: #00ff88; font-weight: bold;">${parentIndex}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #fff;">🔗 Address:</span>
-              <span style="
-                color: #00ff88;
-                font-family: monospace;
-                font-size: 0.9rem;
-                word-break: break-all;
-                max-width: 60%;
-                text-align: left;
-              ">${parentAddress}</span>
-            </div>
-          </div>
-        </div>
 
-        <!-- New Address Input -->
-        <div style="margin-bottom: 1.5rem;">
-          <label for="register-new-address" style="
-            display: block;
-            color: #fff;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-          ">🔑 آدرس ولت جدید:</label>
-          <input id="register-new-address" 
-            type="text" 
-            placeholder="0x..." 
-            style="
-              width: 100%;
-              padding: 1rem;
-              border-radius: 12px;
-              border: 2px solid #a786ff;
-              background: rgba(0,0,0,0.3);
-              color: #fff;
-              font-family: monospace;
-              font-size: 1rem;
-              direction: ltr;
-              text-align: left;
-              box-sizing: border-box;
-              transition: border-color 0.3s;
-            "
-            onfocus="this.style.borderColor='#00ff88'"
-            onblur="this.style.borderColor='#a786ff'"
-          />
-        </div>
-
-        <!-- Fee Info -->
-        <div id="register-fee-info" style="
-          background: rgba(255, 107, 107, 0.1);
-          border: 1px solid #ff6b6b;
-          border-radius: 12px;
-          padding: 1rem;
-          margin-bottom: 1rem;
-          color: #ff6b6b;
-          font-weight: bold;
-          text-align: center;
-        ">در حال بارگذاری اطلاعات هزینه...</div>
-
-        <!-- MATIC Info -->
-        <div id="register-matic-info" style="
-          background: rgba(0, 255, 136, 0.1);
-          border: 1px solid #00ff88;
-          border-radius: 12px;
-          padding: 1rem;
-          margin-bottom: 1.5rem;
-          color: #00ff88;
-          font-weight: bold;
-          text-align: center;
-        ">در حال بارگذاری موجودی MATIC...</div>
-
-        <!-- Action Button -->
-        <button id="register-submit-btn" style="
-          background: linear-gradient(135deg, #00ff88, #00cc66);
-          color: #232946;
-          font-weight: bold;
-          padding: 1rem;
-          border: none;
-          border-radius: 12px;
-          font-size: 1.1rem;
-          cursor: pointer;
-          transition: all 0.3s;
-          box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
-          width: 100%;
-        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,255,136,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(0,255,136,0.3)'">
-          ✅ ثبت‌نام زیرمجموعه
-        </button>
-
-        <!-- Status Message -->
-        <div id="register-modal-status" style="
-          margin-top: 1rem;
-          padding: 1rem;
-          border-radius: 8px;
-          text-align: center;
-          font-weight: bold;
-          min-height: 20px;
-        "></div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // بستن modal
-    document.getElementById('register-modal-close').onclick = () => modal.remove();
-    
-    // Close on background click
-    modal.onclick = (e) => {
-      if (e.target === modal) modal.remove();
-    };
-    // گرفتن اطلاعات هزینه ثبت‌نام و موجودی متیک
-    (async function() {
-      try {
-        const { contract, address, provider } = await window.connectWallet();
-        // مقدار توکن مورد نیاز (فرض: contract.registrationFee())
-        let fee = '-';
-        try {
-          if (contract.registrationFee) {
-            const feeVal = await contract.registrationFee();
-            fee = window.ethers ? window.ethers.formatUnits(feeVal, 18) : feeVal.toString();
-          } else {
-            fee = '---';
-          }
-        } catch (e) { fee = '---'; }
-        document.getElementById('register-fee-info').textContent = `Registration Fee: ${fee} CPA`;
-        // موجودی متیک
-        let matic = '-';
-        try {
-          if (provider && address) {
-            const bal = await provider.getBalance(address);
-            matic = window.ethers ? window.ethers.formatUnits(bal, 18) : bal.toString();
-          }
-        } catch (e) { matic = '---'; }
-        document.getElementById('register-matic-info').textContent = `Your MATIC Balance: ${matic}`;
-      } catch (e) {
-        document.getElementById('register-fee-info').textContent = 'Error loading fee info';
-        document.getElementById('register-matic-info').textContent = 'Error loading MATIC balance';
-      }
-    })();
-    // ثبت‌نام
-    document.getElementById('register-submit-btn').onclick = async function() {
-      const status = document.getElementById('register-modal-status');
-      status.textContent = '';
-      const newAddr = document.getElementById('register-new-address').value.trim();
-      if (!/^0x[a-fA-F0-9]{40}$/.test(newAddr)) {
-        status.textContent = 'آدرس ولت جدید معتبر نیست!';
-        return;
-      }
-      // استفاده از منطق ثبت‌نام اصلی پروژه
-      if (window.registerNewUserWithReferrer) {
-        const referrerAddress = await getFinalReferrer(contract);
-        if (!referrerAddress) {
-          status.textContent = 'معرف معتبری پیدا نشد. لطفاً به صفحه قبلی بروید یا یک کد رفرال در URL ارسال کنید.';
-          return;
-        }
-        await window.registerNewUserWithReferrer(referrerAddress, newAddr, status);
-        // بعد از موفقیت، درخت شبکه را رفرش کن
-        setTimeout(() => { modal.remove(); window.renderSimpleBinaryTree && window.renderSimpleBinaryTree(); }, 1500);
-      } else {
-        status.textContent = 'تابع ثبت‌نام اصلی پیدا نشد!';
-      }
-    };
-}
-
-// هندل کلیک روی علامت سؤال (گره خالی)
-document.addEventListener('click', function(e) {
-  // بررسی کلیک روی خود عنصر یا فرزندان آن
-  let targetElement = e.target;
-  while (targetElement && !targetElement.classList.contains('empty-node')) {
-    targetElement = targetElement.parentElement;
-  }
-  
-  if (targetElement && targetElement.classList.contains('empty-node')) {
-    console.log('Empty node clicked:', targetElement);
-    const parentIndex = targetElement.getAttribute('data-index');
-    console.log('Parent index:', parentIndex);
-    
-    (async function() {
-      try {
-        const { contract } = await window.connectWallet();
-        // اگر parentIndex صفر است، معرف وجود ندارد (ریشه)
-        if (parentIndex === 0) {
-          alert('ثبت‌نام زیر ریشه مجاز نیست!');
-          return;
-        }
-        const referrerAddress = await contract.indexToAddress(BigInt(parentIndex));
-        if (!referrerAddress || referrerAddress === '0x0000000000000000000000000000000000000000') {
-          // فقط اگر آدرس صفر بود، ثبت‌نام مجاز نیست
-          return;
-        }
-        console.log('Showing register modal for index:', parentIndex, 'referrer:', referrerAddress);
-        showRegisterModal(parentIndex, referrerAddress); // معرف = آدرس گره والد واقعی
-      } catch (e) {
-        console.error('Error handling empty node click:', e);
-        alert('خطا در دریافت آدرس معرف: ' + (e && e.message ? e.message : e));
-      }
-    })();
-  }
-}); 
+ 
 
 // فرض: بعد از ثبت‌نام موفق یا عملیات نیازمند رفرش
 window.refreshNetworkTab = function() {
@@ -829,4 +1257,54 @@ window.forceRenderNetwork = async function() {
     if (typeof window.renderSimpleBinaryTree === 'function') {
         await window.renderSimpleBinaryTree();
     }
+}; 
+
+// تابع نمایش اطلاعات struct کاربر به صورت تایپ‌رایتر (فارسی)
+window.showUserStructTypewriter = function(address, user) {
+  const infoLines = [
+    `CPA ID:  ${window.generateCPAId ? window.generateCPAId(user.index) : user.index}`,
+    `امتیاز باینری:  ${user.binaryPoints}`,
+    `امتیاز باینری دریافت‌شده:  ${user.binaryPointsClaimed}`,
+    `امتیاز باینری مانده:  ${user.binaryPoints && user.binaryPointsClaimed ? (Number(user.binaryPoints) - Number(user.binaryPointsClaimed)) : '0'}`,
+    `سقف امتیاز:  ${user.binaryPointCap}`,
+    `امتیاز چپ:  ${user.leftPoints}`,
+    `امتیاز راست:  ${user.rightPoints}`,
+    `پاداش رفرال:  ${user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : '0'}`,
+    `موجودی CPA:  ${user.lvlBalance ? user.lvlBalance : '0'}`,
+    `موجودی POL:  ${user.maticBalance ? user.maticBalance : '0'}`,
+    `موجودی USDC:  ${user.usdcBalance ? user.usdcBalance : '0'}`
+  ];
+  const popup = document.createElement('div');
+  popup.id = 'user-popup';
+  popup.style.position = 'fixed';
+  popup.style.top = '50%';
+  popup.style.left = '50%';
+  popup.style.transform = 'translate(-50%,-50%)';
+  popup.style.zIndex = 9999;
+  popup.innerHTML = `
+    <div style="background: #181c2a; padding: 0.2rem; width: 100%; max-width: 500px; overflow: hidden; direction: rtl; position: relative; font-family: 'Courier New', monospace;">
+      <div class=\"popup-header\" style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; padding-bottom: 0.1rem; border-bottom: none; cursor: pointer;\">
+        <h3 style=\"color: #00ff88; margin: 0; font-size: 0.9rem; font-weight: bold; text-align: center; flex: 1; cursor: pointer; font-family: 'Courier New', monospace;\">👤 USER INFO (${shortAddress(address)})</h3>
+        <button id=\"close-user-popup\" style=\"background: #ff6b6b; color: white; border: none; border-radius: 0; width: 20px; height: 20px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace;\" onmouseover=\"this.style.background='#ff4444'\" onmouseout=\"this.style.background='#ff6b6b'\">×</button>
+      </div>
+      <pre id=\"user-popup-typewriter\" style=\"background:#181c2a;padding:0.2rem;color:#00ff88;font-size:0.9rem;line-height:1.7;font-family:'Courier New',monospace;min-width:300px;direction:rtl;text-align:right;min-height:120px;max-height:320px;overflow-y:auto;border:none;box-shadow:none;display:block;\"></pre>
+    </div>
+  `;
+  document.body.appendChild(popup);
+  document.getElementById('close-user-popup').onclick = () => popup.remove();
+  function typeWriter(lines, el, lineIdx = 0, charIdx = 0) {
+    if (lineIdx >= lines.length) return;
+    if (charIdx === 0 && lineIdx > 0) el.textContent += '\n';
+    if (charIdx < lines[lineIdx].length) {
+      el.textContent += lines[lineIdx][charIdx];
+      setTimeout(() => typeWriter(lines, el, lineIdx, charIdx + 1), 18);
+    } else {
+      setTimeout(() => typeWriter(lines, el, lineIdx + 1, 0), 120);
+    }
+  }
+  const typewriterEl = popup.querySelector('#user-popup-typewriter');
+  if (typewriterEl) {
+    typewriterEl.textContent = '';
+    typeWriter(infoLines, typewriterEl);
+  }
 }; 
