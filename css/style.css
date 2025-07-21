@@ -6279,61 +6279,6 @@ footer[style*="position: fixed"] {
 
 /* ==== استایل‌های منتقل‌شده از فایل‌های HTML ==== */
 
-/* index.html - Hamburger Menu */
-.hamburger {
-  display: inline-block;
-  cursor: pointer;
-  width: 48px;
-  height: 48px;
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 2001;
-  background: #181c2a;
-  border-radius: 50%;
-  box-shadow: 0 2px 16px #0007;
-  transition: background 0.2s;
-}
-.hamburger:hover {
-  background: #222;
-}
-.hamburger span {
-  display: block;
-  width: 32px;
-  height: 5px;
-  margin: 7px auto;
-  background: #00ff88;
-  border-radius: 2px;
-  transition: 0.3s;
-}
-.hamburger-menu {
-  position: fixed;
-  bottom: 80px;
-  right: 24px;
-  background: rgba(35,41,70,0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  border: 1px solid rgba(167,134,255,0.2);
-  padding: 1rem;
-  min-width: 280px;
-  max-width: 320px;
-  z-index: 9999999;
-  transform: scale(0.9);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  transform-origin: bottom right;
-  display: block;
-}
-
-.hamburger-menu.open {
-  transform: scale(1);
-  opacity: 1;
-  visibility: visible;
-  display: block;
-}
-
 .menu-group {
   margin-bottom: 1rem;
 }
@@ -6408,13 +6353,7 @@ footer[style*="position: fixed"] {
   background: rgba(255, 107, 107, 0.1) !important;
   border-left-color: #ff4757 !important;
 }
-@media (max-width: 768px) {
-  .hamburger-menu {
-    bottom: 70px;
-    right: 12px;
-    min-width: 260px;
-    max-width: 280px;
-  }
+
   
   .menu-btn {
     padding: 0.7rem 0.8rem;
@@ -8176,15 +8115,7 @@ body.signal-page { background: #181c2a; color: #fff; font-family: 'Noto Sans Ara
   }
 }
 
-/* Locked Hamburger Menu Item Styles */
-.locked-menu-item {
-  position: relative;
-  opacity: 0.5 !important;
-  pointer-events: none !important;
-  cursor: not-allowed !important;
-  filter: grayscale(50%);
-  transition: all 0.3s ease;
-}
+
 
 .locked-menu-item::before {
   content: "🔒";

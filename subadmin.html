@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>مدیریت ساب ادمین</title>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/hamburger-menu.css">
   <style>
     .sub-admin-modal { z-index: 10000; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(24,28,42,0.85); display: flex; align-items: center; justify-content: center; }
     .sub-admin-modal-content { background: #232946; border-radius: 16px; padding: 2rem; max-width: 420px; width: 100%; box-shadow: 0 8px 32px #00ff8840; }
@@ -104,17 +103,7 @@
         <button class="modal-btn secondary" id="cancel-delete-btn">❌ انصراف</button>
       </div>
     </div>
-  </div>
-  <script src="js/hamburger-menu.js"></script>
-  <!-- Hamburger Menu (voice-activated) -->
-  <div id="hamburger-menu-include"></div>
-  <script>
-    fetch('hamburger-menu.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('hamburger-menu-include').innerHTML = html;
-      });
-  </script>
+
   <!-- اسکریپت‌های اختصاصی مدیریت ساب ادمین را اینجا اضافه کنید -->
 </body>
 </html> 

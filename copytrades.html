@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/index-custom.css">
   <link rel="stylesheet" href="css/floating-ai-assistant.css">
-  <link rel="stylesheet" href="css/hamburger-menu.css">
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
 </head>
 <body>
@@ -75,14 +74,6 @@ function showSubAdminModal() {
   window.location.href = 'admin-owner-panel.html';
 }
 </script>
-<!-- Hamburger Menu (voice-activated) -->
-<div id="hamburger-menu-include"></div>
-<script>
-  fetch('hamburger-menu.html')
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById('hamburger-menu-include').innerHTML = html;
-    });
-</script>
+
 </body>
 </html> 

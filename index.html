@@ -132,106 +132,7 @@
     });
   </script>
 
-  <!-- Floating Logo as Hamburger Menu -->
-  <img id="floating-logo" src="cpa.jpg" alt="CPA Logo" style="height:48px;width:48px;display:inline-block;border-radius:50%;box-shadow:0 2px 12px #00ff8840;position:fixed;bottom:24px;right:24px;z-index:999999;background:#181c2a;cursor:pointer;transition:all 0.3s ease;object-fit:cover;" loading="lazy" onmouseover="this.style.transform='scale(1.1) rotate(360deg)'" onmouseout="this.style.transform='scale(1) rotate(0deg)'" onclick="toggleHamburgerMenu()">
   
-
-  
-  <!-- Hamburger Menu -->
-  <div id="hamburgerMenu" class="hamburger-menu">
-    <div style="text-align:center;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid rgba(167,134,255,0.2);">
-      <h3 style="margin:0;color:#00ff88;font-size:1rem;font-weight:bold;">CONTINUOUS PROFIT ACADEMY</h3>
-    </div>
-    
-    <!-- Dashboard Section -->
-    <div class="menu-group">
-      <div class="menu-group-title">📊 داشبورد</div>
-      <button onclick="showTab('dashboard')" class="menu-btn">
-        <span class="menu-icon">🏠</span>
-        <span class="menu-label">داشبورد اصلی</span>
-      </button>
-    </div>
-    
-    <div class="menu-divider"></div>
-    
-    <!-- Education Section -->
-    <div class="menu-group">
-      <div class="menu-group-title">📚 آموزش</div>
-      <a href="learning.html" class="menu-btn">
-        <span class="menu-icon">🎓</span>
-        <span class="menu-label">آموزش</span>
-      </a>
-      <button onclick="navigateToPage('news.html')" class="menu-btn">
-        <span class="menu-icon">📰</span>
-        <span class="menu-label">اخبار و تحلیل</span>
-      </button>
-    </div>
-    
-    <div class="menu-divider"></div>
-    
-    <!-- Tools Section -->
-    <div class="menu-group">
-      <div class="menu-group-title">🛠️ ابزارها</div>
-      <button onclick="showTab('swap')" class="menu-btn">
-        <span class="menu-icon">🔄</span>
-        <span class="menu-label">تبدیل ارز</span>
-      </button>
-      <button onclick="showTab('transfer')" class="menu-btn">
-        <span class="menu-icon">💸</span>
-        <span class="menu-label">انتقال</span>
-      </button>
-      <button onclick="showTab('network')" class="menu-btn">
-        <span class="menu-icon">🌐</span>
-        <span class="menu-label">شبکه</span>
-      </button>
-      <button onclick="showSignalBox()" class="menu-btn">
-        <span class="menu-icon">📈</span>
-        <span class="menu-label">سیگنال</span>
-      </button>
-    </div>
-    
-    <div class="menu-divider"></div>
-    
-    <!-- Others Section -->
-    <div class="menu-group">
-      <div class="menu-group-title">📋 سایر</div>
-      <button onclick="showTab('register')" class="menu-btn">
-        <span class="menu-icon">📝</span>
-        <span class="menu-label">ثبت‌نام</span>
-      </button>
-      <button onclick="showTab('profile')" class="menu-btn">
-        <span class="menu-icon">👤</span>
-        <span class="menu-label">پروفایل</span>
-      </button>
-      <button onclick="showTab('reports')" class="menu-btn">
-        <span class="menu-icon">📊</span>
-        <span class="menu-label">گزارشات</span>
-      </button>
-      <button onclick="navigateToPage('shop.html')" class="menu-btn">
-        <span class="menu-icon">🛒</span>
-        <span class="menu-label">فروشگاه</span>
-      </button>
-      <button onclick="showTab('about')" class="menu-btn">
-        <span class="menu-icon">ℹ️</span>
-        <span class="menu-label">درباره ما</span>
-      </button>
-    </div>
-    
-    <div class="menu-divider"></div>
-    
-    <!-- Admin Section -->
-    <div class="menu-group admin-group">
-      <div class="menu-group-title">🔐 مدیریت</div>
-      <button onclick="navigateToPage('admin-prop.html')" class="menu-btn admin-btn">
-        <span class="menu-icon">⚙️</span>
-        <span class="menu-label">مدیریت پراپ‌ها</span>
-      </button>
-      <button onclick="showSubAdminModal()" class="menu-btn admin-btn">
-        <span class="menu-icon">👥</span>
-        <span class="menu-label">مدیریت ساب ادمین</span>
-      </button>
-    </div>
-  </div>
   
   <div id="main-dashboard" class="page-section" style="position:relative;overflow:visible;">
     <div class="dashboard-cards" style="display:flex;justify-content:center;flex-wrap:wrap;gap:1rem;max-width:1400px;margin:0 auto;">
@@ -410,26 +311,8 @@
 
       </div>
 
-      <!-- Registration Button for Unregistered Users -->
-      <div id="main-registration-button" style="display:none;background:linear-gradient(135deg,#00ff88,#00cc66);border-radius:18px;box-shadow:0 8px 32px rgba(0,255,136,0.3);margin:2rem auto 1.5rem auto;padding:2rem;max-width:600px;width:100%;text-align:center;position:relative;overflow:hidden;cursor:pointer;transition:all 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 12px 40px rgba(0,255,136,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 32px rgba(0,255,136,0.3)'" onclick="showDirectRegistrationForm()">
-        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#00ff88,#a786ff,#00ff88);animation:shimmer 2s linear infinite;"></div>
-        <div style="font-size:4rem;margin-bottom:1rem;">🎯</div>
-        <h2 style="color:#181c2a;font-family:'Montserrat','Noto Sans Arabic',sans-serif;font-size:1.8rem;font-weight:bold;margin-bottom:1rem;">ثبت‌نام کنید و شروع کنید!</h2>
-        <p style="color:#181c2a;font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem;opacity:0.9;">
-          برای دسترسی به تمام امکانات آکادمی سود مستمر،<br>
-          لطفاً ثبت‌نام کنید و به جامعه ما بپیوندید
-        </p>
-        <div style="background:rgba(24,28,42,0.1);border-radius:12px;padding:1rem;margin-bottom:1.5rem;border:2px solid rgba(24,28,42,0.2);">
-          <div style="color:#181c2a;font-size:1rem;font-weight:bold;margin-bottom:0.5rem;">💰 هزینه ثبت‌نام:</div>
-          <div style="color:#181c2a;font-size:1.2rem;font-family:monospace;font-weight:bold;" id="registration-cost-display">100 CPA</div>
-        </div>
-        <button style="background:rgba(24,28,42,0.9);color:#00ff88;border:2px solid #181c2a;border-radius:12px;padding:1rem 2rem;font-size:1.2rem;font-weight:bold;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(24,28,42,0.3);" onmouseover="this.style.background='#181c2a';this.style.color='#00ff88';this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(24,28,42,0.9)';this.style.color='#00ff88';this.style.transform='scale(1)'">
-          🚀 ثبت‌نام اکنون
-        </button>
-        <div style="margin-top:1rem;color:#181c2a;font-size:0.9rem;opacity:0.8;">
-          ⚡ ثبت‌نام سریع و آسان - فقط چند کلیک
-        </div>
-      </div>
+      <!-- Buttons Row for Main Sections -->
+      <!-- دکمه‌های پنج‌گانه حذف شدند، فقط نوار پایین فعال است -->
 
       <!-- CPA Introduction Section -->
       <div class="cpa-intro-section" style="background:linear-gradient(135deg,#181c2a,#232946);border-radius:18px;box-shadow:0 4px 24px rgba(0,255,136,0.10);margin:2rem 0 1.5rem 0;padding:2.2rem 1.5rem;max-width:900px;width:100%;margin-left:auto;margin-right:auto;direction:rtl;">
@@ -681,42 +564,7 @@
     </div>
   </div>
 
-  <!-- Hamburger Menu -->
 
-
-  <div id="main-network" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:none;">
-    <div class="expand-header">
-      <h2 style="color: #00ff88; margin: 0;">🌐 Network</h2>
-    </div>
-    <div class="expand-content">
-      <div class="network-container" style="max-width: 800px; margin: 0 auto; padding: 1rem;">
-        <!-- Network Stats -->
-        <div id="network-stats"></div>
-        
-        <!-- Network Members List -->
-        <div id="network-tree"></div>
-        
-        <!-- Professional Tree Link -->
-        <div style="text-align: center; margin: 2rem 0;">
-          <a href="professional-tree.html" target="_blank" style="
-            display: inline-block;
-            background: linear-gradient(135deg, #00ff88, #a786ff);
-            color: #181c2a;
-            text-decoration: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
-            transition: all 0.3s ease;
-            border: 2px solid #00ff88;
-          " onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 35px rgba(0,255,136,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 25px rgba(0,255,136,0.3)'">
-            🌳 مشاهده درخت حرفه‌ای شبکه
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div id="main-profile" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:none;">
     <div class="expand-header">
@@ -984,168 +832,104 @@
         </div>
 
         <!-- Registration Form -->
-        <form id="permanent-registration-form" class="registration-form" style="background:linear-gradient(135deg,#232946,#181c2a);border-radius:12px;padding:1.5rem;border:2px solid #a786ff;">
-          
-          <!-- Wallet Connection Status -->
-          <div id="wallet-connection-status" style="background:rgba(255,68,68,0.1);border:1px solid #ff4444;border-radius:8px;padding:1rem;margin-bottom:1.5rem;text-align:center;">
-            <div style="color:#ff4444;font-weight:bold;margin-bottom:0.5rem;">⚠️ کیف پول متصل نیست</div>
-            <p style="color:#b8c1ec;margin:0;font-size:0.9rem;">لطفاً ابتدا کیف پول خود را متصل کنید</p>
-            <button type="button" id="connect-wallet-btn" style="background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.7rem 2rem;font-size:1rem;cursor:pointer;margin-top:0.5rem;transition:all 0.3s;">
-              🔗 اتصال کیف پول
-            </button>
-          </div>
-
-          <!-- User Address Input -->
-          <div class="form-group" style="margin-bottom:1.5rem;">
-            <label for="permanent-user-address" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">👤 آدرس کیف پول کاربر:</label>
-            <input type="text" id="permanent-user-address" placeholder="0x..." required style="width:100%;padding:0.8rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;">
-            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">آدرس کیف پولی که می‌خواهید ثبت‌نام کنید</small>
-          </div>
-
-          <!-- Referrer Index Input -->
-          <div class="form-group" style="margin-bottom:1.5rem;">
-            <label for="permanent-referrer-index" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">🔢 ایندکس معرف (اختیاری):</label>
-            <div style="display:flex;gap:0.5rem;align-items:center;">
-              <input type="number" id="permanent-referrer-index" placeholder="0" min="0" style="flex:1;padding:0.8rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;">
-              <button type="button" id="get-referrer-address-btn" style="background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.8rem 1rem;font-size:0.9rem;cursor:pointer;transition:all 0.3s;white-space:nowrap;">
-                🔍 دریافت آدرس
-              </button>
-            </div>
-            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">ایندکس معرف را وارد کنید تا آدرس ولت به طور خودکار دریافت شود</small>
-          </div>
-
-          <!-- Referrer Address Input -->
-          <div class="form-group" style="margin-bottom:1.5rem;">
-            <label for="permanent-referrer-address" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">👥 آدرس معرف:</label>
-            <input type="text" id="permanent-referrer-address" placeholder="0x..." required style="width:100%;padding:0.8rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;">
+        <form id="registration-form" class="registration-form" style="background:linear-gradient(135deg,#232946,#181c2a);border-radius:12px;padding:1.5rem;border:2px solid #a786ff;">
+          <div style="margin-bottom:1.2rem;">
+            <label for="referrer-address" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">👥 آدرس معرف:</label>
+            <input type="text" id="referrer-address" placeholder="0x..." required style="width:100%;padding:0.8rem 1.2rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;font-size:1.05rem;">
             <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">آدرس معرف (اگر ندارید، آدرس deployer استفاده می‌شود)</small>
           </div>
-
-          <!-- Balances Display -->
-          <div id="permanent-balances-display" style="background:rgba(167,134,255,0.1);border-radius:8px;padding:1rem;margin-bottom:1.5rem;display:none;">
-            <h4 style="color:#a786ff;margin-bottom:0.8rem;">💰 موجودی‌های شما:</h4>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-              <div style="text-align:center;">
-                <div style="color:#00ff88;font-weight:bold;">CPA</div>
-                <div id="permanent-cpa-balance" style="color:#b8c1ec;font-family:monospace;">-</div>
-              </div>
-              <div style="text-align:center;">
-                <div style="color:#00ff88;font-weight:bold;">MATIC</div>
-                <div id="permanent-matic-balance" style="color:#b8c1ec;font-family:monospace;">-</div>
-              </div>
+          <div style="margin-bottom:1.5rem;">
+            <label for="register-ref-index" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">🔢 ایندکس معرف:</label>
+            <div style="display:flex;gap:0.3rem;align-items:center;max-width:350px;">
+              <input type="number" id="register-ref-index" placeholder="ایندکس" min="0" style="flex:1;padding:0.8rem 0.5rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;font-size:0.98rem;">
+              <button type="button" id="register-index-search-btn" style="background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.8rem 1rem;font-size:0.9rem;cursor:pointer;transition:all 0.3s;white-space:nowrap;">🔍 پیدا کن</button>
             </div>
+            <div id="register-index-search-status" style="color:#ff4444;font-size:0.9rem;margin-top:0.3rem;"></div>
           </div>
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label for="register-user-address" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">👤 آدرس کیف پول کاربر:</label>
+            <input type="text" id="register-user-address" placeholder="0x..." required style="width:100%;padding:0.8rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;">
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">آدرس کیف پولی که می‌خواهید ثبت‌نام کنید</small>
+          </div>
+          <div id="register-ref-summary" style="display:none;margin-bottom:1.5rem;background:rgba(167,134,255,0.08);border-radius:8px;padding:0.8rem;">
+            <div>آدرس کیف پول شما: <span id="register-wallet-address" style="color:#00ff88;font-family:monospace;">-</span></div>
+            <div>آدرس معرف: <span id="register-referrer-address" style="color:#a786ff;font-family:monospace;">-</span></div>
+          </div>
+          <div id="register-cpa-balance" style="color:#00ff88;font-weight:bold;margin-bottom:0.5rem;">CPA: -</div>
+          <div id="register-usdc-balance" style="color:#00ccff;font-weight:bold;margin-bottom:0.5rem;">USDC: -</div>
+          <div id="register-matic-balance" style="color:#a786ff;font-weight:bold;margin-bottom:1.5rem;">MATIC: -</div>
+          <div style="margin-bottom:1.5rem;">
+            <span>مقدار مورد نیاز برای ثبت‌نام: <span id="register-cpa-required" style="color:#00ff88;font-weight:bold;">100 CPA</span></span>
+            <span style="margin-right:1.5rem;">حداقل متیک مورد نیاز: <span id="register-matic-required" style="color:#a786ff;font-weight:bold;">0.05 MATIC</span></span>
+          </div>
+          <div class="form-group" id="register-index-search-group" style="margin-bottom:1.5rem;">
 
-          <!-- Registration Button -->
-          <button type="submit" id="permanent-register-btn" style="width:100%;background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:1rem;font-size:1.1rem;cursor:pointer;transition:all 0.3s;margin-bottom:1rem;" disabled>
-            🔒 ابتدا کیف پول را متصل کنید
-          </button>
-
-          <!-- Status Messages -->
-          <div id="permanent-registration-status" style="text-align:center;margin-top:1rem;"></div>
-
+            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">ایندکس معرف را وارد کنید تا آدرس ولت به طور خودکار در فیلد معرف قرار گیرد</small>
+            <div id="register-index-search-status" style="color:#ff4444;font-size:0.9rem;margin-top:0.3rem;"></div>
+          </div>
+          <button type="button" id="register-btn" style="width:100%;background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:1rem;font-size:1.1rem;cursor:pointer;transition:all 0.3s;margin-bottom:1rem;">ثبت‌ نام</button>
+          <div id="register-status" style="text-align:center;margin-top:1rem;"></div>
         </form>
+        <script>
+          // اتصال خودکار به ولت و به‌روزرسانی فرم ثبت‌نام هنگام نمایش دایو ثبت‌نام
+          function autoConnectWalletOnRegisterDiv() {
+            const regDiv = document.getElementById('main-register');
+            if (!regDiv) return;
+            const observer = new MutationObserver(async () => {
+              if (regDiv.style.display !== 'none') {
+                if (window.connectWallet) {
+                  await window.connectWallet();
+                }
+                if (window.showRegistrationForm) {
+                  await window.showRegistrationForm();
+                }
+              }
+            });
+            observer.observe(regDiv, { attributes: true, attributeFilter: ['style'] });
+          }
+          document.addEventListener('DOMContentLoaded', autoConnectWalletOnRegisterDiv);
 
-        <!-- Quick Actions -->
-        <div style="background:rgba(167,134,255,0.05);border-radius:8px;padding:1rem;margin-top:1.5rem;text-align:center;">
-          <h4 style="color:#a786ff;margin-bottom:0.8rem;">⚡ اقدامات سریع:</h4>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
-            <button onclick="showTab('swap')" style="background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid #00ff88;border-radius:6px;padding:0.6rem;font-size:0.9rem;cursor:pointer;transition:all 0.3s;">
-              🔄 خرید CPA
-            </button>
-            <button onclick="showTab('network')" style="background:rgba(167,134,255,0.1);color:#a786ff;border:1px solid #a786ff;border-radius:6px;padding:0.6rem;font-size:0.9rem;cursor:pointer;transition:all 0.3s;">
-              🌐 مشاهده شبکه
-            </button>
-          </div>
-        </div>
+          // جستجو معرف با ایندکس و قرار دادن در فیلد معرف (با استفاده از indexToAddress)
+          document.addEventListener('DOMContentLoaded', function() {
+            const searchBtn = document.getElementById('register-index-search-btn');
+            const indexInput = document.getElementById('register-ref-index');
+            const statusDiv = document.getElementById('register-index-search-status');
+            const refInput = document.getElementById('referrer-address');
+            searchBtn && searchBtn.addEventListener('click', async function() {
+              statusDiv.textContent = '';
+              const idx = indexInput.value.trim();
+              if (!idx || isNaN(idx) || parseInt(idx) < 0) {
+                statusDiv.textContent = 'ایندکس معتبر وارد کنید';
+                return;
+              }
+              try {
+                if (!window.contractConfig || !window.contractConfig.contract) {
+                  statusDiv.textContent = 'اتصال کیف پول برقرار نیست';
+                  return;
+                }
+                const contract = window.contractConfig.contract;
+                let address = await contract.indexToAddress(parseInt(idx));
+                if (!address || address === '0x0000000000000000000000000000000000000000') {
+                  statusDiv.textContent = 'آدرس معتبری برای این ایندکس یافت نشد';
+                  return;
+                }
+                refInput.value = address;
+                statusDiv.textContent = 'آدرس با موفقیت درج شد';
+                statusDiv.style.color = '#00ff88';
+              } catch (e) {
+                statusDiv.textContent = 'خطا در دریافت آدرس: ' + (e.message || e);
+                statusDiv.style.color = '#ff4444';
+              }
+            });
+          });
+        </script>
 
-      </div>
-    </div>
-  </div>
-
-  <!-- NEWS section moved to news.html -->
-
-  <!-- SHOP section moved to shop.html -->
-
-  <div id="main-about" class="page-section expandable-container" style="display:none;">
-    <div class="expand-header">
-      <h2 class="profile-title"> </h2>
-    </div>
-    <div class="expand-content">
-      <div class="about-container">
-        <div class="about-content">
-          <p>CONTINUOUS PROFIT ACADEMY یک پلتفرم نوآورانه برای آموزش، سرمایه‌گذاری و کسب درآمد از طریق توکن CPA و شبکه باینری است. هدف ما ایجاد بستری شفاف، سریع و کاربرپسند برای همه علاقه‌مندان به دنیای بلاکچین است.</p>
-          
-          <div class="about-features">
-            <h3>ویژگی‌های کلیدی پلتفرم</h3>
-            <ul>
-              <li>خرید و فروش توکن CPA</li>
-              <li>سیستم پاداش باینری</li>
-              <li>فروشگاه محصولات آموزشی</li>
-              <li>اخبار و آموزش‌های به‌روز</li>
-              <li>امنیت بالا و شفافیت کامل</li>
-              <li>پشتیبانی 24/7</li>
-            </ul>
-          </div>
-          
-          <div class="about-stats">
-            <div class="about-stat">
-              <div class="icon">👛</div>
-              <div class="number" id="about-wallets-count">-</div>
-              <div class="label">تعداد ولت‌های متصل</div>
-            </div>
-            <div class="about-stat">
-              <div class="icon">🚀</div>
-              <div class="number">1000+</div>
-              <div class="label">کاربر فعال</div>
-            </div>
-            <div class="about-stat">
-              <div class="icon">💰</div>
-              <div class="number">$500K+</div>
-              <div class="label">حجم معاملات</div>
-            </div>
-            <div class="about-stat">
-              <div class="icon">⭐</div>
-              <div class="number">4.9</div>
-              <div class="label">امتیاز کاربران</div>
-            </div>
-            <div class="about-stat">
-              <div class="icon">🔒</div>
-              <div class="number">100%</div>
-              <div class="label">امنیت تضمینی</div>
-            </div>
-          </div>
-          
-          <div class="about-contact">
-            <h3>ارتباط با ما</h3>
-            <p>برای سوالات و پشتیبانی با ما در تماس باشید</p>
-            <div class="contact-info">
-              <div class="contact-item">
-                <span class="icon">📧</span>
-                <span class="text">support@levelup.com</span>
-              </div>
-              <div class="contact-item">
-                <span class="icon">📱</span>
-                <span class="text">@LevelUp_Support</span>
-              </div>
-              <div class="contact-item">
-                <span class="icon">🌐</span>
-                <span class="text">www.levelup.com</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <footer style="direction:ltr;text-align:left;padding:0.2rem 1rem;font-size:0.7rem;color:rgba(170,170,170,0.7);position:fixed;left:0;bottom:0;width:100vw;background:rgba(35,41,70,0.75);backdrop-filter:blur(8px);z-index:100;text-align:center;border-top:1px solid rgba(167,134,255,0.3);box-shadow:0 -2px 10px rgba(0,0,0,0.15);">
-    <div style="display:flex;justify-content:center;align-items:center;gap:0.5rem;max-width:300px;margin:0 auto;">
-      <span style="font-size:0.65rem;">© Continuous Profit Academy</span>
-      <span style="color:rgba(167,134,255,0.6);font-size:0.6rem;">•</span>
-      <span style="font-size:0.6rem;">Blockchain</span>
-    </div>
-  </footer>
+
 
   <!-- نمایش وضعیت اتصال -->
   <div id="connection-status" style="
@@ -1293,89 +1077,7 @@
   <script src="js/swap.js?v=5.7"></script>
   
 
-  <script>
-    // تابع باز/بسته کردن منو همبرگری
-    function toggleHamburgerMenu() {
-      const menu = document.getElementById('hamburgerMenu');
-      if (menu) {
-        menu.classList.toggle('open');
-
-        
-        // اگر منو باز است، مطمئن شو که قابل مشاهده است
-        if (menu.classList.contains('open')) {
-          menu.style.visibility = 'visible';
-          menu.style.opacity = '1';
-          menu.style.transform = 'scale(1)';
-          menu.style.display = 'block';
-        } else {
-          menu.style.visibility = 'hidden';
-          menu.style.opacity = '0';
-          menu.style.transform = 'scale(0.9)';
-        }
-      } else {
-
-      }
-    }
-    
-    // تابع نمایش مودال ساب ادمین
-    function showSubAdminModal() {
-      const modal = document.getElementById('sub-admin-modal');
-      if (modal) {
-        modal.style.display = 'flex';
-        // بستن منوی همبرگری
-        const menu = document.getElementById('hamburgerMenu');
-        if (menu) {
-          menu.classList.remove('open');
-        }
-      }
-    }
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        // فقط داشبورد را نمایش بده، بقیه مخفی باشند
-        const expandableContainers = document.querySelectorAll('.expandable-container');
-        expandableContainers.forEach(container => {
-            container.classList.remove('collapsed');
-            
-            // Ensure content is always visible
-            const content = container.querySelector('.expand-content');
-            if (content) {
-                content.style.maxHeight = 'none';
-                content.style.opacity = '1';
-                content.style.padding = '0.5rem';
-                content.style.overflow = 'visible';
-                content.style.display = 'block';
-            }
-            
-            // Remove pointer cursor from headers
-            const header = container.querySelector('.expand-header');
-            if (header) {
-                header.style.cursor = 'default';
-            }
-        });
-
-        // Initialize price chart
-        if (typeof window.priceChart !== 'undefined' && typeof window.priceChart.initialize === 'function') {
-            window.priceChart.initialize();
-        }
-        
-        // بستن منو با کلیک خارج از آن
-        document.addEventListener('click', function(e) {
-          const menu = document.getElementById('hamburgerMenu');
-          const logo = document.getElementById('floating-logo');
-          if (menu && !menu.contains(e.target) && !logo.contains(e.target)) {
-            menu.classList.remove('open');
-          }
-        });
-        
-        // بستن منو با کلید Escape
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape') {
-            const menu = document.getElementById('hamburgerMenu');
-            if (menu) menu.classList.remove('open');
-          }
-        });
-    });
-  </script>
+ 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
   <script>
@@ -1385,11 +1087,7 @@
   
     })();
   </script>
-  <script>
-    // Removed problematic queryFilter call that was causing RPC timeout
-    // This was trying to fetch all PurchaseKind events from block 0 to latest
-    // which is not needed for basic functionality
-  </script>
+
   <script>
     async function updateAboutWalletsCount() {
       try {
@@ -1531,114 +1229,7 @@
   <div id="custom-footer-div" style="text-align:center; padding:2rem; color:#00ff88; font-size:1.2rem;">
   <br>  <br>  <br>  <br>  <br>  <br>  <br>
   </div>
-  <script>
-    // تابع ناوبری به صفحات خارجی
-  window.navigateToPage = function(pageUrl) {
-    // بستن منوی همبرگری
-    const menu = document.getElementById('hamburgerMenu');
-    if (menu) {
-      menu.classList.remove('open');
-    }
-    
-    // اسکرول به بالای صفحه قبل از انتقال
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // انتقال به صفحه جدید بعد از کمی تاخیر
-    setTimeout(() => {
-      window.location.href = pageUrl;
-    }, 300);
-  };
 
-  window.showTab = async function(tab) {
-      // ذخیره تب فعال در localStorage
-      localStorage.setItem('currentActiveTab', tab);
-      
-      // بستن منوی همبرگری
-      const menu = document.getElementById('hamburgerMenu');
-      if (menu) {
-        menu.classList.remove('open');
-      }
-      
-      const tabs = ['network','profile','reports','swap','transfer','register','about'];
-      tabs.forEach(function(name) {
-        var mainEl = document.getElementById('main-' + name);
-        if (mainEl) {
-          if (name === tab) {
-            mainEl.style.display = '';
-            // اضافه کردن انیمیشن fade-in
-            mainEl.style.opacity = '0';
-            mainEl.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-              mainEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-              mainEl.style.opacity = '1';
-              mainEl.style.transform = 'translateY(0)';
-            }, 50);
-          } else {
-            mainEl.style.display = 'none';
-            mainEl.style.opacity = '1';
-            mainEl.style.transform = 'translateY(0)';
-          }
-        }
-        var btnEl = document.getElementById('tab-' + name + '-btn');
-        if (btnEl) btnEl.classList.toggle('active', name === tab);
-      });
-      
-      // اسکرول به بخش انتخاب شده
-      const targetElement = document.getElementById('main-' + tab);
-      if (targetElement) {
-        
-        // اسکرول نرم به بخش
-        setTimeout(() => {
-          // ابتدا به بالای صفحه اسکرول کن
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          
-          // سپس به بخش مورد نظر اسکرول کن
-          setTimeout(() => {
-            targetElement.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'start',
-              inline: 'nearest'
-            });
-          }, 200);
-        }, 100);
-      }
-      
-      // فعال کردن دکمه انتخاب شده
-      tabs.forEach(function(name) {
-        var btnEl = document.getElementById('tab-' + name + '-btn');
-        if (btnEl) btnEl.classList.toggle('active', name === tab);
-      });
-      
-      try {
-        switch(tab) {
-          case 'network':
-            // حذف فراخوانی مکرر initializeNetworkTab
-            // این تابع فقط در tabs.js فراخوانی می‌شود
-            if (typeof updateNetworkStats === 'function') await updateNetworkStats();
-            if (typeof renderNetworkTree === 'function') await renderNetworkTree();
-            break;
-          case 'profile':
-            if (typeof loadUserProfile === 'function') await loadUserProfile();
-            break;
-          case 'reports':
-            if (typeof loadReports === 'function') await loadReports();
-            break;
-          case 'swap':
-            if (window.swapManager) {
-              await window.swapManager.refreshSwapData();
-            }
-            break;
-          case 'transfer':
-            // No extra logic needed for now
-            break;
-          case 'register': break;
-          case 'about': break;
-        }
-      } catch (error) {
-        console.error(`Error loading data for tab ${tab}:`, error);
-      }
-    }
-  </script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -1647,7 +1238,7 @@
       
       // بازیابی تب فعال از localStorage
       const savedTab = localStorage.getItem('currentActiveTab');
-      if (savedTab && typeof window.showTab === 'function') {
+      if (savedTab && savedTab !== 'network' && typeof window.showTab === 'function') {
         // کمی صبر کن تا صفحه کاملاً لود شود
         setTimeout(() => {
           window.showTab(savedTab);
@@ -1885,7 +1476,6 @@
   </script>
   <script src="js/token-price.js"></script>
   <script src="js/remove-archive-btn.js"></script>
-  <script src="js/hamburger-float.js"></script>
 
   <script>
   window.getUserProfile = async function() {
@@ -1911,4 +1501,8 @@
     }
   });
   </script>
+
+  <script src="js/navbar.js"></script>
+</body>
+</html>
 

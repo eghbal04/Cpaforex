@@ -16,39 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // === اضافه کردن دکمه مخفی پنل اونر به منوی همبرگری ===
-    try {
-        const hamburgerMenu = document.getElementById('hamburgerMenu');
-        if (hamburgerMenu && window.contractConfig && window.contractConfig.contract && window.contractConfig.address) {
-            // گرفتن آدرس owner از قرارداد
-            const ownerAddress = await window.contractConfig.contract.owner();
-            const userAddress = window.contractConfig.address;
-            // بررسی تطابق آدرس owner و کاربر
-            if (ownerAddress && userAddress && ownerAddress.toLowerCase() === userAddress.toLowerCase()) {
-                // اگر دکمه قبلاً اضافه نشده بود، اضافه کن
-                if (!document.getElementById('owner-panel-btn')) {
-                    const divider = document.createElement('div');
-                    divider.className = 'menu-divider';
-                    divider.id = 'owner-panel-divider'; // Added ID for removal
-                    const btn = document.createElement('button');
-                    btn.id = 'owner-panel-btn';
-                    btn.innerHTML = '<span class="menu-icon">🛡️</span>پنل اونر';
-                    btn.onclick = function() { window.location.href = 'admin-owner-panel.html'; };
-                    btn.style.background = '#232946';
-                    btn.style.color = '#a786ff';
-                    btn.style.fontWeight = 'bold';
-                    btn.style.display = 'block';
-                    btn.style.border = '1px solid #a786ff';
-                    btn.style.marginTop = '10px';
-                    btn.style.padding = '10px';
-                    btn.style.borderRadius = '8px';
-                    btn.style.cursor = 'pointer';
-                    // اضافه کردن به انتهای منو
-                    hamburgerMenu.appendChild(divider);
-                    hamburgerMenu.appendChild(btn);
-                }
-            }
-        }
-    } catch (e) { console.warn('Owner panel button error:', e); }
 
     // به‌روزرسانی ناوبار بر اساس وضعیت کاربر
     await updateNavbarBasedOnUserStatus();
@@ -108,6 +75,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // حذف هر دکمه کپی اضافی اگر وجود دارد
     const dashCopyBtn = document.getElementById('dashboard-contract-copy-btn');
     if (dashCopyBtn) dashCopyBtn.remove();
+
+    // همزمان با سایر مقادیر داشبورد، کل پوینت‌ها را هم به‌روزرسانی کن
+    const totalPointsEl = document.getElementById('total-points');
+    if (totalPointsEl && window.contractConfig && window.contractConfig.contract) {
+      try {
+        const totalPoints = await window.contractConfig.contract.totalClaimableBinaryPoints();
+        totalPointsEl.textContent = Math.floor(Number(totalPoints) / 1e18).toLocaleString('en-US');
+      } catch (e) {
+        totalPointsEl.textContent = '-';
+      }
+    }
 });
 
 function shortenAddress(address) {
@@ -121,49 +99,7 @@ function shorten(address) {
 }
 
 // تابع اضافه کردن دکمه owner به انتهای منوی همبرگری فقط برای owner
-window.addOwnerPanelButtonIfOwner = async function() {
-    try {
-        const hamburgerMenu = document.getElementById('hamburgerMenu');
-        if (!hamburgerMenu) return;
-        // حذف دکمه قبلی اگر وجود دارد
-        const existingBtn = document.getElementById('owner-panel-btn');
-        if (existingBtn) existingBtn.remove();
-        // حذف divider قبلی اگر وجود دارد
-        const existingDivider = document.getElementById('owner-panel-divider');
-        if (existingDivider) existingDivider.remove();
-        // بررسی اتصال و قرارداد
-        if (!window.contractConfig || !window.contractConfig.contract || !window.contractConfig.address) return;
-        // گرفتن owner از قرارداد
-        let ownerAddress;
-        try {
-            ownerAddress = await window.contractConfig.contract.owner();
-        } catch (e) { return; }
-        const userAddress = window.contractConfig.address;
-        if (!ownerAddress || !userAddress) return;
-        if (ownerAddress.toLowerCase() !== userAddress.toLowerCase()) return;
-        // اضافه کردن divider
-        const divider = document.createElement('div');
-        divider.className = 'menu-divider';
-        divider.id = 'owner-panel-divider';
-        // ایجاد دکمه
-        const btn = document.createElement('button');
-        btn.id = 'owner-panel-btn';
-        btn.innerHTML = '<span class="menu-icon">🛡️</span>پنل اونر';
-        btn.onclick = function() { window.location.href = 'admin-owner-panel.html'; };
-        btn.style.background = '#232946';
-        btn.style.color = '#a786ff';
-        btn.style.fontWeight = 'bold';
-        btn.style.display = 'block';
-        btn.style.border = '1px solid #a786ff';
-        btn.style.marginTop = '10px';
-        btn.style.padding = '10px';
-        btn.style.borderRadius = '8px';
-        btn.style.cursor = 'pointer';
-        // اضافه کردن به انتهای منو
-        hamburgerMenu.appendChild(divider);
-        hamburgerMenu.appendChild(btn);
-    } catch (e) {}
-};
+
 
 // تابع اتصال کیف پول با نوع مشخص
 async function connectWalletAndUpdateUI(walletType) {
@@ -557,8 +493,6 @@ async function lockTabsForDeactivatedUsers() {
                 }
             });
             
-            // Lock hamburger menu items
-            setTimeout(() => lockHamburgerMenuItems(), 1000); // Wait for hamburger menu to load
             
             // مدیریت دکمه ثبت‌نام اصلی
             if (typeof window.manageMainRegistrationButton === 'function') {
@@ -587,92 +521,13 @@ async function lockTabsForDeactivatedUsers() {
                     el.title = '';
                 }
             });
-            
-            // Unlock hamburger menu items
-            unlockHamburgerMenuItems();
+                        
         }
     } catch (error) {
         console.error('Error in lockTabsForDeactivatedUsers:', error);
     }
 }
 
-// Lock hamburger menu items for deactivated users
-async function lockHamburgerMenuItems() {
-    try {
-        if (window.clearUserProfileCache) window.clearUserProfileCache();
-        const profile = await loadUserProfileOnce();
-        if (profile && profile.activated) {
-            unlockHamburgerMenuItems();
-            return;
-        }
-        // انتخاب همه دکمه‌های منوی همبرگری که باید قفل شوند
-        const selectors = [
-            'button.menu-btn[onclick*="shop.html"]',
-            'button.menu-btn[onclick*="news.html"]',
-            'button.menu-btn[onclick*="learning.html"]',
-            'button.menu-btn[onclick*="signal.html"]',
-            'button.menu-btn[onclick*="autotrade-license.html"]',
-            'button.menu-btn[onclick*="admin-prop.html"]'
-        ];
-        selectors.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                const labelSpan = el.querySelector('span.menu-label');
-                if (labelSpan) {
-                    labelSpan.innerHTML = '🔒 ' + labelSpan.textContent.replace('🔒', '').trim();
-                }
-                el.classList.add('locked-menu-item');
-                el.style.pointerEvents = 'none';
-                el.style.opacity = '0.5';
-                el.style.cursor = 'not-allowed';
-                el.title = '🔒 این بخش فقط برای کاربران فعال باز است - لطفاً ابتدا ثبت‌نام کنید';
-                if (!el.dataset.originalOnclick && el.onclick) {
-                    el.dataset.originalOnclick = el.onclick.toString();
-                }
-                el.onclick = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showRegistrationPrompt();
-                    return false;
-                };
-            });
-        });
-    } catch (error) {
-        console.error('Error in lockHamburgerMenuItems:', error);
-    }
-}
-
-// Unlock hamburger menu items for activated users
-function unlockHamburgerMenuItems() {
-    try {
-        const selectors = [
-            'button.menu-btn[onclick*="shop.html"]',
-            'button.menu-btn[onclick*="news.html"]',
-            'button.menu-btn[onclick*="learning.html"]',
-            'button.menu-btn[onclick*="signal.html"]',
-            'button.menu-btn[onclick*="autotrade-license.html"]',
-            'button.menu-btn[onclick*="admin-prop.html"]'
-        ];
-        selectors.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                const labelSpan = el.querySelector('span.menu-label');
-                if (labelSpan) {
-                    labelSpan.innerHTML = labelSpan.textContent.replace('🔒', '').trim();
-                }
-                el.classList.remove('locked-menu-item');
-                el.style.pointerEvents = 'auto';
-                el.style.opacity = '1';
-                el.style.cursor = 'pointer';
-                el.title = '';
-                if (el.dataset.originalOnclick) {
-                    el.onclick = new Function(el.dataset.originalOnclick);
-                    delete el.dataset.originalOnclick;
-                }
-            });
-        });
-    } catch (error) {
-        console.error('Error in unlockHamburgerMenuItems:', error);
-    }
-}
 
 // نمایش پیام ثبت‌نام برای تب‌های قفل شده
 function showRegistrationPrompt() {
@@ -755,9 +610,7 @@ window.testLockStatus = async function() {
         // Check tab lock status
         const lockedTabs = document.querySelectorAll('.locked-tab');
         
-        // Check hamburger menu lock status
-        const lockedMenuItems = document.querySelectorAll('.locked-menu-item');
-        
+
         return {
             profile: profile,
             lockedTabs: lockedTabs.length,
@@ -1864,87 +1717,6 @@ window.copyReferralLink = function(address) {
     });
 };
 
-window.showTab = async function(tab) {
-      // ذخیره تب فعال در localStorage
-      localStorage.setItem('currentActiveTab', tab);
-      
-      const tabs = ['network','profile','reports','swap','transfer','news','shop','learning','about','register'];
-      tabs.forEach(function(name) {
-        var mainEl = document.getElementById('main-' + name);
-        if (mainEl) {
-          if (name === tab) {
-            mainEl.style.display = '';
-            // اضافه کردن انیمیشن fade-in
-            mainEl.style.opacity = '0';
-            mainEl.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-              mainEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-              mainEl.style.opacity = '1';
-              mainEl.style.transform = 'translateY(0)';
-            }, 50);
-          } else {
-            mainEl.style.display = 'none';
-            mainEl.style.opacity = '1';
-            mainEl.style.transform = 'translateY(0)';
-          }
-        }
-        var btnEl = document.getElementById('tab-' + name + '-btn');
-        if (btnEl) btnEl.classList.toggle('active', name === tab);
-      });
-      // اسکرول به بخش انتخاب شده
-      const targetElement = document.getElementById('main-' + tab);
-      if (targetElement) {
-        // بستن منوی همبرگر
-        const hamburgerMenu = document.getElementById('hamburgerMenu');
-        if (hamburgerMenu) {
-          hamburgerMenu.classList.remove('open');
-        }
-        // اسکرول نرم به بخش
-        setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          setTimeout(() => {
-            targetElement.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'start',
-              inline: 'nearest'
-            });
-          }, 200);
-        }, 100);
-      }
-      try {
-        switch(tab) {
-          case 'network':
-            // حذف فراخوانی مکرر initializeNetworkTab
-            // این تابع فقط در tabs.js فراخوانی می‌شود
-            if (typeof updateNetworkStats === 'function') await updateNetworkStats();
-            break;
-          case 'profile':
-            if (typeof window.loadUserProfile === 'function') await window.loadUserProfile();
-            break;
-          case 'reports':
-            if (typeof window.loadReports === 'function') await window.loadReports();
-            break;
-          case 'swap':
-            if (typeof window.loadSwapTab === 'function') await window.loadSwapTab();
-            break;
-          case 'transfer':
-            if (typeof window.loadTransferTab === 'function') await window.loadTransferTab();
-            break;
-          case 'register':
-            if (typeof window.setRegisterTabSelected === 'function') window.setRegisterTabSelected(true);
-            if (typeof window.loadRegisterData === 'function' && window.contractConfig) {
-              await window.loadRegisterData(window.contractConfig.contract, window.contractConfig.address, window.tokenPriceUSDFormatted);
-            }
-            break;
-          default:
-            // توقف به‌روزرسانی خودکار موجودی‌های ترنسفر وقتی از تب ترنسفر خارج می‌شویم
-            if (typeof window.stopTransferBalanceAutoRefresh === 'function') {
-              window.stopTransferBalanceAutoRefresh();
-            }
-            break;
-        }
-      } catch (e) { console.error(e); }
-    }
 
 document.addEventListener('click', function(e) {
   if (e.target.classList.contains('empty-node')) {

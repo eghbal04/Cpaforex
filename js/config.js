@@ -2904,9 +2904,9 @@ window.showErrorMessage = function(message) {
 window.refreshNetworkAfterMetaMaskApproval = async function() {
     try {
         // نمایش پیام موفقیت
-        if (typeof window.showSuccessMessage === 'function') {
-            window.showSuccessMessage('کیف پول با موفقیت متصل شد و شبکه رفرش شد');
-        }
+        // if (typeof window.showSuccessMessage === 'function') {
+        //     window.showSuccessMessage('کیف پول با موفقیت متصل شد و شبکه رفرش شد');
+        // }
         
         // کمی صبر کن تا اتصال برقرار شود
         setTimeout(async () => {
@@ -2921,9 +2921,9 @@ window.refreshNetworkAfterMetaMaskApproval = async function() {
                     }
                     
                     // نمایش پیام موفقیت نهایی
-                    if (typeof window.showSuccessMessage === 'function') {
-                        window.showSuccessMessage('شبکه و درخت باینری با موفقیت به‌روزرسانی شد');
-                    }
+                    // if (typeof window.showSuccessMessage === 'function') {
+                    //     window.showSuccessMessage('شبکه و درخت باینری با موفقیت به‌روزرسانی شد');
+                    // }
                 }
             } catch (error) {
                 console.warn('Error refreshing network after MetaMask approval:', error);
@@ -4587,10 +4587,6 @@ if (!window._dashboardIntervalSet) {
   window._dashboardIntervalSet = true;
 }
 
-function unlockHamburgerMenuItems() {
-    console.log('>>> unlockHamburgerMenuItems CALLED');
-    // ... ادامه کد ...
-}
 
 // ... existing code ...
 

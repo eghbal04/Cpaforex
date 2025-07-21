@@ -652,7 +652,7 @@ async function connectWithQRCode() {
             await handleWalletConnectSuccess(provider);
             
             // به‌روزرسانی وضعیت
-            updateConnectionStatus('success', 'اتصال با WalletConnect موفقیت‌آمیز بود');
+            // updateConnectionStatus('success', 'اتصال با WalletConnect موفقیت‌آمیز بود');
             updateWalletButtonVisibility();
             
             return provider;

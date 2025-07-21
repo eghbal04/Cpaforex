@@ -242,7 +242,16 @@ function updateProfileUI(profile) {
     const totalMonthlyRewardedEl = document.getElementById('profile-totalMonthlyRewarded');
     if (totalMonthlyRewardedEl) totalMonthlyRewardedEl.textContent = profile.userStruct.totalMonthlyRewarded || '۰';
     const depositedAmountEl = document.getElementById('profile-depositedAmount');
-    if (depositedAmountEl) depositedAmountEl.textContent = profile.userStruct.depositedAmount || '۰';
+    if (depositedAmountEl) {
+      let val = profile.userStruct.depositedAmount || '۰';
+      // اگر مقدار 18 رقم اعشار دارد (مثلاً BigNumber)، آن را به عدد صحیح تبدیل کن
+      if (typeof val === 'string' && val.length > 18) {
+        val = parseInt((BigInt(val) / 1000000000000000000n).toString(), 10);
+      } else if (!isNaN(val)) {
+        val = parseInt(val, 10);
+      }
+      depositedAmountEl.textContent = isNaN(val) ? '۰' : val.toLocaleString('fa');
+    }
 
     // موجودی متیک
     const maticEl = document.getElementById('profile-matic');

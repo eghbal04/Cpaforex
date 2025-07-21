@@ -1,56 +1,7 @@
-/* استایل دکمه همبرگری */
-#hamburger-toggle-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 100000;
-  font-size: 2.2rem;
-  background: #232946;
-  border: none;
-  border-radius: 50%;
-  width: 56px;
-  height: 56px;
-  box-shadow: 0 2px 12px #00ff8840;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #00ff88;
-}
-#hamburger-toggle-btn:hover {
-  background: #181c2a;
-  color: #a786ff;
-}
 
-/* استایل منوی همبرگری */
-.hamburger-menu {
-  position: fixed;
-  bottom: 80px; /* بالای دکمه همبرگری */
-  right: 24px;
-  width: 340px;
-  max-width: 90vw;
-  height: auto;
-  max-height: calc(100vh - 120px);
-  background: #181c2a;
-  box-shadow: -4px 0 32px #00ff8840;
-  z-index: 100001;
-  border-radius: 16px 0 16px 16px;
-  padding: 1.5rem 1.2rem 1.2rem 1.2rem;
-  display: none;
-  flex-direction: column;
-  gap: 0.5rem;
-  overflow-y: auto;
-  transition: all 0.25s cubic-bezier(.4,2,.6,1);
-  opacity: 0;
-  visibility: hidden;
-}
-.hamburger-menu.open {
-  display: flex;
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-}
+
+
+
 .menu-group {
   margin-bottom: 1.2rem;
 }
@@ -98,28 +49,3 @@
   color: #a786ff;
 } 
 
-/* --- Override for hamburger button to fix size/visibility issues --- */
-#hamburger-toggle-btn {
-  width: 56px !important;
-  height: 56px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
-  max-width: 80px !important;
-  max-height: 80px !important;
-  font-size: 2.2rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  z-index: 100002 !important;
-  background: #232946 !important;
-  color: #00ff88 !important;
-  border: none !important;
-  border-radius: 50% !important;
-  box-shadow: 0 2px 12px #00ff8840 !important;
-  cursor: pointer !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-} 
