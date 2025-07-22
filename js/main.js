@@ -1,4 +1,7 @@
 // main.js
+// پاک‌سازی کنسول در ابتدای برنامه
+console.clear();
+
 document.addEventListener('DOMContentLoaded', async () => {
     const connectButton = document.getElementById('connectButton');
     const walletConnectButton = document.getElementById('walletConnectButton');

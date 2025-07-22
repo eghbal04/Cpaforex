@@ -5029,3 +5029,14 @@ window.registerNewUserWithReferrer = async function(referrerAddress, newUserAddr
 };
 
 // ... existing code ...
+
+// تابع مرکزی برای گرفتن همه گزارشات
+window.getAllReports = async function(address) {
+  // اگر تابع fetchReports وجود دارد، از آن استفاده کن
+  if (typeof window.fetchReports === 'function') {
+    return await window.fetchReports(address);
+  }
+  // اگر تابع واقعی وجود ندارد، پیام خطا برگردان
+  return [];
+};
+// ... existing code ...

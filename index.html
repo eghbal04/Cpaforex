@@ -790,12 +790,30 @@
     </div>
   </div>
 
-  <div id="main-reports" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:none;">
+  <div id="main-reports" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:block;">
     <div class="expand-header">
       <h2 class="profile-title" style="color:#00ff88;">📊 گزارشات</h2>
     </div>
     <div class="expand-content">
       <div class="profile-container">
+        <!-- توضیحات کامل درباره گزارشات -->
+        <div style="background:rgba(0,255,136,0.08);border:1.5px solid #a786ff;border-radius:10px;padding:1.2em 1em;margin-bottom:1.2em;color:#b8c1ec;font-size:1.05em;line-height:1.9;">
+          <b style="color:#00ff88;">راهنمای بخش گزارشات:</b><br>
+          در این بخش، تمام فعالیت‌های مهم شما در پلتفرم به صورت خودکار و زنده از قرارداد هوشمند شبکه خوانده و نمایش داده می‌شود.<br>
+          <b>انواع گزارشات:</b>
+          <ul style="margin:0.5em 0 0.5em 1.5em;padding:0;">
+            <li>ثبت‌نام و فعال‌سازی حساب</li>
+            <li>خرید و فروش توکن (CPA، MATIC، USDC)</li>
+            <li>دریافت و عدم دریافت پاداش ماهانه</li>
+            <li>دریافت پاداش باینری و به‌روزرسانی امتیازها</li>
+            <li>تغییرات ساختار شبکه و انتقال ایندکس</li>
+            <li>واریز مستقیم، انتقال توکن و تأییدیه‌ها</li>
+            <li>به‌روزرسانی استخر باینری و سایر رویدادهای مهم</li>
+          </ul>
+          <b>منبع داده:</b> همه اطلاعات این بخش مستقیماً از رویدادهای قرارداد هوشمند (Smart Contract Events) جمع‌آوری می‌شود و هیچ داده‌ای قابل جعل یا حذف نیست.<br>
+          <b>نکته:</b> اگر گزارشی نمی‌بینید، یعنی هنوز فعالیتی در شبکه انجام نداده‌اید یا کیف پول متصل نیست.<br>
+          <b>برای هر گزارش:</b> نوع رویداد، مقدار، تاریخ، آدرس‌ها و توضیحات تکمیلی نمایش داده می‌شود. با کلیک روی آدرس‌ها می‌توانید جزئیات را در بلاک‌چین مشاهده کنید.
+        </div>
         <!-- فیلترها حذف شدند - همه گزارشات نمایش داده می‌شوند -->
         <div id="reports-container"></div>
       </div>
@@ -945,11 +963,11 @@
 
   <!-- سایر اسکریپت‌ها -->
   <script src="js/config.js"></script>
+  <script src="js/reports.js"></script>
   <script src="js/web3-interactions.js"></script>
   <script src="js/main.js"></script>
   <script src="js/network.js?v=5.7"></script>
   <script src="js/profile.js?v=5.7"></script>
-  <script src="js/reports.js?v=5.7"></script>
   <script src="js/news.js?v=5.7"></script>
   <script src="js/shop.js?v=5.7"></script>
   <script src="js/homepage.js?v=5.8"></script>
