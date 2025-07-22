@@ -181,37 +181,70 @@ function setupRegistrationButton() {
     const registerStatus = document.getElementById('register-status');
     if (registerBtn) {
         registerBtn.onclick = async () => {
+            // مقداردهی ورودی‌ها و موجودی‌ها همین‌جا
+            const userAddressInput = document.getElementById('register-user-address');
+            let targetUserAddress = userAddressInput ? userAddressInput.value.trim() : '';
+            const referrerInput = document.getElementById('referrer-address');
+            let referrer = referrerInput ? referrerInput.value.trim() : '';
+            let userLvlBalance = parseFloat(document.getElementById('register-cpa-balance').textContent.replace('CPA','').trim()) || 0;
+            let maticBalance = parseFloat(document.getElementById('register-matic-balance').textContent.replace('MATIC','').trim()) || 0;
+            let requiredTokenAmount = 100;
+            let requiredMatic = 0.05;
+
+            // شرط‌ها و منطق ثبت‌نام
+            if (!/^0x[a-fA-F0-9]{40}$/.test(targetUserAddress)) {
+                registerStatus.textContent = 'آدرس کیف پول کاربر جدید معتبر نیست.';
+                return;
+            }
+            if (!/^0x[a-fA-F0-9]{40}$/.test(referrer)) {
+                registerStatus.textContent = 'آدرس معرف معتبر نیست.';
+                return;
+            }
+            // بررسی ثبت‌نام نبودن کاربر جدید
+            let userData;
+            try {
+                const { contract } = window.contractConfig;
+                userData = await contract.users(targetUserAddress);
+            } catch (e) { userData = null; }
+            if (userData && userData.activated) {
+                registerStatus.textContent = 'این آدرس قبلاً ثبت‌نام کرده است.';
+                return;
+            }
+            // بررسی فعال بودن رفرر
+            let refData;
+            try {
+                const { contract } = window.contractConfig;
+                refData = await contract.users(referrer);
+            } catch (e) { refData = null; }
+            if (!refData || !refData.activated) {
+                registerStatus.textContent = 'معرف فعال نیست.';
+                return;
+            }
+            if (userLvlBalance < requiredTokenAmount) {
+                registerStatus.textContent = 'موجودی CPA کافی نیست.';
+                return;
+            }
+            if (maticBalance < requiredMatic) {
+                registerStatus.textContent = 'موجودی متیک کافی نیست.';
+                return;
+            }
+            // منطق ثبت‌نام
             const oldText = registerBtn.textContent;
             registerBtn.disabled = true;
             registerBtn.innerHTML = '<span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #00ff88;border-radius:50%;margin-left:8px;vertical-align:middle;animation:spin 0.8s linear infinite;"></span> در حال ثبت‌نام...';
-            if (registerStatus) registerStatus.textContent = '';
+            registerStatus.textContent = '';
             try {
-                await performRegistration();
-                if (registerStatus) registerStatus.textContent = '✅ ثبت‌نام با موفقیت انجام شد!';
+                const { contract, address } = window.contractConfig;
+                const tx = await contract.registerAndActivate(referrer, targetUserAddress);
+                await tx.wait();
+                registerStatus.textContent = 'ثبت‌نام با موفقیت انجام شد!';
                 registerBtn.style.display = 'none';
-            } catch (error) {
-                let msg = error && error.message ? error.message : error;
-                if (error.code === 4001 || msg.includes('user denied')) {
-                    msg = '❌ تراکنش توسط کاربر لغو شد.';
-                } else if (error.code === -32002 || msg.includes('Already processing')) {
-                    msg = '⏳ متامسک در حال پردازش درخواست قبلی است. لطفاً چند لحظه صبر کنید.';
-                } else if (error.code === 'NETWORK_ERROR' || msg.includes('network')) {
-                    msg = '❌ خطای شبکه! اتصال اینترنت یا شبکه بلاکچین را بررسی کنید.';
-                } else if (msg.includes('insufficient funds')) {
-                    msg = 'موجودی کافی برای پرداخت کارمزد یا ثبت‌نام وجود ندارد.';
-                } else if (msg.includes('invalid address')) {
-                    msg = 'آدرس معرف یا مقصد نامعتبر است.';
-                } else if (msg.includes('not allowed') || msg.includes('only owner')) {
-                    msg = 'شما مجاز به انجام این عملیات نیستید.';
-                } else if (msg.includes('already registered') || msg.includes('already exists')) {
-                    msg = 'شما قبلاً ثبت‌نام کرده‌اید یا این آدرس قبلاً ثبت شده است.';
-                } else if (msg.includes('execution reverted')) {
-                    msg = 'تراکنش ناموفق بود. شرایط ثبت‌نام را بررسی کنید.';
+            } catch (e) {
+                if (e.code === 4001) {
+                    registerStatus.textContent = 'فرآیند ثبت‌نام توسط شما لغو شد.';
                 } else {
-                    msg = '❌ خطا در ثبت‌نام: ' + (msg || 'خطای ناشناخته');
+                    registerStatus.textContent = 'خطا در ثبت‌نام: ' + (e.message || e);
                 }
-                if (registerStatus) registerStatus.textContent = msg;
-            } finally {
                 registerBtn.disabled = false;
                 registerBtn.textContent = oldText;
             }
@@ -437,159 +470,20 @@ window.showRegistrationForm = async function() {
         if (refSummary) refSummary.style.display = 'none';
     }
 
-
     // نمایش موجودی‌های کاربر
     await window.displayUserBalances();
     
     // نمایش مقدار مورد نیاز
     const cpaRequiredSpan = document.getElementById('register-cpa-required');
-    if (cpaRequiredSpan) cpaRequiredSpan.textContent = regPrice; // Static value
+    if (cpaRequiredSpan) cpaRequiredSpan.textContent = '100 CPA'; // مقدار ثابت
 
-    // 1. Add logic to fetch MATIC balance and required MATIC for registration
-    async function fetchMaticBalance(address, contract) {
-      try {
-        const maticWei = await contract.provider.getBalance(address);
-        return ethers.formatEther(maticWei);
-      } catch (e) {
-        return '0';
-      }
-    }
-
-    // 2. Update registration form logic to show MATIC balance and required MATIC
-    // (Find the main registration form logic and add after CPA balance logic)
-
-    // Set required MATIC (for registration, e.g. 0.05 MATIC for gas)
-    const requiredMatic = 0.05; // You can adjust this value as needed
+    // مقدار مورد نیاز متیک
+    const requiredMatic = 0.05;
     const maticRequiredSpan = document.getElementById('register-matic-required');
     if (maticRequiredSpan) maticRequiredSpan.textContent = requiredMatic + ' MATIC';
 
-    // 3. Update register button logic to check both CPA and MATIC balance
-    const registerBtn = document.getElementById('register-btn');
-    const registerStatus = document.getElementById('register-status');
-    if (registerBtn) {
-      // Get user address from input (not just connected wallet)
-      const userAddressInput = document.getElementById('register-user-address');
-      let targetUserAddress = userAddressInput ? userAddressInput.value.trim() : '';
-      const referrerInput = document.getElementById('referrer-address');
-      let referrer = referrerInput ? referrerInput.value.trim() : '';
-
-      if (!/^0x[a-fA-F0-9]{40}$/.test(targetUserAddress)) {
-        if (registerStatus) registerStatus.textContent = 'آدرس کیف پول کاربر جدید معتبر نیست.';
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'ثبت‌ نام';
-        return;
-      }
-      if (!/^0x[a-fA-F0-9]{40}$/.test(referrer)) {
-        if (registerStatus) registerStatus.textContent = 'آدرس معرف معتبر نیست.';
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'ثبت‌ نام';
-        return;
-      }
-      // بررسی ثبت‌نام نبودن کاربر جدید
-      let userData;
-      try {
-        userData = await contract.users(targetUserAddress);
-      } catch (e) { userData = null; }
-      if (userData && userData.activated) {
-        if (registerStatus) registerStatus.textContent = 'این آدرس قبلاً ثبت‌نام کرده است.';
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'ثبت‌ نام';
-        return;
-      }
-      // بررسی فعال بودن رفرر
-      let refData;
-      try {
-        refData = await contract.users(referrer);
-      } catch (e) { refData = null; }
-      if (!refData || !refData.activated) {
-        if (registerStatus) registerStatus.textContent = 'معرف فعال نیست.';
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'ثبت‌ نام';
-        return;
-      }
-      // بررسی موجودی ولت متصل (address)
-      if (parseFloat(userLvlBalance) < parseFloat(requiredTokenAmount)) {
-        registerBtn.disabled = true;
-        registerBtn.textContent = 'موجودی CPA کافی نیست';
-        if (registerStatus) registerStatus.innerHTML = 'موجودی توکن CPA شما برای ثبت‌نام کافی نیست.<br>برای ثبت‌نام باید حداقل '+requiredTokenAmount+' CPA داشته باشید.<br>لطفاً ابتدا کیف پول خود را شارژ یا از بخش سواپ/فروشگاه توکن CPA تهیه کنید.';
-        return;
-      } else if (parseFloat(maticBalance) < requiredMatic) {
-        registerBtn.disabled = true;
-        registerBtn.textContent = 'موجودی متیک کافی نیست';
-        if (registerStatus) registerStatus.textContent = 'برای ثبت‌نام باید حداقل '+requiredMatic+' MATIC در کیف پول خود داشته باشید.';
-        return;
-      }
-      // ثبت‌نام
-      registerBtn.disabled = true;
-      registerBtn.textContent = 'در حال ثبت‌نام...';
-      try {
-        await contract.registerAndActivate(referrer, targetUserAddress);
-        registerStatus.textContent = 'ثبت‌نام با موفقیت انجام شد!';
-        registerBtn.style.display = 'none';
-      } catch (e) {
-        if (e.code === 4001) {
-          registerStatus.textContent = 'فرآیند ثبت‌نام توسط شما لغو شد.';
-        } else {
-          registerStatus.textContent = 'خطا در ثبت‌نام: ' + (e.message || e);
-        }
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'ثبت‌ نام';
-      }
-    }
-
-    // دکمه ثبت‌نام
-    const newRegisterBtn = document.getElementById('new-register-btn');
-    const newRegisterModal = document.getElementById('new-registration-modal');
-    const closeNewRegister = document.getElementById('close-new-register');
-    const submitNewRegister = document.getElementById('submit-new-register');
-    if (newRegisterBtn && newRegisterModal && closeNewRegister && submitNewRegister) {
-        newRegisterBtn.onclick = function() {
-            newRegisterModal.style.display = 'flex';
-        };
-        closeNewRegister.onclick = function() {
-            newRegisterModal.style.display = 'none';
-            document.getElementById('new-user-address').value = '';
-            document.getElementById('new-referrer-address').value = '';
-            document.getElementById('new-register-status').textContent = '';
-            // Hide any duplicate or leftover registration forms
-            const allModals = document.querySelectorAll('.new-registration-modal, #new-registration-modal');
-            allModals.forEach(m => m.style.display = 'none');
-        };
-        submitNewRegister.onclick = async function() {
-            const userAddr = document.getElementById('new-user-address').value.trim();
-            const refAddr = document.getElementById('new-referrer-address').value.trim();
-            const statusDiv = document.getElementById('new-register-status');
-            if (!userAddr || !refAddr) {
-                statusDiv.textContent = 'آدرس نفر جدید و معرف را وارد کنید';
-                statusDiv.className = 'profile-status error';
-                return;
-            }
-            submitNewRegister.disabled = true;
-            const oldText = submitNewRegister.textContent;
-            submitNewRegister.textContent = 'در حال ثبت...';
-            try {
-                if (!window.contractConfig || !window.contractConfig.contract) throw new Error('اتصال کیف پول برقرار نیست');
-                const { contract } = window.contractConfig;
-                // بررسی معتبر بودن معرف
-                const refData = await contract.users(refAddr);
-                if (!refData.activated) throw new Error('معرف فعال نیست');
-                // بررسی ثبت‌نام نبودن نفر جدید
-                const userData = await contract.users(userAddr);
-                if (userData.activated) throw new Error('این آدرس قبلاً ثبت‌نام کرده است');
-                // ثبت‌نام نفر جدید (با ولت فعلی)
-                const tx = await contract.registerAndActivate(refAddr, userAddr);
-                await tx.wait();
-                statusDiv.textContent = 'ثبت‌نام نفر جدید با موفقیت انجام شد!';
-                statusDiv.className = 'profile-status success';
-                setTimeout(() => location.reload(), 1200);
-            } catch (e) {
-                statusDiv.textContent = e.message || 'خطا در ثبت‌نام نفر جدید';
-                statusDiv.className = 'profile-status error';
-            }
-            submitNewRegister.disabled = false;
-            submitNewRegister.textContent = oldText;
-        };
-    }
+    // فقط handler دکمه ثبت‌نام را ست کن
+    setupRegistrationButton();
 }
 
 // تابع ثبت‌نام ساده
@@ -755,9 +649,7 @@ async function displayUserBalances() {
             }
         });
         
-        if (balances) {
-            // User balances displayed successfully
-        }
+        // حذف if (balances) چون متغیر balances تعریف نشده است
         
     } catch (error) {
         console.error('❌ Error displaying user balances:', error);

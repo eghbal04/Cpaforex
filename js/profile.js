@@ -243,22 +243,23 @@ function updateProfileUI(profile) {
     if (totalMonthlyRewardedEl) totalMonthlyRewardedEl.textContent = profile.userStruct.totalMonthlyRewarded || '۰';
     const depositedAmountEl = document.getElementById('profile-depositedAmount');
     if (depositedAmountEl) {
-      let val = profile.userStruct.depositedAmount || '۰';
-      // اگر مقدار 18 رقم اعشار دارد (مثلاً BigNumber)، آن را به عدد صحیح تبدیل کن
-      if (typeof val === 'string' && val.length > 18) {
-        val = parseInt((BigInt(val) / 1000000000000000000n).toString(), 10);
-      } else if (!isNaN(val)) {
-        val = parseInt(val, 10);
+      let val = profile.userStruct.depositedAmount;
+      if (val && typeof val === 'object' && typeof val.toString === 'function') {
+        val = ethers.formatUnits(val.toString(), 18);
+      } else if (typeof val === 'bigint') {
+        val = ethers.formatUnits(val, 18);
+      } else if (typeof val === 'string' && val.length > 18) {
+        val = ethers.formatUnits(val, 18);
       }
-      depositedAmountEl.textContent = isNaN(val) ? '۰' : val.toLocaleString('fa');
+      depositedAmountEl.textContent = val ? val : '۰';
     }
 
     // موجودی متیک
     const maticEl = document.getElementById('profile-matic');
-    if (maticEl) maticEl.textContent = profile.maticBalance ? formatNumber(profile.maticBalance, 4) + ' MATIC' : '0 MATIC';
+    if (maticEl) maticEl.textContent = profile.maticBalance ? (Number(profile.maticBalance).toFixed(2) + ' MATIC') : '0 MATIC';
     // موجودی CPA
     const cpaEl = document.getElementById('profile-lvl');
-    if (cpaEl) cpaEl.textContent = profile.lvlBalance ? formatNumber(profile.lvlBalance, 4) + ' CPA' : '0 CPA';
+    if (cpaEl) cpaEl.textContent = profile.lvlBalance ? profile.lvlBalance + ' CPA' : '0 CPA';
     // نمایش ارزش دلاری CPA و POL
     const maticUsdEl = document.getElementById('profile-matic-usd');
     if (maticUsdEl) maticUsdEl.textContent = profile.polValueUSD ? formatNumber(profile.polValueUSD, 2) + ' $' : '0 $';

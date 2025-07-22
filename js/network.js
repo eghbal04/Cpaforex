@@ -206,7 +206,7 @@ async function renderVerticalNodeLazy(index, container, level = 0, autoExpand = 
         // اگر جایگاه خالی وجود دارد، فقط یک دکمه کوچک "نیو" نمایش بده
         if (!leftActive || !rightActive) {
             let newBtn = document.createElement('button');
-            newBtn.textContent = 'نیو';
+            newBtn.textContent = 'ثبت جدید';
             newBtn.title = 'ثبت‌نام زیرمجموعه جدید';
             newBtn.style.background = 'linear-gradient(90deg,#a786ff,#00ff88)';
             newBtn.style.color = '#181c2a';
@@ -218,6 +218,8 @@ async function renderVerticalNodeLazy(index, container, level = 0, autoExpand = 
             newBtn.style.fontSize = '0.95em';
             newBtn.style.marginRight = '0.7em';
             newBtn.style.marginLeft = '0.7em';
+            newBtn.style.whiteSpace = 'nowrap';
+            newBtn.style.fontSize = '0.8em';
             newBtn.onclick = async function(e) {
                 e.stopPropagation();
                 // اگر modal قبلی باز است، حذف کن
@@ -331,6 +333,8 @@ async function renderVerticalNodeLazy(index, container, level = 0, autoExpand = 
                   this.disabled = true;
                   // مقدار آواتار انتخابی را لاگ کن (در صورت نیاز بعداً به قرارداد هم می‌توان ارسال کرد)
                   console.log('انتخاب آواتار کاربر:', selectedAvatar);
+                  // مقدار آواتار انتخابی را ذخیره کن
+                  localStorage.setItem('avatar_' + newAddress, selectedAvatar);
                   try {
                     const { contract } = await window.connectWallet();
                     const tx = await contract.registerAndActivate(address, newAddress);
