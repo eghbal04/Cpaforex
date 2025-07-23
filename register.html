@@ -3,230 +3,385 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ثبت‌نام در CPA</title>
+  <title>ثبت‌نام کاربر جدید</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    body { background: #181c2a; font-family: Vazirmatn, Tahoma, sans-serif; }
-    .register-container { max-width: 420px; margin: 60px auto; background: #232946; border-radius: 18px; box-shadow: 0 2px 16px #0002; padding: 32px 24px; color: #fff; }
-    .register-title { font-size: 1.3em; font-weight: bold; color: #00ff88; margin-bottom: 24px; text-align: center; }
-    .register-form label { display: block; margin-bottom: 6px; color: #a786ff; font-weight: bold; }
-    .register-form input { width: 100%; padding: 10px 12px; margin-bottom: 18px; border: 1.5px solid #a786ff; border-radius: 8px; font-size: 1em; background: #181c2a; color: #fff; }
-    .register-form button { width: 100%; background: linear-gradient(135deg, #00ff88, #00cc66); color: #232946; border: none; border-radius: 8px; padding: 12px 0; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
-    .register-form button:hover { background: linear-gradient(135deg, #00cc66, #00ff88); }
-    .register-message { margin-top: 18px; text-align: center; color: #ff6b6b; font-size: 1em; min-height: 24px; }
-    .balances-box { background: rgba(0,255,136,0.07); border: 1px solid #00ff88; border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1rem; }
-    .balances-row { display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 1em; }
-    .required-box { background: rgba(255,107,107,0.07); border: 1px solid #ff6b6b; border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1rem; }
-    .required-label { color: #ff6b6b; font-weight: bold; }
-    .wallet-btn { width: 100%; background: #00ff88; color: #181c2a; border: none; border-radius: 8px; padding: 10px 0; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-bottom: 18px; }
-    .wallet-btn[disabled] { background: #888; color: #fff; cursor: not-allowed; }
-    .success { color: #00ff88 !important; }
-    .error { color: #ff6b6b !important; }
+    body {
+      background: #181c2a !important;
+    }
+    .register-form {
+      background: linear-gradient(135deg, #232946 80%, #181c2a 100%) !important;
+      color: #fff !important;
+      border-radius: 22px;
+      box-shadow: 0 8px 32px #00000033, 0 1.5px 6px #00ff8840;
+      padding: 36px 28px 28px 28px;
+    }
+    .register-form label,
+    .register-form-title {
+      color: #a786ff !important;
+    }
+    .register-form input,
+    .register-form-input {
+      background: #232946 !important;
+      color: #fff !important;
+      border: 1.5px solid #444;
+    }
+    .register-form input:focus {
+      border-color: #00ff88;
+      background: #232946;
+      color: #fff;
+    }
+    .info-box {
+      background: rgba(28,28,40,0.97) !important;
+      color: #fff !important;
+      border: 1px solid #444;
+      box-shadow: 0 2px 8px #00ff8840;
+    }
+    .register-btn, .buy-btn {
+      background: linear-gradient(90deg,#00ff88,#a786ff) !important;
+      color: #232946 !important;
+      font-weight: bold;
+      border-radius: 10px;
+      font-size: 1.13rem;
+      box-shadow: 0 2px 8px #a786ff22;
+    }
+    .register-btn:active, .buy-btn:active {
+      background: linear-gradient(90deg,#a786ff,#00ff88) !important;
+    }
+    .register-form-status {
+      color: #fff !important;
+    }
   </style>
 </head>
 <body>
-  <div class="register-container">
-    <div class="register-title">فرم ثبت‌نام</div>
-    <button id="connect-wallet-btn" class="wallet-btn">اتصال کیف پول</button>
-    <form class="register-form" id="register-form" autocomplete="off">
-      <label for="wallet-address">آدرس کیف پول متصل</label>
-      <input type="text" id="wallet-address" name="wallet-address" readonly placeholder="ابتدا کیف پول را متصل کنید">
-      <div class="balances-box" id="wallet-balances" style="display:none;">
-        <div class="balances-row"><span>CPA:</span><span id="balance-cpa">-</span></div>
-        <div class="balances-row"><span>MATIC:</span><span id="balance-matic">-</span></div>
-        <div class="balances-row"><span>USDC:</span><span id="balance-usdc">-</span></div>
+  <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ios-background);">
+    <form class="register-form" autocomplete="off" style="max-width:430px;width:100%;margin:0 auto;">
+      <h2 class="register-form-title" style="text-align:center;margin-bottom:18px;">فرم ثبت‌نام کاربر جدید</h2>
+      <div class="register-form-status info" id="connection-status"></div>
+      <div class="register-form-status warning" id="register-suggestion" style="display:none;"></div>
+      <div class="form-group">
+        <label for="index-search">ایندکس (Index)</label>
+        <input type="text" id="index-search" class="register-form-input" placeholder="مثلاً 123" autocomplete="off" value="refferer ID : CPA00000" style="width:100%;min-width:0;">
+        <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+          <button class="register-btn" id="search-index-btn" type="button" style="min-width:80px;padding:7px 0;font-size:0.98rem;height:36px;line-height:1.1;">جستجو</button>
+        </div>
       </div>
-      <label for="referrer-input">ایندکس معرف (CPA ID فقط عدد)</label>
-      <input type="number" id="referrer-input" name="referrer-input" placeholder="مثلاً 1 یا 123" required min="1">
-      <div id="referrer-check-result" style="font-size:0.98em;margin-bottom:10px;"></div>
-      <div class="required-box">
-        <span class="required-label">⚠️ مقدار مورد نیاز:</span>
-        <span id="register-required-usdc" style="margin-right:8px;">100 CPA</span>
+      <div class="form-group">
+        <label for="referrer-address">آدرس معرف (والد)</label>
+        <input type="text" id="referrer-address" class="register-form-input" placeholder="0x..." autocomplete="off" value="root">
       </div>
-      <button type="submit" id="register-btn" disabled>ثبت‌نام</button>
+      <div class="form-group">
+        <label for="new-user-address">آدرس کاربر جدید</label>
+        <input type="text" id="new-user-address" class="register-form-input" placeholder="0x..." autocomplete="off">
+      </div>
+      <div class="info-box" id="register-info" style="background:rgba(28,28,40,0.97);color:#fff;font-weight:bold;font-size:1.08rem;box-shadow:0 2px 8px #a786ff22;margin-bottom:18px;">
+        <div>ایندکس رفرر: <b id="parent-index">...</b></div>
+        <div>ایندکس جایگاه جدید: <b id="empty-index">...</b></div>
+        <div>هزینه ثبت‌نام: <b id="register-cost">...</b> CPA</div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;margin-top:8px;">
+          <span style="display:flex;align-items:center;gap:6px;">
+            <img src="matic.svg" alt="MATIC" style="width:18px;height:18px;vertical-align:middle;"> 
+            <span>موجودی متیک: <b id="matic-balance">...</b></span>
+          </span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            <img src="cpa.jpg" alt="CPA" style="width:18px;height:18px;vertical-align:middle;border-radius:50%;"> 
+            <span>موجودی CPA: <b id="cpa-balance">...</b></span>
+          </span>
+        </div>
+      </div>
+      <div class="avatar-row" style="margin-bottom:0.5em;">
+        <span class="avatar-choice selected" data-avatar="man">👨‍💼</span>
+        <span class="avatar-choice" data-avatar="woman">👩‍💼</span>
+        <span class="avatar-choice" data-avatar="student-man">👨‍🎓</span>
+        <span class="avatar-choice" data-avatar="student-woman">👩‍🎓</span>
+      </div>
+      <button class="register-btn buy-btn" id="register-btn" type="button" style="width:100%;margin-top:18px;">ثبت‌نام</button>
+      <div class="register-form-status" id="status-message"></div>
     </form>
-    <div class="register-message" id="register-message"></div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+  <script src="js/config.js"></script>
   <script>
-  // آدرس و ABI قرارداد را اینجا قرار بده
-  const CONTRACT_ADDRESS = 'YOUR_CONTRACT_ADDRESS';
-  const CONTRACT_ABI = [];
-  const USDC_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
-  const USDC_ABI = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
+    let selectedAvatar = 'man';
+    let isConnected = false;
+    // تعریف متغیرهای ورودی قبل از هر استفاده
+    const indexInput = document.getElementById('index-search');
+    const refInput = document.getElementById('referrer-address');
+    const defaultGuide = 'refferer ID : CPA00000';
+    // انتخاب آواتار
+    document.querySelectorAll('.avatar-choice').forEach(el => {
+      el.onclick = function() {
+        document.querySelectorAll('.avatar-choice').forEach(e2 => e2.classList.remove('selected'));
+        this.classList.add('selected');
+        selectedAvatar = this.getAttribute('data-avatar');
+      };
+    });
 
-  let provider, signer, contract, userAddress;
-
-  const connectBtn = document.getElementById('connect-wallet-btn');
-  const walletInput = document.getElementById('wallet-address');
-  const balancesBox = document.getElementById('wallet-balances');
-  const balanceCpa = document.getElementById('balance-cpa');
-  const balanceMatic = document.getElementById('balance-matic');
-  const balanceUsdc = document.getElementById('balance-usdc');
-  const refInput = document.getElementById('referrer-input');
-  const refResult = document.getElementById('referrer-check-result');
-  const registerBtn = document.getElementById('register-btn');
-  const registerMsg = document.getElementById('register-message');
-
-  async function fetchRequiredCpa() {
-    if (!contract) return;
-    let required = null;
-    let requiredUSD = null;
-    try {
-      if (typeof contract.getRegPrice === 'function') {
-        required = await contract.getRegPrice();
-      } else if (typeof contract.regPrice === 'function') {
-        required = await contract.regPrice();
+    // مقداردهی اولیه اطلاعات
+    async function loadRegisterInfo() {
+      const status = document.getElementById('status-message');
+      const connStatus = document.getElementById('connection-status');
+      status.textContent = '';
+      connStatus.textContent = 'در حال اتصال به کیف پول...';
+      isConnected = false;
+      let myAddress = null;
+      let contract = null;
+      let connection = null;
+      try {
+        connection = await window.connectWallet();
+        contract = connection.contract;
+        myAddress = connection.address;
+        isConnected = true;
+        connStatus.textContent = '';
+        document.getElementById('register-info').style.display = '';
+        document.getElementById('register-btn').disabled = false;
+        document.querySelectorAll('input').forEach(i=>i.disabled=false);
+        // مقداردهی referrer (والد) و parent-index فقط بعد از مقداردهی user
+        const refInput = document.getElementById('referrer-address');
+        let user;
+        let parentIndex = '...';
+        try {
+          user = await contract.users(myAddress);
+          // اگر کاربر فعال نیست، پیام پیشنهاد ثبت‌نام را نمایش بده
+          const suggestionDiv = document.getElementById('register-suggestion');
+          if (user && !user.activated) {
+            suggestionDiv.style.display = '';
+            suggestionDiv.textContent = 'شما هنوز ثبت‌نام نکرده‌اید. لطفاً ثبت‌نام کنید.';
+          } else {
+            suggestionDiv.style.display = 'none';
+          }
+          // اگر کیف پول فعال است و مقدار فعلی روت یا خالی است، مقدار را به آدرس کیف پول متصل تغییر بده
+          if ((!refInput.value || refInput.value === 'root') && user.activated) {
+            refInput.value = myAddress;
+          } else if (!user.activated && (!refInput.value || refInput.value === myAddress)) {
+            refInput.value = 'root';
+          }
+          // مقداردهی parent-index
+          parentIndex = user.index ? user.index.toString() : '...';
+          // مقداردهی پیش‌فرض فیلد ایندکس فقط اگر مقدار فعلی راهنما یا خالی است
+          const indexInput = document.getElementById('index-search');
+          if ((!indexInput.value || indexInput.value === defaultGuide) && user.activated && user.index) {
+            // فرمت CPA ID
+            let cpaId = 'CPA' + user.index.toString().padStart(5, '0');
+            indexInput.value = cpaId;
+            indexInput.style.background = '';
+            indexInput.style.color = '';
+            indexInput.style.opacity = '';
+          }
+        } catch (e) {
+          // اگر خطا داشتیم، مقدار پیش‌فرض روت و راهنما را نگه دار
+          refInput.value = 'root';
+          parentIndex = '...';
+        }
+        document.getElementById('parent-index').textContent = parentIndex;
+        // مقداردهی empty-index (پیشنهادی)
+        let emptyIndex = '...';
+        if (parentIndex !== '...') {
+          let left = await contract.getLeftAddress(parentIndex);
+          let right = await contract.getRightAddress(parentIndex);
+          if (left === '0x0000000000000000000000000000000000000000') {
+            emptyIndex = (BigInt(parentIndex) * 2n).toString();
+          } else if (right === '0x0000000000000000000000000000000000000000') {
+            emptyIndex = (BigInt(parentIndex) * 2n + 1n).toString();
+          } else {
+            emptyIndex = 'پر شده';
+          }
+        }
+        document.getElementById('empty-index').textContent = emptyIndex;
+        // هزینه ثبت‌نام
+        let regCost = '...';
+        if (window.getRegPrice) {
+          let cost = await window.getRegPrice(contract);
+          regCost = cost ? (typeof ethers !== 'undefined' ? ethers.formatEther(cost) : (Number(cost)/1e18).toFixed(2)) : '...';
+        }
+        document.getElementById('register-cost').textContent = regCost;
+        // موجودی متیک
+        let maticBalance = '...';
+        if (isConnected && contract && myAddress) {
+          try {
+            let bal = await connection.provider.getBalance(myAddress);
+            maticBalance = bal ? (typeof ethers !== 'undefined' ? Number(ethers.formatEther(bal)).toFixed(2) : (Number(bal)/1e18).toFixed(2)) : '0.00';
+          } catch (e) {
+            maticBalance = '0.00';
+          }
+        }
+        document.getElementById('matic-balance').textContent = maticBalance;
+        // موجودی CPA
+        let cpaBalance = '...';
+        if (isConnected && contract && myAddress && typeof contract.balanceOf === 'function') {
+          try {
+            let cpa = await contract.balanceOf(myAddress);
+            cpaBalance = cpa ? (typeof ethers !== 'undefined' ? Number(ethers.formatEther(cpa)).toFixed(2) : (Number(cpa)/1e18).toFixed(2)) : '0.00';
+          } catch (e) {
+            cpaBalance = '0.00';
+          }
+        }
+        document.getElementById('cpa-balance').textContent = cpaBalance;
+      } catch (e) {
+        isConnected = false;
+        connStatus.textContent = '❌ اتصال به کیف پول برقرار نشد: ' + (e.message || e);
+        document.getElementById('register-info').style.display = 'none';
+        document.getElementById('register-btn').disabled = true;
+        document.querySelectorAll('input').forEach(i=>i.disabled=true);
       }
-      // اگر تابع getRegPriceUSD یا regPriceUSD وجود داشت، مقدار دلاری را هم بگیر
-      if (typeof contract.getRegPriceUSD === 'function') {
-        requiredUSD = await contract.getRegPriceUSD();
-      } else if (typeof contract.regPriceUSD === 'function') {
-        requiredUSD = await contract.regPriceUSD();
+    }
+    window.addEventListener('DOMContentLoaded', loadRegisterInfo);
+
+    // دکمه جستجو و انتخاب معرف بر اساس ایندکس
+    document.getElementById('search-index-btn').onclick = async function() {
+      const status = document.getElementById('status-message');
+      const index = document.getElementById('index-search').value.trim();
+      status.style.color = '#1976d2';
+      status.textContent = 'در حال جستجو...';
+      try {
+        const refInput = document.getElementById('referrer-address');
+        if (index === '' || index === '1' || index === '01' || index === '001') {
+          refInput.value = 'root';
+          status.style.color = '#388e3c';
+          status.textContent = 'آدرس معرف روت انتخاب شد.';
+          return;
+        }
+        if (!isConnected || !window.contractConfig || !window.contractConfig.contract) {
+          await loadRegisterInfo();
+        }
+        const contract = window.contractConfig.contract;
+        if (!contract) throw new Error('اتصال به قرارداد برقرار نشد');
+        const refAddr = await contract.indexToAddress(index);
+        refInput.value = refAddr;
+        status.style.color = '#388e3c';
+        status.textContent = 'آدرس معرف با موفقیت پیدا شد.';
+      } catch (e) {
+        status.style.color = '#d32f2f';
+        status.textContent = 'خطا در جستجو: ' + (e.message || e);
       }
-    } catch {}
-    let cpaText = required ? ethers.formatUnits(required, 18) + ' CPA' : '100 CPA';
-    let usdText = '';
-    if (requiredUSD) {
-      usdText = ' ≈ ' + ethers.formatUnits(requiredUSD, 6) + ' USDC';
-    } else if (required) {
-      // اگر مقدار دلاری نبود، مقدار CPA را به USDC تبدیل کن (فرض کن 1 CPA = 1 USDC اگر قیمت دقیق نداری)
-      // یا می‌توانی این بخش را حذف کنی
-    }
-    document.getElementById('register-required-usdc').textContent = cpaText + usdText;
-  }
+    };
 
-  async function autoConnectWallet() {
-    if (!window.ethereum) {
-      registerMsg.textContent = 'کیف پول متامسک نصب نیست.';
-      registerMsg.className = 'register-message error';
-      return;
-    }
-    try {
-      provider = new ethers.BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
-      userAddress = await signer.getAddress();
-      contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      walletInput.value = userAddress;
-      connectBtn.disabled = true;
-      connectBtn.textContent = 'کیف پول متصل شد';
-      await showWalletBalances();
-      balancesBox.style.display = '';
-      registerBtn.disabled = false;
-      registerMsg.textContent = '';
-      await fetchRequiredCpa();
-    } catch (e) {
-      registerMsg.textContent = 'اتصال به کیف پول لغو شد یا خطا رخ داد.';
-      registerMsg.className = 'register-message error';
-      connectBtn.disabled = false;
-      connectBtn.textContent = 'اتصال کیف پول';
-    }
-  }
+    // --- Two-way mapping: index <-> address ---
+    // indexInput و refInput فقط یکبار تعریف می‌شوند
+    // وقتی ایندکس تغییر می‌کند، آدرس را به‌روز کن
+    indexInput.addEventListener('change', async function() {
+      const index = this.value.replace(/[^0-9]/g, '');
+      if (!index) return;
+      try {
+        if (!window.contractConfig || !window.contractConfig.contract) await window.connectWallet();
+        const contract = window.contractConfig.contract;
+        const addr = await contract.indexToAddress(index);
+        if (addr && addr !== '0x0000000000000000000000000000000000000000') {
+          refInput.value = addr;
+        }
+      } catch (e) {}
+    });
+    // وقتی آدرس تغییر می‌کند، ایندکس را به‌روز کن
+    refInput.addEventListener('change', async function() {
+      const address = this.value.trim();
+      if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return;
+      try {
+        if (!window.contractConfig || !window.contractConfig.contract) await window.connectWallet();
+        const contract = window.contractConfig.contract;
+        const user = await contract.users(address);
+        if (user && user.index) {
+          let cpaId = 'CPA' + user.index.toString().padStart(5, '0');
+          indexInput.value = cpaId;
+          indexInput.style.background = '';
+          indexInput.style.color = '';
+          indexInput.style.opacity = '';
+        }
+      } catch (e) {}
+    });
 
-  // اتصال خودکار هنگام بارگذاری صفحه
-  window.addEventListener('DOMContentLoaded', autoConnectWallet);
-
-  connectBtn.onclick = autoConnectWallet;
-
-  async function showWalletBalances() {
-    if (!provider || !userAddress) return;
-    try {
-      const cpa = contract && contract.balanceOf ? await contract.balanceOf(userAddress) : 0;
-      const matic = await provider.getBalance(userAddress);
-      const usdc = await new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider).balanceOf(userAddress);
-      balanceCpa.textContent = ethers.formatUnits(cpa, 18);
-      balanceMatic.textContent = ethers.formatUnits(matic, 18);
-      balanceUsdc.textContent = ethers.formatUnits(usdc, 6);
-    } catch {}
-  }
-
-  refInput.onblur = async function() {
-    refResult.textContent = '';
-    refResult.className = '';
-    if (!contract || !provider) {
-      refResult.textContent = 'ابتدا کیف پول را متصل کنید.';
-      refResult.className = 'error';
-      return;
-    }
-    const val = refInput.value.trim();
-    if (!val || isNaN(val) || parseInt(val) < 1) {
-      refResult.textContent = 'ایندکس باید یک عدد معتبر باشد.';
-      refResult.className = 'error';
-      return;
-    }
-    let address = '';
-    try {
-      address = await contract.indexToAddress(parseInt(val));
-      if (!address || address === '0x0000000000000000000000000000000000000000') throw new Error();
-    } catch {
-      refResult.textContent = 'ایندکس معتبر نیست یا کاربری با این ایندکس وجود ندارد.';
-      refResult.className = 'error';
-      return;
-    }
-    // بررسی فعال بودن کاربر
-    try {
-      const user = await contract.users(address);
-      if (!user || !user.activated) {
-        refResult.textContent = 'آدرس ولت یافت شد اما فعال نیست.';
-        refResult.className = 'error';
-        refResult.innerHTML += `<br><span style='font-size:0.97em;color:#aaa'>آدرس ولت: ${address}</span>`;
+    // ثبت‌نام کاربر جدید
+    document.getElementById('register-btn').onclick = async function() {
+      const status = document.getElementById('status-message');
+      if (!isConnected) {
+        status.style.color = '#d32f2f';
+        status.textContent = 'لطفاً ابتدا کیف پول خود را متصل کنید.';
         return;
       }
-      // گرفتن موجودی‌ها
-      let cpa = '-', matic = '-', usdc = '-';
-      try { cpa = ethers.formatUnits(await contract.balanceOf(address), 18); } catch {}
-      try { matic = ethers.formatUnits(await provider.getBalance(address), 18); } catch {}
-      try { usdc = ethers.formatUnits(await new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider).balanceOf(address), 6); } catch {}
-      refResult.innerHTML = `<span class='success'>آدرس ولت معرف معتبر و فعال است.</span><br><span style='font-size:0.97em;color:#aaa'>آدرس ولت: ${address}</span><br><div style='font-size:0.97em;color:#aaa;text-align:right;margin-top:6px;'><div><b>CPA:</b> <span>${cpa}</span></div><div><b>MATIC:</b> <span>${matic}</span></div><div><b>USDC:</b> <span>${usdc}</span></div></div>`;
-    } catch {
-      refResult.textContent = 'خطا در بررسی معرف.';
-      refResult.className = 'error';
-    }
-  };
+      const referrer = refInput.value.trim();
+      const newUser = document.getElementById('new-user-address').value.trim();
+      const enteredIndexStr = indexInput.value.replace(/[^0-9]/g, '');
+      const enteredIndex = enteredIndexStr ? parseInt(enteredIndexStr) : null;
+      status.style.color = '#1976d2';
+      status.textContent = 'در حال بررسی اطلاعات و اعتبارسنجی...';
+      this.disabled = true;
+      try {
+        if (!/^0x[a-fA-F0-9]{40}$/.test(referrer)) throw new Error('آدرس معرف وارد شده معتبر نیست. لطفاً آدرس صحیح را وارد کنید.');
+        if (!/^0x[a-fA-F0-9]{40}$/.test(newUser)) throw new Error('آدرس کیف پول جدید معتبر نیست. لطفاً آدرس صحیح را وارد کنید.');
+        if (/^0x[a-fA-F0-9]{40}$/.test(referrer) && (!enteredIndexStr || indexInput.value === defaultGuide)) {
+          throw new Error('لطفاً ایندکس معرف را به صورت صحیح وارد کنید.');
+        }
+        if (!window.contractConfig || !window.contractConfig.contract) {
+          await loadRegisterInfo();
+        }
+        const contract = window.contractConfig.contract;
+        if (!contract) throw new Error('اتصال به قرارداد برقرار نشد. لطفاً مجدداً تلاش کنید.');
+        let myAddress = null, user = null;
+        try {
+          myAddress = contract.signer ? await contract.signer.getAddress() : null;
+          if (myAddress) user = await contract.users(myAddress);
+        } catch (e) {}
+        if (user && user.activated && user.index && enteredIndex !== null && enteredIndex < parseInt(user.index)) {
+          throw new Error('شما فقط مجاز به ثبت‌نام برای زیرمجموعه خود هستید و نمی‌توانید برای سطوح بالاتر ثبت‌نام کنید.');
+        }
+        const addrFromIndex = await contract.indexToAddress(enteredIndex);
+        if (addrFromIndex.toLowerCase() !== referrer.toLowerCase()) {
+          throw new Error('ایندکس وارد شده با آدرس معرف مطابقت ندارد. لطفاً بررسی کنید.');
+        }
+        status.textContent = 'در حال ارسال درخواست ثبت‌نام به شبکه... لطفاً منتظر تأیید تراکنش باشید.';
+        status.style.color = '#1976d2';
+        localStorage.setItem('avatar_' + newUser, selectedAvatar);
+        const tx = await contract.registerAndActivate(referrer, newUser);
+        status.textContent = 'در حال انتظار برای تأیید تراکنش توسط شبکه...';
+        await tx.wait();
+        status.style.color = '#388e3c';
+        status.textContent = 'ثبت‌نام با موفقیت انجام شد! به خانواده CPA خوش آمدید.';
+        setTimeout(loadRegisterInfo, 1500);
+      } catch (e) {
+        status.style.color = '#d32f2f';
+        let errorMsg = e && (e.reason || (e.revert && e.revert.args && e.revert.args[0]) || e.message || e);
+        if (typeof errorMsg !== 'string') errorMsg = JSON.stringify(errorMsg);
+        if (/already registered|Already registered/i.test(errorMsg)) {
+          status.textContent = 'این آدرس قبلاً ثبت‌نام شده است.';
+        } else if (/not active|inactive|فعال نیست/i.test(errorMsg)) {
+          status.textContent = 'معرف انتخابی فعال نیست. لطفاً معرف فعال وارد کنید.';
+        } else if (/invalid referrer|referrer/i.test(errorMsg)) {
+          status.textContent = 'آدرس معرف معتبر نیست یا وجود ندارد.';
+        } else if (/insufficient|balance|موجودی/i.test(errorMsg)) {
+          status.textContent = 'موجودی کیف پول شما برای ثبت‌نام کافی نیست.';
+        } else if (/user rejected|reject|لغو شد/i.test(errorMsg)) {
+          status.textContent = 'فرآیند ثبت‌نام توسط شما لغو شد.';
+        } else if (/execution reverted/i.test(errorMsg)) {
+          const match = errorMsg.match(/reverted: "([^"]+)"/);
+          if (match && match[1]) {
+            status.textContent = 'خطا: ' + match[1];
+          } else {
+            status.textContent = 'تراکنش توسط قرارداد لغو شد. لطفاً ورودی‌ها را بررسی کنید.';
+          }
+        } else {
+          status.textContent = '❌ خطا در ثبت‌نام: ' + (errorMsg.length > 120 ? errorMsg.slice(0,120)+'...' : errorMsg);
+        }
+      }
+      this.disabled = false;
+    };
 
-  document.getElementById('register-form').onsubmit = async function(e) {
-    e.preventDefault();
-    registerMsg.textContent = '';
-    registerMsg.className = '';
-    if (!contract || !provider || !userAddress) {
-      registerMsg.textContent = 'ابتدا کیف پول را متصل کنید.';
-      registerMsg.className = 'register-message error';
-      return;
-    }
-    const refVal = refInput.value.trim();
-    let refAddr = '';
-    if (!refVal || isNaN(refVal) || parseInt(refVal) < 1) {
-      registerMsg.textContent = 'ایندکس معرف معتبر نیست.';
-      registerMsg.className = 'register-message error';
-      return;
-    }
-    try {
-      refAddr = await contract.indexToAddress(parseInt(refVal));
-    } catch {}
-    if (!refAddr || refAddr === '0x0000000000000000000000000000000000000000') {
-      registerMsg.textContent = 'ایندکس معرف معتبر نیست.';
-      registerMsg.className = 'register-message error';
-      return;
-    }
-    try {
-      registerBtn.disabled = true;
-      registerBtn.textContent = 'در حال ثبت‌نام...';
-      // اینجا تابع ثبت‌نام قرارداد خود را صدا بزنید:
-      // const tx = await contract.registerAndActivate(refAddr, userAddress);
-      // await tx.wait();
-      setTimeout(()=>{
-        registerMsg.textContent = 'ثبت‌نام با موفقیت انجام شد!';
-        registerMsg.className = 'register-message success';
-        registerBtn.textContent = 'ثبت‌نام';
-        registerBtn.disabled = false;
-      }, 2000);
-    } catch (e) {
-      registerMsg.textContent = 'خطا در ثبت‌نام: ' + (e.message || e);
-      registerMsg.className = 'register-message error';
-      registerBtn.textContent = 'ثبت‌نام';
-      registerBtn.disabled = false;
-    }
-  };
+    // Clear faded guide on focus for index input
+    indexInput.addEventListener('focus', function() {
+      if (this.value === defaultGuide) {
+        this.value = '';
+        this.style.background = '';
+        this.style.color = '';
+        this.style.opacity = '';
+      }
+    });
+    indexInput.addEventListener('blur', function() {
+      if (this.value.trim() === '') {
+        this.value = defaultGuide;
+        this.style.background = '#f3f3f3';
+        this.style.color = '#888';
+        this.style.opacity = '0.7';
+        refInput.value = 'root';
+      }
+    });
   </script>
 </body>
 </html> 

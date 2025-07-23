@@ -5040,3 +5040,11 @@ window.getAllReports = async function(address) {
   return [];
 };
 // ... existing code ...
+
+document.getElementById('search-index-btn').onclick = async function() {
+  const index = document.getElementById('index').value.trim();
+  // ...
+  const refAddr = await contract.indexToAddress(index);
+  document.getElementById('referrer-address').value = refAddr;
+  // ...
+};

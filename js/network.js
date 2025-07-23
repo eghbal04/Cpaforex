@@ -415,8 +415,6 @@ window.renderSimpleBinaryTree = async function() {
     }
 };
 
-// حذف event listener اضافی که باعث رندر مکرر می‌شود
-// این بخش حذف شد چون در tabs.js و main.js event listener های مناسب وجود دارد
 
 // اطمینان از اتصال توابع به window برای نمایش شبکه
 if (typeof renderSimpleBinaryTree === 'function') {
