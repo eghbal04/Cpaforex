@@ -8,7 +8,7 @@
       color: #fff;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       padding: 0.3rem 0.5rem;
       box-shadow: 0 2px 16px rgba(0,255,136,0.08);
       position: fixed;
@@ -163,11 +163,24 @@
       background: none;
       border: none;
       color: #00ff88;
-      font-size: 2.1rem;
+      font-size: 2.6rem;
       margin-right: 0.7rem;
+      margin-left: 0;
       cursor: pointer;
       z-index: 10002;
       transition: color 0.2s;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px #00ff8840;
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      left: auto;
+      transform: none;
     }
     .cpa-navbar-hamburger:active, .cpa-navbar-hamburger:hover {
       color: #a786ff;
@@ -178,17 +191,20 @@
       position: fixed;
       top: 0;
       right: 0;
-      left: 0;
+      left: auto;
       width: 100vw;
       min-height: 100vh;
       background: linear-gradient(135deg, #232946 90%, #181c2a 100%);
       box-shadow: 0 8px 32px #00000033;
       z-index: 10001;
-      padding: 2.2rem 0.7rem 2.2rem 0.7rem;
+      padding: 4.5rem 0.7rem 2.2rem 0.7rem;
       border-radius: 0 0 18px 18px;
       animation: slideDownNav 0.3s;
       overflow-y: auto;
       max-height: 100vh;
+      align-items: flex-end;
+      direction: rtl;
+      text-align: right;
     }
     .cpa-navbar-mobile-menu .cpa-navbar-link {
       font-size: 1.25rem;
@@ -197,7 +213,8 @@
       border-radius: 12px;
       margin: 0.2rem 0;
       text-align: right;
-      justify-content: flex-end;
+      flex-direction: row-reverse;
+      justify-content: flex-start;
       border: none;
       background: none;
       width: 100%;
@@ -235,9 +252,33 @@
       }
       .cpa-navbar-hamburger {
         display: flex !important;
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        left: auto;
+        transform: none;
+        margin: 0;
       }
       .cpa-navbar-mobile-menu {
-        display: flex;
+        display: none;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: auto;
+        width: 100vw;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #232946 90%, #181c2a 100%);
+        box-shadow: 0 8px 32px #00000033;
+        z-index: 10001;
+        padding: 4.5rem 0.7rem 2.2rem 0.7rem;
+        border-radius: 0 0 18px 18px;
+        animation: slideDownNav 0.3s;
+        overflow-y: auto;
+        max-height: 100vh;
+        align-items: flex-end;
+        direction: rtl;
+        text-align: right;
       }
     }
     @keyframes slideDownNav {
@@ -262,6 +303,7 @@
       <a href="#" class="cpa-navbar-link" id="navbar-transfer-link">💸 ترانسفر</a>
       <a href="register.html" class="cpa-navbar-link">📝 ثبت‌نام</a>
       <a href="reports.html" class="cpa-navbar-link">📊 گزارش</a>
+      <a href="profile.html" class="cpa-navbar-link"><span style="font-size:1.1em;vertical-align:middle;">👤</span> پروفایل</a>
     </div>
     <div class="cpa-navbar-mobile-menu" id="navbar-mobile-menu" style="display:none;">
       <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
@@ -274,6 +316,7 @@
       <a href="#" class="cpa-navbar-link" id="navbar-transfer-link-mobile">💸 ترانسفر</a>
       <a href="register.html" class="cpa-navbar-link">📝 ثبت‌نام</a>
       <a href="reports.html" class="cpa-navbar-link">📊 گزارش</a>
+      <a href="profile.html" class="cpa-navbar-link"><span style="font-size:1.1em;vertical-align:middle;">👤</span> پروفایل</a>
     </div>
   `;
   // Insert at the top of the body

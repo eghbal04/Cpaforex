@@ -15,75 +15,88 @@ function showUserPopup(address, user) {
     let existingPopup = document.getElementById('user-popup');
     if (existingPopup) existingPopup.remove();
     // اطلاعات مورد نیاز
-    const cpaId = window.generateCPAId ? window.generateCPAId(user.index) : user.index;
-    const binaryPoints = user.binaryPoints ? Number(user.binaryPoints) : 0;
-    const binaryPointCap = user.binaryPointCap ? Number(user.binaryPointCap) : 0;
-    const totalBinaryReward = user.totalMonthlyRewarded ? Number(user.totalMonthlyRewarded) : 0;
-    const binaryPointsClaimed = user.binaryPointsClaimed ? Number(user.binaryPointsClaimed) : 0;
-    const referral = user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : 0;
-    const deposited = user.depositedAmount ? Math.floor(Number(user.depositedAmount) / 1e18) : 0;
-    const leftCount = user.leftCount ? Number(user.leftCount) : 0;
-    const rightCount = user.rightCount ? Number(user.rightCount) : 0;
-    // اطلاعات تکمیلی
-    const isActive = user.activated ? true : false;
-    const lastClaim = user.lastClaimTime ? Number(user.lastClaimTime) : 0;
-    const joinTime = user.joinTime ? Number(user.joinTime) : 0;
-    const cpaBalance = user.lvlBalance ? Number(user.lvlBalance) : null;
-    const maticBalance = user.maticBalance ? Number(user.maticBalance) : null;
-    const usdcBalance = user.usdcBalance ? Number(user.usdcBalance) : null;
-    // آیتم‌های کامل با عنوان انگلیسی کامل
-    const items = [
-      {icon:'🆔', val:cpaId, label:'CPA ID'},
-      {icon:'🔗', val:shortAddress(address), label:'Wallet', short:true},
-      {icon:'🎯', val:binaryPoints, label:'Binary Points'},
-      {icon:'🏆', val:binaryPointCap, label:'Binary Cap'},
-      {icon:'💎', val:totalBinaryReward, label:'Total Binary Reward'},
-      {icon:'✅', val:binaryPointsClaimed, label:'Claimed Points'},
-      {icon:'🤝', val:referral, label:'Referral Income'},
-      {icon:'💰', val:deposited, label:'Total Deposit'},
-      {icon:'⬅️', val:leftCount, label:'Left Count'},
-      {icon:'➡️', val:rightCount, label:'Right Count'}
+    const cpaId = user && user.index !== undefined && user.index !== null ? (window.generateCPAId ? window.generateCPAId(user.index) : user.index) : '-';
+    const walletAddress = address || '-';
+    const isActive = user && user.activated ? true : false;
+    // لیست struct
+    const infoList = [
+      {icon:'🎯', label:'امتیاز باینری', val:user.binaryPoints},
+      {icon:'🏆', label:'سقف باینری', val:user.binaryPointCap},
+      {icon:'💎', label:'پاداش کل باینری', val:user.totalMonthlyRewarded},
+      {icon:'✅', label:'امتیاز دریافت‌شده', val:user.binaryPointsClaimed},
+      {icon:'🤝', label:'درآمد رفرال', val:user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : 0},
+      {icon:'💰', label:'سپرده کل', val:user.depositedAmount ? Math.floor(Number(user.depositedAmount) / 1e18) : 0},
+      {icon:'🟢', label:'CPA', val:user.lvlBalance},
+      {icon:'🟣', label:'MATIC', val:user.maticBalance},
+      {icon:'💵', label:'USDC', val:user.usdcBalance},
+      {icon:'⬅️', label:'تعداد چپ', val:user.leftCount},
+      {icon:'➡️', label:'تعداد راست', val:user.rightCount}
     ];
-    if (cpaBalance !== null) items.push({icon:'🟢', val:cpaBalance, label:'CPA Balance'});
-    if (maticBalance !== null) items.push({icon:'🟣', val:maticBalance, label:'MATIC Balance'});
-    if (usdcBalance !== null) items.push({icon:'💵', val:usdcBalance, label:'USDC Balance'});
-    if (isActive !== undefined) items.push({icon:isActive?'✅':'❌', val:isActive?'Active':'Inactive', label:'Active Status'});
-    if (lastClaim) items.push({icon:'⏰', val:new Date(lastClaim*1000).toLocaleDateString('en-GB'), label:'Last Claim Date'});
-    if (joinTime) items.push({icon:'📅', val:new Date(joinTime*1000).toLocaleDateString('en-GB'), label:'Join Date'});
-    // ساخت popup
     const popup = document.createElement('div');
     popup.id = 'user-popup';
     popup.style = `
-      position: fixed;
-      z-index: 9999;
-      top: 64px;
-      left: 0;
-      right: 0;
-      width: 100vw;
-      min-width: 100vw;
-      max-width: 100vw;
-      background: rgba(24,28,42,0.97);
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 0.5rem 0.5vw 0.5rem 0.5vw;
-      box-sizing: border-box;
-      font-family: 'Montserrat', 'Noto Sans Arabic', monospace;
-      font-size: 0.93rem;
-    `;
+      position: fixed;z-index: 9999;top: 64px;left: 0;right: 0;width: 100vw;min-width: 100vw;max-width: 100vw;background: rgba(24,28,42,0.97);display: flex;align-items: flex-start;justify-content: center;padding: 0.5rem 0.5vw 0.5rem 0.5vw;box-sizing: border-box;font-family: 'Montserrat', 'Noto Sans Arabic', monospace;font-size: 0.93rem;`;
     popup.innerHTML = `
-      <div style="width:100%;max-width:1200px;background:rgba(35,41,70,0.98);border-radius:14px;padding:0.7rem 1.2rem 0.7rem 1.2rem;margin:0 auto;position:relative;overflow-x:auto;">
-        <button id="close-user-popup" style="position:absolute;top:0.7rem;left:0.7rem;background:#ff6b6b;color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:1em;cursor:pointer;">×</button>
-        <div style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:0.5em;align-items:center;justify-content:flex-start;overflow-x:auto;scrollbar-width:thin;">
-          ${items.map(i=>`<span class='user-info-item' style='display:flex;flex-direction:row;align-items:center;gap:0.35em;background:linear-gradient(90deg,#232946,#181c2a);border-radius:8px;padding:0.7em 0.7em;font-size:0.97em;min-width:180px;max-width:180px;width:180px;justify-content:center;transition:background 0.2s,transform 0.2s;box-shadow:0 2px 8px #00ff8820;cursor:default;white-space:nowrap;overflow:hidden;'><span style='font-size:1.1em;'>${i.icon}</span><span style='font-weight:bold;color:#fff;margin:0 0.2em;${i.short ? 'overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;' : ''}'>${typeof i.val==='number'?i.val.toLocaleString():i.val}</span><span style='color:#a786ff;font-size:0.97em;display:inline-block;max-width:90px;overflow:visible;'>${i.label}</span></span>`).join('')}
+      <div class="user-info-card">
+        <button class="close-btn" id="close-user-popup">×</button>
+        <div class="user-info-btn-row">
+          <button class="user-info-btn cpa-id-btn" title="کپی CPA ID" id="copy-cpa-id">🆔 <span>${cpaId}</span></button>
+          <button class="user-info-btn wallet-address-btn" title="کپی آدرس ولت" id="copy-wallet-address">🔗 <span>${walletAddress ? shortAddress(walletAddress) : '-'}</span></button>
+          <button class="user-info-btn status-btn">${isActive ? '✅ فعال' : '❌ غیرفعال'}</button>
         </div>
+        <ul class="user-info-list">
+          ${infoList.map(i=>`<li><span>${i.icon}</span> <b>${i.label}:</b> ${i.val !== undefined && i.val !== null && i.val !== '' ? i.val : '-'}</li>`).join('')}
+        </ul>
+        <div id="copy-msg" style="display:none;text-align:center;color:#00ff88;font-size:1em;margin-top:0.7em;">کپی شد!</div>
       </div>
-      <style>
-      .user-info-item:hover { background: #00ff8840 !important; transform: scale(1.07); }
-      </style>
     `;
     document.body.appendChild(popup);
     document.getElementById('close-user-popup').onclick = () => popup.remove();
+    // قابلیت کپی
+    function showCopyMsg() {
+      const msg = document.getElementById('copy-msg');
+      if (!msg) return;
+      msg.style.display = 'block';
+      setTimeout(()=>{msg.style.display='none';}, 1200);
+    }
+    document.getElementById('copy-cpa-id').onclick = function() {
+      navigator.clipboard.writeText(cpaId+'');
+      showCopyMsg();
+    };
+    document.getElementById('copy-wallet-address').onclick = function() {
+      navigator.clipboard.writeText(walletAddress+'');
+      showCopyMsg();
+    };
+
+    async function getLiveBalances(addr) {
+        let cpa = '-', usdc = '-', matic = '-';
+        try {
+            const { contract, provider } = await window.connectWallet();
+            if (contract && typeof contract.balanceOf === 'function') {
+                let cpaRaw = await contract.balanceOf(addr);
+                cpa = (typeof ethers !== 'undefined') ? Number(ethers.formatEther(cpaRaw)).toFixed(2) : (Number(cpaRaw)/1e18).toFixed(2);
+            }
+            if (contract && typeof contract.usdcBalanceOf === 'function') {
+                let usdcRaw = await contract.usdcBalanceOf(addr);
+                usdc = (typeof ethers !== 'undefined') ? Number(ethers.formatUnits(usdcRaw,6)).toFixed(2) : (Number(usdcRaw)/1e6).toFixed(2);
+            }
+            if (provider) {
+                let maticRaw = await provider.getBalance(addr);
+                matic = (typeof ethers !== 'undefined') ? Number(ethers.formatEther(maticRaw)).toFixed(3) : (Number(maticRaw)/1e18).toFixed(3);
+            }
+        } catch(e) {}
+        return {cpa, usdc, matic};
+    }
+
+    (async function() {
+        const {cpa, usdc, matic} = await getLiveBalances(address);
+        const cpaEl = document.querySelector('.user-info-list .cpa-balance');
+        const usdcEl = document.querySelector('.user-info-list .usdc-balance');
+        const maticEl = document.querySelector('.user-info-list .matic-balance');
+        if (cpaEl) cpaEl.textContent = cpa;
+        if (usdcEl) usdcEl.textContent = usdc;
+        if (maticEl) maticEl.textContent = matic;
+    })();
 }
 
 // تابع جدید: رندر عمودی ساده با حفظ رفتارها
