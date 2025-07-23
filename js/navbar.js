@@ -157,12 +157,100 @@
       }
       .cpa-navbar-dropdown-content { right: auto; left: 0; }
     }
+    /* --- Mobile Hamburger Navbar --- */
+    .cpa-navbar-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: #00ff88;
+      font-size: 2.1rem;
+      margin-right: 0.7rem;
+      cursor: pointer;
+      z-index: 10002;
+      transition: color 0.2s;
+    }
+    .cpa-navbar-hamburger:active, .cpa-navbar-hamburger:hover {
+      color: #a786ff;
+    }
+    .cpa-navbar-mobile-menu {
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      width: 100vw;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #232946 90%, #181c2a 100%);
+      box-shadow: 0 8px 32px #00000033;
+      z-index: 10001;
+      padding: 2.2rem 0.7rem 2.2rem 0.7rem;
+      border-radius: 0 0 18px 18px;
+      animation: slideDownNav 0.3s;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+    .cpa-navbar-mobile-menu .cpa-navbar-link {
+      font-size: 1.25rem;
+      padding: 1.1rem 0.7rem;
+      color: #fff;
+      border-radius: 12px;
+      margin: 0.2rem 0;
+      text-align: right;
+      justify-content: flex-end;
+      border: none;
+      background: none;
+      width: 100%;
+      transition: background 0.2s, color 0.2s;
+    }
+    .cpa-navbar-mobile-menu .cpa-navbar-link:hover {
+      background: rgba(0,255,136,0.13);
+      color: #00ff88;
+    }
+    .cpa-navbar-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: #00ff88;
+      font-size: 2.6rem;
+      margin-right: 0.7rem;
+      cursor: pointer;
+      z-index: 10002;
+      transition: color 0.2s;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px #00ff8840;
+    }
+    .cpa-navbar-hamburger:active, .cpa-navbar-hamburger:hover {
+      color: #a786ff;
+      background: rgba(0,255,136,0.08);
+    }
+    @media (max-width: 700px) {
+      .cpa-navbar-links {
+        display: none !important;
+      }
+      .cpa-navbar-hamburger {
+        display: flex !important;
+      }
+      .cpa-navbar-mobile-menu {
+        display: flex;
+      }
+    }
+    @keyframes slideDownNav {
+      from { transform: translateY(-40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   `;
   document.head.appendChild(style);
 
   const navbar = document.createElement('nav');
   navbar.className = 'cpa-navbar';
   navbar.innerHTML = `
+    <button class="cpa-navbar-hamburger" id="navbar-hamburger" aria-label="باز کردن منو">☰</button>
     <div class="cpa-navbar-links">
       <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
       <a href="shop.html" class="cpa-navbar-link">آموزشگاه</a>
@@ -170,6 +258,22 @@
       <a href="learning.html" class="cpa-navbar-link">آموزش</a>
       <a href="professional-tree.html" class="cpa-navbar-link">شبکه</a>
       <a href="about.html" class="cpa-navbar-link">درباره ما</a>
+      <a href="#" class="cpa-navbar-link" id="navbar-swap-link">🔄 تبدیل ارز</a>
+      <a href="#" class="cpa-navbar-link" id="navbar-transfer-link">💸 ترانسفر</a>
+      <a href="register.html" class="cpa-navbar-link">📝 ثبت‌نام</a>
+      <a href="reports.html" class="cpa-navbar-link">📊 گزارش</a>
+    </div>
+    <div class="cpa-navbar-mobile-menu" id="navbar-mobile-menu" style="display:none;">
+      <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
+      <a href="shop.html" class="cpa-navbar-link">آموزشگاه</a>
+      <a href="news.html" class="cpa-navbar-link">اخبار</a>
+      <a href="learning.html" class="cpa-navbar-link">آموزش</a>
+      <a href="professional-tree.html" class="cpa-navbar-link">شبکه</a>
+      <a href="about.html" class="cpa-navbar-link">درباره ما</a>
+      <a href="#" class="cpa-navbar-link" id="navbar-swap-link-mobile">🔄 تبدیل ارز</a>
+      <a href="#" class="cpa-navbar-link" id="navbar-transfer-link-mobile">💸 ترانسفر</a>
+      <a href="register.html" class="cpa-navbar-link">📝 ثبت‌نام</a>
+      <a href="reports.html" class="cpa-navbar-link">📊 گزارش</a>
     </div>
   `;
   // Insert at the top of the body
@@ -200,89 +304,61 @@
     }
   });
 
+  // اسکریپت باز و بسته شدن منوی موبایل (بهبود یافته: بستن منو با کلیک روی هر آیتم منو یا بیرون)
+  document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('navbar-hamburger');
+    const mobileMenu = document.getElementById('navbar-mobile-menu');
+    let menuOpen = false;
+    if (hamburger && mobileMenu) {
+      hamburger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        menuOpen = !menuOpen;
+        mobileMenu.style.display = menuOpen ? 'flex' : 'none';
+        hamburger.style.color = menuOpen ? '#a786ff' : '#00ff88';
+      });
+      // بستن منو با کلیک بیرون
+      document.addEventListener('click', function(e) {
+        if (menuOpen && !mobileMenu.contains(e.target) && e.target !== hamburger) {
+          mobileMenu.style.display = 'none';
+          hamburger.style.color = '#00ff88';
+          menuOpen = false;
+        }
+      });
+      // بستن منو با کلیک روی هر آیتم منو
+      mobileMenu.querySelectorAll('.cpa-navbar-link').forEach(function(link) {
+        link.addEventListener('click', function() {
+          mobileMenu.style.display = 'none';
+          hamburger.style.color = '#00ff88';
+          menuOpen = false;
+        });
+      });
+    }
+  });
+
+  // رویداد کلیک برای دکمه‌های تبدیل ارز و ترانسفر (اصلاح شده)
+  document.addEventListener('DOMContentLoaded', function() {
+    function goToSection(section) {
+      const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '';
+      if (isIndex) {
+        if (typeof showMainSection === 'function') showMainSection(section);
+        // اسکرول نرم
+        const target = document.getElementById(section);
+        if (target) setTimeout(() => target.scrollIntoView({behavior:'smooth',block:'start'}), 100);
+      } else {
+        window.location.href = `index.html#${section}`;
+      }
+    }
+    const swapLink = document.getElementById('navbar-swap-link');
+    const transferLink = document.getElementById('navbar-transfer-link');
+    if (swapLink) swapLink.onclick = function(e){e.preventDefault();goToSection('main-swap');};
+    if (transferLink) transferLink.onclick = function(e){e.preventDefault();goToSection('main-transfer');};
+    const swapLinkMobile = document.getElementById('navbar-swap-link-mobile');
+    const transferLinkMobile = document.getElementById('navbar-transfer-link-mobile');
+    if (swapLinkMobile) swapLinkMobile.onclick = function(e){e.preventDefault();goToSection('main-swap');closeMobileMenu();};
+    if (transferLinkMobile) transferLinkMobile.onclick = function(e){e.preventDefault();goToSection('main-transfer');closeMobileMenu();};
+  });
+
   // Only add the floating bottom bar on index.html
-  if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
-    const bottomBar = document.createElement('div');
-    bottomBar.className = 'cpa-bottom-bar';
-    bottomBar.innerHTML = `
-      <button onclick="showMainSection('main-swap')" class="cpa-bottom-btn">🔄<span class="cpa-bottom-label">تبدیل ارز</span></button>
-      <button onclick="showMainSection('main-transfer')" class="cpa-bottom-btn">💸<span class="cpa-bottom-label">ترانسفر</span></button>
-      <a href="register.html" class="cpa-bottom-btn" style="text-decoration:none;">📝<span class="cpa-bottom-label">ثبت‌نام</span></a>
-    `;
-    document.body.appendChild(bottomBar);
-
-    // Add styles for the floating bottom bar
-    const bottomBarStyle = document.createElement('style');
-    bottomBarStyle.textContent = `
-      .cpa-bottom-bar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100vw;
-        background: rgba(24,28,42,0.98);
-        box-shadow: 0 -2px 16px rgba(0,255,136,0.08);
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        z-index: 10001;
-        padding: 0.15rem 0;
-        border-top: 1px solid #222;
-      }
-      .cpa-bottom-btn {
-        flex: 1 1 0;
-        background: none;
-        border: none;
-        color: #fff;
-        font-size: 1.05rem;
-        font-weight: 600;
-        padding: 0.3rem 0.2rem;
-        margin: 0 0.1rem;
-        border-radius: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.15s, color 0.15s;
-        min-width: 0;
-        min-height: 36px;
-        cursor: pointer;
-        position: relative;
-      }
-      .cpa-bottom-btn:active, .cpa-bottom-btn:hover {
-        background: rgba(0,255,136,0.10);
-        color: #00ff88;
-      }
-      .cpa-bottom-btn:not(:last-child)::after {
-        content: '';
-        display: block;
-        position: absolute;
-        right: 0;
-        top: 25%;
-        height: 50%;
-        width: 1px;
-        background: rgba(255,255,255,0.18);
-      }
-      .cpa-bottom-label {
-        font-size: 0.85em;
-        margin-top: 0.1em;
-        white-space: nowrap;
-      }
-      @media (max-width: 700px) {
-        .cpa-bottom-bar {
-          padding: 0.05rem 0;
-        }
-        .cpa-bottom-btn {
-          font-size: 0.97rem;
-          padding: 0.18rem 0.1rem;
-        }
-        .cpa-bottom-label {
-          font-size: 0.78em;
-        }
-      }
-    `;
-    document.head.appendChild(bottomBarStyle);
-  }
-
   // Helper for bottom bar navigation (only on index.html)
   if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
     window.showMainSection = function(sectionId) {
@@ -299,5 +375,18 @@
         }, 100);
       }
     };
+  }
+
+  // در index.html اگر هشی وجود دارد، بخش مربوطه را نمایش بده
+  if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
+    document.addEventListener('DOMContentLoaded', function() {
+      const hash = window.location.hash;
+      if (hash === '#main-swap' || hash === '#main-transfer') {
+        if (typeof showMainSection === 'function') showMainSection(hash.replace('#',''));
+        // اسکرول نرم
+        const target = document.getElementById(hash.replace('#',''));
+        if (target) setTimeout(() => target.scrollIntoView({behavior:'smooth',block:'start'}), 100);
+      }
+    });
   }
 })(); 
