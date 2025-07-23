@@ -565,390 +565,6 @@
   </div>
 
 
-
-  <div id="main-profile" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:none;">
-    <div class="expand-header">
-      <h2 class="profile-title"> </h2>
-    </div>
-    <div class="expand-content">
-      <div class="profile-container">
-        <!-- دکمه اتصال ولت -->
-        <!-- <button id="connectProfileWalletBtn" style="margin:1rem 0 2rem 0;background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.7rem 2.2rem;font-size:1rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,255,136,0.10);transition:background 0.2s,box-shadow 0.2s;">اتصال کیف پول</button> -->
-        <!-- کارت اطلاعات شخصی -->
-        <div class="profile-section">
-          <div class="section-header">
-            <div class="section-icon">👤</div>
-            <h3>اطلاعات شخصی</h3>
-          </div>
-          <div class="section-content">
-            <div class="info-grid">
-              <div class="info-item">
-                <div class="info-label">آدرس کیف پول</div>
-                <div class="info-value" id="profile-address">-</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">CPA ID</div>
-                <div class="info-value" id="profile-index">-</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">معرف</div>
-                <div class="info-value" id="profile-referrer">-</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">لینک دعوت</div>
-                <div class="info-value-with-action">
-                  <a id="profile-referral-link" href="#" target="_blank" style="direction:ltr;user-select:all;word-break:break-all;text-decoration:underline;color:#00ff88;">-</a>
-                  <button id="copyProfileReferral" class="action-btn">📋 کپی</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- کارت موجودی‌ها -->
-        <div class="profile-section">
-          <div class="section-header">
-            <div class="section-icon">💰</div>
-            <h3>موجودی‌ها</h3>
-          </div>
-          <div class="section-content">
-            <div class="balance-grid">
-              <div class="balance-card">
-                <div class="balance-icon">🟣</div>
-                <div class="balance-info">
-                  <div class="balance-label">موجودی POL</div>
-                  <div class="balance-value" id="profile-matic">-</div>
-                  <div class="balance-usd" id="profile-matic-usd">-</div>
-                </div>
-              </div>
-              <div class="balance-card">
-                <div class="balance-icon">🟢</div>
-                <div class="balance-info">
-                  <div class="balance-label">موجودی CPA</div>
-                  <div class="balance-value" id="profile-lvl">-</div>
-                  <div class="balance-usd" id="profile-lvl-usd">-</div>
-                </div>
-              </div>
-              <div class="balance-card">
-                <div class="balance-icon">💵</div>
-                <div class="balance-info">
-                  <div class="balance-label">موجودی USDC</div>
-                  <div class="balance-value" id="profile-usdc">-</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- کارت شبکه باینری -->
-        <div class="profile-section">
-          <div class="section-header">
-            <div class="section-icon">🌳</div>
-            <h3>شبکه باینری</h3>
-          </div>
-          <div class="section-content">
-            <div class="binary-grid">
-              <div class="binary-stat">
-                <div class="stat-icon">⬅️</div>
-                <div class="stat-info">
-                  <div class="stat-label">امتیاز چپ</div>
-                  <div class="stat-value" id="profile-leftPoints">-</div>
-                </div>
-              </div>
-              <div class="binary-stat">
-                <div class="stat-icon">➡️</div>
-                <div class="stat-info">
-                  <div class="stat-label">امتیاز راست</div>
-                  <div class="stat-value" id="profile-rightPoints">-</div>
-                </div>
-              </div>
-              <div class="binary-stat">
-                <div class="stat-icon">📊</div>
-                <div class="stat-info">
-                  <div class="stat-label">سقف درآمد</div>
-                  <div class="stat-value" id="profile-income-cap">-</div>
-                </div>
-              </div>
-              <div class="binary-stat">
-                <div class="stat-icon">💸</div>
-                <div class="stat-info">
-                  <div class="stat-label">دریافت‌شده</div>
-                  <div class="stat-value" id="profile-received">-</div>
-                </div>
-              </div>
-              <div class="binary-stat">
-                <div class="stat-icon">🟣</div>
-                <div class="stat-info">
-                  <div class="stat-label">پوینت‌های دریافت‌نشده</div>
-                  <div class="stat-value" id="profile-unclaimed-points">-</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- کارت معاملات -->
-        <div class="profile-section">
-          <div class="section-header">
-            <div class="section-icon">📈</div>
-            <h3>معاملات و سرمایه‌گذاری</h3>
-          </div>
-          <div class="section-content">
-            <div class="transaction-grid">
-              <div class="transaction-item">
-                <div class="transaction-label">کل واریزی</div>
-                <div class="transaction-value" id="profile-depositedAmount">-</div>
-              </div>
-              <div class="transaction-item">
-                <div class="transaction-label">باقیمانده خریدها</div>
-                <div class="transaction-value" id="profile-purchased-kind">-</div>
-              </div>
-              <div class="transaction-item">
-                <div class="transaction-label">درآمد رفرال</div>
-                <div class="transaction-value" id="profile-refclimed">-</div>
-              </div>
-              <div class="transaction-item">
-                <div class="transaction-label">کل سود ماهانه</div>
-                <div class="transaction-value" id="profile-totalMonthlyRewarded">-</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- کارت تاریخچه -->
-        <div class="profile-section">
-          <div class="section-header">
-            <div class="section-icon">📅</div>
-            <h3>تاریخچه برداشت‌ها</h3>
-          </div>
-          <div class="section-content">
-            <div class="history-grid">
-              <div class="history-item">
-                <div class="history-label">آخرین برداشت پاداش</div>
-                <div class="history-value" id="profile-lastClaimTime">-</div>
-              </div>
-              <div class="history-item">
-                <div class="history-label">آخرین برداشت ماهانه</div>
-                <div class="history-value" id="profile-lastMonthlyClaim">-</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- کارت دکمه‌های برداشت -->
-        <div class="profile-section">
-          <div class="section-header">
-            <div class="section-icon">💸</div>
-            <h3>برداشت پاداش‌ها</h3>
-          </div>
-          <div class="section-content">
-            <div class="claim-buttons-grid">
-              <button id="profile-claim-btn" class="claim-btn primary">
-                <div class="claim-btn-icon">🥇</div>
-                <div class="claim-btn-content">
-                  <div class="claim-btn-title">برداشت پاداش‌های باینری (⏳ 12 ساعت) <span id="binary-claim-timer" ...></span></div>
-                </div>
-              </button>
-              <button id="profile-claim-monthly-btn" class="claim-btn primary">
-                <div class="claim-btn-icon">🗓️</div>
-                <div class="claim-btn-content">
-                  <div class="claim-btn-title">برداشت پاداش ماهانه</div>
-                </div>
-              </button>
-            </div>
-            <div id="profile-claim-status" class="claim-status"></div>
-            <div id="profile-claim-monthly-status" class="claim-status"></div>
-          </div>
-        </div>
-
-        <!-- کارت مدیریت حساب -->
-        <div class="profile-section">
-          <div class="section-header">
-            <div class="section-icon">⚙️</div>
-            <h3>مدیریت حساب</h3>
-          </div>
-          <div class="section-content">
-            <div class="account-management-grid">
-              <div class="account-action-card">
-                <div class="action-icon">🔄</div>
-                <div class="action-info">
-                  <div class="action-title">انتقال مالکیت حساب</div>
-                  <div class="action-description">انتقال مالکیت حساب به آدرس جدید</div>
-                  <div class="action-input-group">
-                    <input type="text" id="transfer-ownership-address" placeholder="آدرس جدید (0x...)" class="action-input">
-                    <button id="transfer-ownership-btn" class="action-btn primary">انتقال مالکیت</button>
-                  </div>
-                  <div id="transfer-ownership-status" class="action-status"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div id="profileStatus" class="profile-status"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="main-reports" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:block;">
-    <div class="expand-header">
-      <h2 class="profile-title" style="color:#00ff88;">📊 گزارشات</h2>
-    </div>
-    <div class="expand-content">
-      <div class="profile-container">
-        <!-- توضیحات کامل درباره گزارشات -->
-        <div style="background:rgba(0,255,136,0.08);border:1.5px solid #a786ff;border-radius:10px;padding:1.2em 1em;margin-bottom:1.2em;color:#b8c1ec;font-size:1.05em;line-height:1.9;">
-          <b style="color:#00ff88;">راهنمای بخش گزارشات:</b><br>
-          در این بخش، تمام فعالیت‌های مهم شما در پلتفرم به صورت خودکار و زنده از قرارداد هوشمند شبکه خوانده و نمایش داده می‌شود.<br>
-          <b>انواع گزارشات:</b>
-          <ul style="margin:0.5em 0 0.5em 1.5em;padding:0;">
-            <li>ثبت‌نام و فعال‌سازی حساب</li>
-            <li>خرید و فروش توکن (CPA، MATIC، USDC)</li>
-            <li>دریافت و عدم دریافت پاداش ماهانه</li>
-            <li>دریافت پاداش باینری و به‌روزرسانی امتیازها</li>
-            <li>تغییرات ساختار شبکه و انتقال ایندکس</li>
-            <li>واریز مستقیم، انتقال توکن و تأییدیه‌ها</li>
-            <li>به‌روزرسانی استخر باینری و سایر رویدادهای مهم</li>
-          </ul>
-          <b>منبع داده:</b> همه اطلاعات این بخش مستقیماً از رویدادهای قرارداد هوشمند (Smart Contract Events) جمع‌آوری می‌شود و هیچ داده‌ای قابل جعل یا حذف نیست.<br>
-          <b>نکته:</b> اگر گزارشی نمی‌بینید، یعنی هنوز فعالیتی در شبکه انجام نداده‌اید یا کیف پول متصل نیست.<br>
-          <b>برای هر گزارش:</b> نوع رویداد، مقدار، تاریخ، آدرس‌ها و توضیحات تکمیلی نمایش داده می‌شود. با کلیک روی آدرس‌ها می‌توانید جزئیات را در بلاک‌چین مشاهده کنید.
-        </div>
-        <!-- فیلترها حذف شدند - همه گزارشات نمایش داده می‌شوند -->
-        <div id="reports-container"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Permanent Registration Form Section -->
-  <div id="main-register" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:none;">
-    <div class="expand-header" style="padding:0 1.5rem;">
-      <h2 style="margin:0 0 0.5rem 0;color:#00ff88;">📝 ثبت‌نام در آکادمی سود مستمر</h2>
-      <p style="margin:0 0 0.5rem 0;color:#b8c1ec;">ثبت‌نام سریع و آسان - فقط چند کلیک</p>
-    </div>
-    <div class="expand-content" style="padding:0;">
-      <div class="register-container" style="max-width:600px;margin:0 auto;padding:1.5rem;">
-        
-        <!-- Registration Status Display -->
-        <div id="registration-status-display" style="background:linear-gradient(135deg,#232946,#181c2a);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;border:2px solid #a786ff;text-align:center;">
-          <div style="font-size:3rem;margin-bottom:1rem;">🚀</div>
-          <h3 style="color:#00ff88;margin-bottom:1rem;font-size:1.3rem;">خوش آمدید به آکادمی سود مستمر</h3>
-          <p style="color:#b8c1ec;margin-bottom:1.5rem;line-height:1.6;">
-            برای دسترسی به تمام امکانات، لطفاً ثبت‌نام کنید.<br>
-            هزینه ثبت‌نام: <strong style="color:#00ff88;" id="permanent-registration-cost">100 CPA</strong>
-          </p>
-          <div style="background:rgba(167,134,255,0.1);border-radius:8px;padding:1rem;margin:1rem 0;">
-            <h4 style="color:#a786ff;margin-bottom:0.5rem;">✨ مزایای ثبت‌نام:</h4>
-            <ul style="color:#b8c1ec;text-align:right;margin:0;padding-right:1rem;">
-              <li>دسترسی به تمام بخش‌های سایت</li>
-              <li>امکان خرید و فروش توکن CPA</li>
-              <li>دسترسی به شبکه باینری و پاداش‌ها</li>
-              <li>امکان دریافت رفرال و درآمد</li>
-              <li>دسترسی به آموزش‌ها و اخبار</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Registration Form -->
-        <form id="registration-form" class="registration-form" style="background:linear-gradient(135deg,#232946,#181c2a);border-radius:12px;padding:1.5rem;border:2px solid #a786ff;">
-          <div style="margin-bottom:1.2rem;">
-            <label for="referrer-address" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">👥 آدرس معرف:</label>
-            <input type="text" id="referrer-address" placeholder="0x..." required style="width:100%;padding:0.8rem 1.2rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;font-size:1.05rem;">
-            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">آدرس معرف (اگر ندارید، آدرس deployer استفاده می‌شود)</small>
-          </div>
-          <div style="margin-bottom:1.5rem;">
-            <label for="register-ref-index" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">🔢 ایندکس معرف:</label>
-            <div style="display:flex;gap:0.3rem;align-items:center;max-width:350px;">
-              <input type="number" id="register-ref-index" placeholder="ایندکس" min="0" style="flex:1;padding:0.8rem 0.5rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;font-size:0.98rem;">
-              <button type="button" id="register-index-search-btn" style="background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:0.8rem 1rem;font-size:0.9rem;cursor:pointer;transition:all 0.3s;white-space:nowrap;">🔍 پیدا کن</button>
-            </div>
-            <div id="register-index-search-status" style="color:#ff4444;font-size:0.9rem;margin-top:0.3rem;"></div>
-          </div>
-          <div class="form-group" style="margin-bottom:1.5rem;">
-            <label for="register-user-address" style="color:#a786ff;font-weight:bold;margin-bottom:0.5rem;display:block;">👤 آدرس کیف پول کاربر:</label>
-            <input type="text" id="register-user-address" placeholder="0x..." required style="width:100%;padding:0.8rem;border-radius:8px;border:2px solid #a786ff;background:rgba(0,0,0,0.2);color:#fff;font-family:monospace;direction:ltr;text-align:left;box-sizing:border-box;">
-            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">آدرس کیف پولی که می‌خواهید ثبت‌نام کنید</small>
-          </div>
-          <div id="register-ref-summary" style="display:none;margin-bottom:1.5rem;background:rgba(167,134,255,0.08);border-radius:8px;padding:0.8rem;">
-            <div>آدرس کیف پول شما: <span id="register-wallet-address" style="color:#00ff88;font-family:monospace;">-</span></div>
-            <div>آدرس معرف: <span id="register-referrer-address" style="color:#a786ff;font-family:monospace;">-</span></div>
-          </div>
-          <div id="register-cpa-balance" style="color:#00ff88;font-weight:bold;margin-bottom:0.5rem;">CPA: -</div>
-          <div id="register-usdc-balance" style="color:#00ccff;font-weight:bold;margin-bottom:0.5rem;">USDC: -</div>
-          <div id="register-matic-balance" style="color:#a786ff;font-weight:bold;margin-bottom:1.5rem;">MATIC: -</div>
-          <div style="margin-bottom:1.5rem;">
-            <span>مقدار مورد نیاز برای ثبت‌نام: <span id="register-cpa-required" style="color:#00ff88;font-weight:bold;">100 CPA</span></span>
-            <span style="margin-right:1.5rem;">حداقل متیک مورد نیاز: <span id="register-matic-required" style="color:#a786ff;font-weight:bold;">0.05 MATIC</span></span>
-          </div>
-          <div class="form-group" id="register-index-search-group" style="margin-bottom:1.5rem;">
-
-            <small style="color:#b8c1ec;font-size:0.85rem;margin-top:0.3rem;display:block;">ایندکس معرف را وارد کنید تا آدرس ولت به طور خودکار در فیلد معرف قرار گیرد</small>
-            <div id="register-index-search-status" style="color:#ff4444;font-size:0.9rem;margin-top:0.3rem;"></div>
-          </div>
-          <button type="button" id="register-btn" style="width:100%;background:linear-gradient(90deg,#00ff88,#a786ff);color:#181c2a;font-weight:bold;border:none;border-radius:8px;padding:1rem;font-size:1.1rem;cursor:pointer;transition:all 0.3s;margin-bottom:1rem;">ثبت‌ نام</button>
-          <div id="register-status" style="text-align:center;margin-top:1rem;"></div>
-        </form>
-        <script>
-          // اتصال خودکار به ولت و به‌روزرسانی فرم ثبت‌نام هنگام نمایش دایو ثبت‌نام
-          function autoConnectWalletOnRegisterDiv() {
-            const regDiv = document.getElementById('main-register');
-            if (!regDiv) return;
-            const observer = new MutationObserver(async () => {
-              if (regDiv.style.display !== 'none') {
-                if (window.connectWallet) {
-                  await window.connectWallet();
-                }
-                if (window.showRegistrationForm) {
-                  await window.showRegistrationForm();
-                }
-              }
-            });
-            observer.observe(regDiv, { attributes: true, attributeFilter: ['style'] });
-          }
-          document.addEventListener('DOMContentLoaded', autoConnectWalletOnRegisterDiv);
-
-          // جستجو معرف با ایندکس و قرار دادن در فیلد معرف (با استفاده از indexToAddress)
-          document.addEventListener('DOMContentLoaded', function() {
-            const searchBtn = document.getElementById('register-index-search-btn');
-            const indexInput = document.getElementById('register-ref-index');
-            const statusDiv = document.getElementById('register-index-search-status');
-            const refInput = document.getElementById('referrer-address');
-            searchBtn && searchBtn.addEventListener('click', async function() {
-              statusDiv.textContent = '';
-              const idx = indexInput.value.trim();
-              if (!idx || isNaN(idx) || parseInt(idx) < 0) {
-                statusDiv.textContent = 'ایندکس معتبر وارد کنید';
-                return;
-              }
-              try {
-                if (!window.contractConfig || !window.contractConfig.contract) {
-                  statusDiv.textContent = 'اتصال کیف پول برقرار نیست';
-                  return;
-                }
-                const contract = window.contractConfig.contract;
-                let address = await contract.indexToAddress(parseInt(idx));
-                if (!address || address === '0x0000000000000000000000000000000000000000') {
-                  statusDiv.textContent = 'آدرس معتبری برای این ایندکس یافت نشد';
-                  return;
-                }
-                refInput.value = address;
-                statusDiv.textContent = 'آدرس با موفقیت درج شد';
-                statusDiv.style.color = '#00ff88';
-              } catch (e) {
-                statusDiv.textContent = 'خطا در دریافت آدرس: ' + (e.message || e);
-                statusDiv.style.color = '#ff4444';
-              }
-            });
-          });
-        </script>
-
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-
   <!-- نمایش وضعیت اتصال -->
   <div id="connection-status" style="
     display: none;
@@ -1091,7 +707,7 @@
       transform: none;
     }
   </style>
-  <script src="js/register.js?v=5.7"></script>
+  <script src="js/register.js"></script>
   <script src="js/swap.js?v=5.7"></script>
   
 
@@ -1517,6 +1133,24 @@
   </script>
 
   <script src="js/navbar.js"></script>
+  <!-- لینک ورود به گزارشات -->
+  <!-- آیکن در گوشه بالا سمت راست زیر ناوبار -->
+  <a href="reports.html" target="_blank" title="گزارشات ایونت‌ها" style="position:fixed;top:60px;right:24px;z-index:9999;background:#fff;border-radius:50%;padding:10px;box-shadow:0 2px 8px #0002;display:flex;align-items:center;justify-content:center;width:48px;height:48px;transition:box-shadow 0.2s;cursor:pointer;">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto;">
+      <rect x="3" y="5" width="18" height="14" rx="2" fill="#f3f6fa" stroke="#3b82f6" stroke-width="1.5"/>
+      <rect x="7" y="9" width="10" height="2" rx="1" fill="#3b82f6"/>
+      <rect x="7" y="13" width="6" height="2" rx="1" fill="#60a5fa"/>
+    </svg>
+  </a>
+
+  <!-- آیکون آدمک پروفایل زیر ناوبار سمت چپ -->
+  <a href="profile.html" title="پروفایل" style="position:fixed;top:70px;left:24px;z-index:9999;background:#232946;border-radius:50%;padding:10px;box-shadow:0 2px 8px #a786ff44;display:flex;align-items:center;justify-content:center;width:48px;height:48px;transition:box-shadow 0.2s,background 0.2s;cursor:pointer;color:#a786ff;font-size:2em;">
+    <span style="display:block;">👤</span>
+  </a>
+
+
+
+  </div>
 </body>
 </html>
 

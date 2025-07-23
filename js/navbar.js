@@ -165,10 +165,9 @@
   navbar.innerHTML = `
     <div class="cpa-navbar-links">
       <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
-      <a href="shop.html" class="cpa-navbar-link">فروشگاه</a>
+      <a href="shop.html" class="cpa-navbar-link">آموزشگاه</a>
       <a href="news.html" class="cpa-navbar-link">اخبار</a>
       <a href="learning.html" class="cpa-navbar-link">آموزش</a>
-      <a href="signal.html" class="cpa-navbar-link">سیگنال</a>
       <a href="professional-tree.html" class="cpa-navbar-link">شبکه</a>
       <a href="about.html" class="cpa-navbar-link">درباره ما</a>
     </div>
@@ -180,6 +179,27 @@
     document.body.style.marginTop = '64px';
   });
 
+  // افزودن یا اصلاح لینک پروفایل در نوار بالا
+  window.addEventListener('DOMContentLoaded', function() {
+    // اگر دکمه پروفایل وجود دارد، href آن را اصلاح کن
+    var navProfile = document.querySelector('.cpa-navbar-link.profile, .cpa-navbar-link[data-profile], .cpa-navbar-link[href*="profile"], .cpa-navbar-link:contains("پروفایل")');
+    if (navProfile) {
+      navProfile.setAttribute('href', 'profile.html');
+      navProfile.setAttribute('target', '_self');
+    } else {
+      // اگر وجود ندارد، اضافه کن
+      var navLinks = document.querySelector('.cpa-navbar-links');
+      if (navLinks) {
+        var a = document.createElement('a');
+        a.className = 'cpa-navbar-link profile';
+        a.href = 'profile.html';
+        a.target = '_self';
+        a.innerHTML = '👤 پروفایل';
+        navLinks.appendChild(a);
+      }
+    }
+  });
+
   // Only add the floating bottom bar on index.html
   if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
     const bottomBar = document.createElement('div');
@@ -187,9 +207,7 @@
     bottomBar.innerHTML = `
       <button onclick="showMainSection('main-swap')" class="cpa-bottom-btn">🔄<span class="cpa-bottom-label">تبدیل ارز</span></button>
       <button onclick="showMainSection('main-transfer')" class="cpa-bottom-btn">💸<span class="cpa-bottom-label">ترانسفر</span></button>
-      <button onclick="showMainSection('main-profile')" class="cpa-bottom-btn">👤<span class="cpa-bottom-label">پروفایل</span></button>
-      <button onclick="showMainSection('main-reports')" class="cpa-bottom-btn">📊<span class="cpa-bottom-label">گزارشات</span></button>
-      <button onclick="showMainSection('main-register')" class="cpa-bottom-btn">📝<span class="cpa-bottom-label">ثبت‌نام</span></button>
+      <a href="register.html" class="cpa-bottom-btn" style="text-decoration:none;">📝<span class="cpa-bottom-label">ثبت‌نام</span></a>
     `;
     document.body.appendChild(bottomBar);
 

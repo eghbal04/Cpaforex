@@ -1,822 +1,209 @@
-// reports.js - بخش گزارشات و فعالیت‌ها
-let isReportsLoading = false;
+// reports.js - گزارشات کامل و دسته‌بندی شده بر اساس ABI قرارداد CPA
 
-// حذف کد تستی و logها
-
-async function waitForWalletConnection() {
-    try {
-        // Reports section loaded, waiting for wallet connection...
-        // بررسی اتصال کیف پول
-        const connection = await checkConnection();
-        if (!connection.connected) {
-            showReportsError("لطفا ابتدا کیف پول خود را متصل کنید");
-        return;
-    }
-    
-        // بارگذاری گزارشات
-        await loadReports(connection.address);
-
-        // راه‌اندازی فیلترها
-        // setupFilters(); // حذف شد
-
-        // به‌روزرسانی خودکار هر 5 دقیقه
-        // setInterval(loadReports, 300000); // حذف شد
-
-    } catch (error) {
-        showReportsError("خطا در بارگذاری گزارشات");
-    }
-}
-
-// تابع اتصال به کیف پول با انتظار
-async function connectWallet() {
-    try {
-        // بررسی اتصال موجود
-        if (window.contractConfig && window.contractConfig.contract) {
-            return window.contractConfig;
-        }
-        
-        // بررسی اتصال MetaMask موجود
-        if (typeof window.ethereum !== 'undefined') {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            if (accounts && accounts.length > 0) {
-                try {
-                    await initializeWeb3();
-                    return window.contractConfig;
-                } catch (error) {
-                    throw new Error('خطا در راه‌اندازی Web3');
-                }
-            }
-        }
-        
-        throw new Error('لطفاً ابتدا کیف پول خود را متصل کنید');
-        
-    } catch (error) {
-        showReportsError('خطا در اتصال به کیف پول');
-        throw error;
-    }
-}
-
-// تابع فرمت کردن آدرس
+// ابزارهای کمکی
 function shortenAddress(address) {
     if (!address) return '-';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
-
-// تابع فرمت کردن هش تراکنش
-function shortenTransactionHash(hash) {
-    if (!hash) return '-';
-    return `${hash.slice(0, 8)}...${hash.slice(-6)}`;
+// ابزار جدید: گرفتن ایندکس کاربر از آدرس (در شبکه)
+async function getIndexByAddress(address, contract) {
+    try {
+        if (!address || !contract) return null;
+        // جستجو در mapping indexToAddress (تا 10000 کاربر)
+        for (let i = 1; i < 10000; i++) {
+            let addr = await contract.indexToAddress(i);
+            if (addr && addr.toLowerCase() === address.toLowerCase()) return i;
+        }
+        return null;
+    } catch { return null; }
+}
+// ابزار جدید: نمایش آدرس یا ایندکس یا قرارداد
+async function displayAddress(addr, contract, contractAddress) {
+    if (!addr) return '-';
+    if (addr.toLowerCase() === contractAddress.toLowerCase()) return 'قرارداد';
+    const idx = await getIndexByAddress(addr, contract);
+    if (idx) return `CPA${idx.toString().padStart(5, '0')}`;
+    return shortenAddress(addr);
+}
+function formatDate(timestamp) {
+    if (!timestamp || isNaN(timestamp)) return 'تاریخ نامعتبر';
+    const date = new Date(Number(timestamp));
+    return date.toLocaleString('fa-IR');
+}
+function formatNumber(value, decimals = 18) {
+    try {
+        if (!value || value.toString() === '0') return '0';
+        const formatted = ethers.formatUnits(value, decimals);
+        const num = parseFloat(formatted);
+        if (num < 0.000001) return num.toExponential(2);
+        return num.toLocaleString('en-US', { maximumFractionDigits: 6 });
+    } catch { return '0'; }
 }
 
-// تابع فرمت تاریخ بهبود یافته
-    function formatDate(timestamp) {
-    try {
-        // بررسی اعتبار timestamp
-        if (!timestamp || isNaN(timestamp)) {
-            return "تاریخ نامعتبر";
-        }
-        
-        // تبدیل timestamp به تاریخ
-        let date;
-        if (timestamp < 1000000000000) {
-            // اگر timestamp در ثانیه است، به میلی‌ثانیه تبدیل کن
-            date = new Date(timestamp * 1000);
-        } else {
-            // اگر timestamp در میلی‌ثانیه است
-            date = new Date(timestamp);
-        }
-        
-        // بررسی اعتبار تاریخ
-        if (isNaN(date.getTime())) {
-            return "تاریخ نامعتبر";
-        }
-        
-        const now = new Date();
-        const diffInSeconds = Math.floor((now - date) / 1000);
-        
-        // اگر کمتر از 1 دقیقه
-        if (diffInSeconds < 60) {
-            return `${diffInSeconds} ثانیه پیش`;
-        }
-        
-        // اگر کمتر از 1 ساعت
-        if (diffInSeconds < 3600) {
-            const minutes = Math.floor(diffInSeconds / 60);
-            return `${minutes} دقیقه پیش`;
-        }
-        
-        // اگر کمتر از 1 روز
-        if (diffInSeconds < 86400) {
-            const hours = Math.floor(diffInSeconds / 3600);
-            return `${hours} ساعت پیش`;
-        }
-        
-        // اگر کمتر از 7 روز
-        if (diffInSeconds < 604800) {
-            const days = Math.floor(diffInSeconds / 86400);
-            return `${days} روز پیش`;
-        }
-        
-        // برای تاریخ‌های قدیمی، نمایش تاریخ کامل
-        const persianMonths = [
-            'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-            'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
-        ];
-        
-        const persianDays = [
-            'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه'
-        ];
-        
-        // تبدیل به تاریخ شمسی (تقریبی)
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const day = date.getDate();
-        const hours = date.getHours();
-        const minutes = date.getMinutes();
-        
-        // تبدیل تقریبی به شمسی (سال شمسی = سال میلادی - 621)
-        const persianYear = year - 621;
-        const persianMonth = persianMonths[month];
-        
-        return `${day} ${persianMonth} ${persianYear} - ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        
-    } catch (error) {
-        return "خطا در نمایش تاریخ";
+// جمع‌آوری همه ایونت‌ها
+window.fetchReports = async function(address) {
+    const { contract, address: userAddress } = await connectWallet();
+    const provider = (contract.runner && contract.runner.provider) || contract.provider;
+    const contractWithProvider = contract.connect ? contract.connect(provider) : contract;
+    contractWithProvider.provider = provider; // تضمین provider معتبر برای safeQueryEvents
+    const reports = [];
+    const currentBlock = await provider.getBlockNumber();
+    const fromBlock = 0;
+    // Helper: اضافه کردن ایونت به reports
+    function pushReport(type, title, amount, event, addr) {
+        reports.push({
+            type, title, amount,
+            timestamp: event.args.timestamp ? Number(event.args.timestamp) * 1000 : event.blockNumber * 1000,
+            transactionHash: event.transactionHash,
+            blockNumber: event.blockNumber,
+            address: addr,
+            logIndex: event.logIndex
+        });
     }
-    }
-    
-    // تابع فرمت کردن اعداد
-    function formatNumber(value, decimals = 18) {
-        try {
-            if (!value || value.toString() === '0') return '0';
-            const formatted = ethers.formatUnits(value, decimals);
-            const num = parseFloat(formatted);
-            if (num < 0.000001) {
-                return num.toExponential(2);
-            }
-            return num.toLocaleString('en-US', { maximumFractionDigits: 6 });
-        } catch (error) {
-            return '0';
-        }
-    }
-    
-    // تابع دریافت گزارشات از قرارداد
-    async function fetchReports() {
-        try {
-            const { contract, address } = await connectWallet();
-            const provider = contract.runner && contract.runner.provider ? contract.runner.provider : contract.provider;
-            const reports = [];
-            
-            // استفاده از retry برای دریافت block number
-            const currentBlock = await window.retryRpcOperation(async () => {
-                return await contract.runner.provider.getBlockNumber();
-            });
-            
-            const fromBlock = Math.max(0, currentBlock - 50000);
-            // Activated
-            let activatedEvents = [];
-            try {
-                activatedEvents = await window.safeQueryEvents(contract, contract.filters.Activated(), fromBlock, currentBlock);
-            } catch (e) {
-                console.warn('Failed to fetch Activated events:', e);
-                activatedEvents = [];
-            }
-            activatedEvents.forEach(event => {
-                if (event.args.user.toLowerCase() === address.toLowerCase()) {
-                    reports.push({
-                        type: 'registration',
-                        title: 'ثبت‌نام',
-                        amount: formatNumber(event.args.amountLvl || event.args.amountlvl, 18) + ' CPA',
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.user,
-                        logIndex: event.logIndex
-                    });
-                }
-            });
-            // PurchaseKind
-            let purchaseEvents = [];
-            try {
-                purchaseEvents = await window.safeQueryEvents(contract, contract.filters.PurchaseKind(), fromBlock, currentBlock);
-            } catch (e) {
-                console.warn('Failed to fetch PurchaseKind events:', e);
-                purchaseEvents = [];
-            }
-                purchaseEvents.forEach(event => {
-                if (event.args.user.toLowerCase() === address.toLowerCase()) {
-                    reports.push({
-                        type: 'purchase',
-                        title: 'خرید با USDC',
-                        amount: formatNumber(event.args.amountLvl || event.args.amountlvl, 18) + ' CPA',
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.user,
-                        logIndex: event.logIndex
-                    });
-                }
-                });
-            // TokensBought
-            let buyEvents = [];
-            try {
-                buyEvents = await window.safeQueryEvents(contract, contract.filters.TokensBought(), fromBlock, currentBlock);
-            } catch (e) {}
-                buyEvents.forEach(event => {
-                if (event.args.buyer.toLowerCase() === address.toLowerCase()) {
-                    reports.push({
-                        type: 'trading',
-                        title: 'خرید با USDC',
-                        amount: `${formatNumber(event.args.maticAmount, 18)} POL → ${formatNumber(event.args.tokenAmount, 18)} CPA`,
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.buyer,
-                        logIndex: event.logIndex
-                    });
-                }
-                });
-            // TokensSold
-            let sellEvents = [];
-            try {
-                sellEvents = await window.safeQueryEvents(contract, contract.filters.TokensSold(), fromBlock, currentBlock);
-            } catch (e) {}
-                sellEvents.forEach(event => {
-                if (event.args.seller.toLowerCase() === address.toLowerCase()) {
-                    reports.push({
-                        type: 'trading',
-                        title: 'فروش توکن',
-                        amount: `${formatNumber(event.args.tokenAmount, 18)} CPA → ${formatNumber(event.args.maticAmount, 18)} POL`,
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.seller,
-                        logIndex: event.logIndex
-                    });
-                }
-                });
-            // BinaryPointsUpdated
-            let binaryEvents = [];
-            try {
-                binaryEvents = await window.safeQueryEvents(contract, contract.filters.BinaryPointsUpdated(), fromBlock, currentBlock);
-            } catch (e) {}
-                binaryEvents.forEach(event => {
-                if (event.args.user.toLowerCase() === address.toLowerCase()) {
-                    reports.push({
-                        type: 'binary',
-                        title: 'به‌روزرسانی امتیاز باینری',
-                        amount: `${formatNumber(event.args.newPoints, 18)} امتیاز (سقف: ${formatNumber(event.args.newCap, 18)})`,
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.user,
-                        logIndex: event.logIndex
-                    });
-                }
-            });
-            // BinaryRewardDistributed
-            let binaryRewardEvents = [];
-            try {
-                binaryRewardEvents = await window.safeQueryEvents(contract, contract.filters.BinaryRewardDistributed(), fromBlock, currentBlock);
-            } catch (e) {}
-            binaryRewardEvents.forEach(event => {
-                if (event.args.claimer.toLowerCase() === address.toLowerCase()) {
-                    reports.push({
-                        type: 'binary',
-                        title: 'دریافت پاداش باینری',
-                        amount: `${formatNumber(event.args.claimerReward, 18)} CPA`,
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.claimer,
-                        logIndex: event.logIndex
-                    });
-                }
-            });
-            // TreeStructureUpdated
-            let treeEvents = [];
-            try {
-                treeEvents = await window.safeQueryEvents(contract, contract.filters.TreeStructureUpdated(), fromBlock, currentBlock);
-            } catch (e) {}
-            treeEvents.forEach(event => {
-                if ([event.args.user, event.args.parent, event.args.referrer].map(a=>a.toLowerCase()).includes(address.toLowerCase())) {
-                    let posLabel = '';
-                    if (event.args.position == 0) posLabel = 'فرزند سمت چپ ثبت شد';
-                    else if (event.args.position == 1) posLabel = 'فرزند سمت راست ثبت شد';
-                    else posLabel = `موقعیت: ${event.args.position}`;
-                    reports.push({
-                        type: 'network',
-                        title: 'تغییر ساختار شبکه',
-                        amount: posLabel,
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.user,
-                        logIndex: event.logIndex
-                    });
-                }
-            });
-            // Transfer
-            let transferEvents = [];
-            try {
-                transferEvents = await contract.queryFilter(contract.filters.Transfer(), fromBlock, currentBlock);
-            } catch (e) {}
-            transferEvents.forEach(event => {
-                if ([event.args.from, event.args.to].map(a=>a.toLowerCase()).includes(address.toLowerCase())) {
-                    reports.push({
-                        type: 'transfer',
-                        title: 'انتقال توکن',
-                        amount: `${formatNumber(event.args.value, 18)} CPA`,
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.from === address ? event.args.to : event.args.from,
-                        logIndex: event.logIndex
-                    });
-                }
-            });
-            // Approval
-            let approvalEvents = [];
-            try {
-                approvalEvents = await contract.queryFilter(contract.filters.Approval(), fromBlock, currentBlock);
-            } catch (e) {}
-            approvalEvents.forEach(event => {
-                if ([event.args.owner, event.args.spender].map(a=>a.toLowerCase()).includes(address.toLowerCase())) {
-                    reports.push({
-                        type: 'approval',
-                        title: 'تأییدیه انتقال',
-                        amount: `${formatNumber(event.args.value, 18)} CPA`,
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.owner === address ? event.args.spender : event.args.owner,
-                        logIndex: event.logIndex
-                    });
-                }
-            });
-            // DirectMATICReceived
-            let directMaticEvents = [];
-            try {
-                directMaticEvents = await contract.queryFilter(contract.filters.DirectMATICReceived(), fromBlock, currentBlock);
-            } catch (e) {}
-            directMaticEvents.forEach(event => {
-                if (event.args.sender.toLowerCase() === address.toLowerCase()) {
-                    reports.push({
-                        type: 'deposit',
-                        title: 'واریز مستقیم MATIC',
-                        amount: `${formatNumber(event.args.amount, 18)} MATIC`,
-                        timestamp: event.blockNumber,
-                        transactionHash: event.transactionHash,
-                        blockNumber: event.blockNumber,
-                        address: event.args.sender,
-                        logIndex: event.logIndex
-                    });
-                }
-                });
-            // After collecting all events into reports array, fetch timestamps for each unique blockNumber
-            const blockNumbers = [...new Set(reports.map(r => r.blockNumber))];
-            const blockTimestamps = {};
-            for (const bn of blockNumbers) {
-                try {
-                    const block = await provider.getBlock(bn);
-                    blockTimestamps[bn] = block.timestamp;
-                } catch (e) {
-                    blockTimestamps[bn] = null;
-                }
-            }
-            // Assign real timestamp to each report
-            reports.forEach(r => {
-                r.timestamp = blockTimestamps[r.blockNumber] ? blockTimestamps[r.blockNumber] * 1000 : null;
-            });
-            // مرتب‌سازی بر اساس تاریخ (جدیدترین اول)
-            reports.sort((a, b) => b.blockNumber - a.blockNumber);
-            return reports;
-        } catch (error) {
-            console.error('Error fetching reports:', error);
-            // در صورت خطا، گزارش خالی برگردان
-            return [];
-        }
-    }
-    
-    // تابع نمایش گزارشات
-    function displayReports(reports) {
-        const reportsContainer = document.getElementById('reports-container');
-        if (!reportsContainer) {
-            console.error('❌ reports-container پیدا نشد!');
-            return;
-        }
-        
-        // نمایش همه گزارشات بدون فیلتر
-        if (reports.length === 0) {
-            reportsContainer.innerHTML = `
-                <div class="no-reports">
-                    <p>هیچ گزارشی یافت نشد.</p>
-                    <p>برای مشاهده گزارشات، ابتدا فعالیتی در پلتفرم انجام دهید.</p>
-                </div>
-            `;
-            return;
-        }
-    
-        const reportsHTML = reports.map(report => {
-            const { type, title, amount, timestamp, blockNumber, address, usdcAmount, desc, token, date, referrer } = report;
-            return `
-                <div class="report-item">
-                    <div class="report-header">
-                        <div class="report-type">${getReportIcon(type)} ${desc || title || type}</div>
-                        <div class="report-time" style="font-size:0.95em;color:#a786ff;">${date || formatDate(timestamp)}</div>
-                    </div>
-                    <div class="report-details">
-                        ${address ? `<div class="report-details-row"><span class="report-details-label">آدرس:</span><span class="report-details-value"><a href="https://polygonscan.com/address/${address}" target="_blank" style="color:#a786ff;text-decoration:underline;">${shortenAddress(address)}</a></span></div>` : ''}
-                        ${referrer ? `<div class="report-details-row"><span class="report-details-label">معرف:</span><span class="report-details-value">${shortenAddress(referrer)}</span></div>` : ''}
-                        <div class="report-details-row"><span class="report-details-label">مقدار:</span><span class="report-details-value">${amount} ${token || ''}</span></div>
-                        ${usdcAmount ? `<div class="report-details-row"><span class="report-details-label">USDC:</span><span class="report-details-value">${Number(usdcAmount).toLocaleString('en-US', {maximumFractionDigits: 2})} USDC</span></div>` : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        reportsContainer.innerHTML = reportsHTML;
-    }
+    // Activated
+    let ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.Activated(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('activated', 'فعال‌سازی', formatNumber(e.args.amountCPA, 18) + ' CPA', e, e.args.user); });
+    console.log('Activated events:', ev.length);
+    // PurchaseKind
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.PurchaseKind(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('purchase', 'خرید', formatNumber(e.args.amountCPA, 18) + ' CPA', e, e.args.user); });
+    console.log('PurchaseKind events:', ev.length);
+    // TokensBought
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.TokensBought(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('tokensbought', 'خرید توکن', `${formatNumber(e.args.usdcAmount, 6)} USDC → ${formatNumber(e.args.tokenAmount, 18)} CPA`, e, e.args.buyer); });
+    console.log('TokensBought events:', ev.length);
+    // TokensSold
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.TokensSold(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('tokenssold', 'فروش توکن', `${formatNumber(e.args.tokenAmount, 18)} CPA → ${formatNumber(e.args.usdcAmount, 6)} USDC`, e, e.args.seller); });
+    console.log('TokensSold events:', ev.length);
+    // BinaryPointsUpdated
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.BinaryPointsUpdated(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('binarypoints', 'به‌روزرسانی امتیاز باینری', `${formatNumber(e.args.newPoints, 18)} امتیاز (سقف: ${formatNumber(e.args.newCap, 18)})`, e, e.args.user); });
+    console.log('BinaryPointsUpdated events:', ev.length);
+    // BinaryRewardDistributed
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.BinaryRewardDistributed(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('binaryreward', 'دریافت پاداش باینری', `${formatNumber(e.args.claimerReward, 18)} CPA`, e, e.args.claimer); });
+    console.log('BinaryRewardDistributed events:', ev.length);
+    // BinaryPoolUpdated
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.BinaryPoolUpdated(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('binarypool', 'به‌روزرسانی استخر باینری', `${formatNumber(e.args.addedAmount, 18)} CPA (سایز جدید: ${formatNumber(e.args.newPoolSize, 18)})`, e, null); });
+    console.log('BinaryPoolUpdated events:', ev.length);
+    // TreeStructureUpdated
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.TreeStructureUpdated(), fromBlock, currentBlock);
+    ev.forEach(e => { let posLabel = e.args.position == 0 ? 'فرزند چپ' : e.args.position == 1 ? 'فرزند راست' : `موقعیت: ${e.args.position}`; pushReport('tree', 'تغییر ساختار شبکه', posLabel, e, e.args.user); });
+    console.log('TreeStructureUpdated events:', ev.length);
+    // Transfer
+    ev = await contractWithProvider.queryFilter(contractWithProvider.filters.Transfer(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('transfer', 'انتقال توکن', `${formatNumber(e.args.value, 18)} CPA`, e, e.args.from === userAddress ? e.args.to : e.args.from); });
+    console.log('Transfer events:', ev.length);
+    // Approval
+    ev = await contractWithProvider.queryFilter(contractWithProvider.filters.Approval(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('approval', 'تأییدیه انتقال', `${formatNumber(e.args.value, 18)} CPA`, e, e.args.owner === userAddress ? e.args.spender : e.args.owner); });
+    console.log('Approval events:', ev.length);
+    // IndexTransferred
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.IndexTransferred(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('indextransfer', 'انتقال ایندکس', `از ${shortenAddress(e.args.previousOwner)} به ${shortenAddress(e.args.newOwner)} (ایندکس: ${e.args.index})`, e, e.args.previousOwner === userAddress ? e.args.newOwner : e.args.previousOwner); });
+    console.log('IndexTransferred events:', ev.length);
+    // MonthlyRewardClaimed
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.MonthlyRewardClaimed(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('monthlyreward', 'دریافت پاداش ماهانه', `${formatNumber(e.args.reward, 18)} CPA (${e.args.monthsPassed} ماه)`, e, e.args.user); });
+    console.log('MonthlyRewardClaimed events:', ev.length);
+    // MonthlyRewardFailed
+    ev = await window.safeQueryEvents(contractWithProvider, contractWithProvider.filters.MonthlyRewardFailed(), fromBlock, currentBlock);
+    ev.forEach(e => { pushReport('monthlyfail', 'عدم موفقیت پاداش ماهانه', e.args.reason, e, e.args.user); });
+    console.log('MonthlyRewardFailed events:', ev.length);
+    // مرتب‌سازی بر اساس تاریخ (جدیدترین اول)
+    reports.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    return reports;
+};
 
-    // تابع دریافت آیکون برای نوع گزارش
-    function getReportIcon(type) {
-        const icons = {
-        'purchase': '🛒',
-        'registration': '📝',
-        'activation': '✅',
-        'trading': '💱',
-        'binary': '📊'
-        };
-    return icons[type] || '📄';
-    }
-    
-    // تابع بارگذاری گزارشات
-    async function loadReports(address) {
-    if (isReportsLoading) {
+// نمایش گزارشات دسته‌بندی شده
+window.loadReports = async function(address) {
+    const reportsContainer = document.getElementById('reports-list');
+    reportsContainer.innerHTML = '<div class="loading">در حال بارگذاری گزارشات...</div>';
+    const reports = await window.fetchReports(address);
+    if (!reports || reports.length === 0) {
+        reportsContainer.innerHTML = '<div class="no-reports">هیچ گزارشی برای شما یافت نشد.</div>';
         return;
     }
-    
-    isReportsLoading = true;
-    
-    try {
-        const reports = await window.getAllReports(address);
-        displayReports(reports);
-        
-        // تنظیم فیلترها
-        // setupFilters(); // حذف شد
-            
-        } catch (error) {
-        showReportsError("خطا در بارگذاری گزارشات");
-    } finally {
-        isReportsLoading = false;
+    // دسته‌بندی
+    const grouped = {};
+    reports.forEach(r => { if (!grouped[r.type]) grouped[r.type] = []; grouped[r.type].push(r); });
+    const typeOrder = [
+        'activated','purchase','tokensbought','tokenssold','binarypoints','binaryreward','binarypool','tree','transfer','approval','indextransfer','monthlyreward','monthlyfail'
+    ];
+    const typeTitles = {
+        activated: 'فعال‌سازی', purchase: 'خرید', tokensbought: 'خرید توکن', tokenssold: 'فروش توکن',
+        binarypoints: 'امتیاز باینری', binaryreward: 'پاداش باینری', binarypool: 'استخر باینری',
+        tree: 'ساختار شبکه', transfer: 'انتقال توکن', approval: 'تأییدیه انتقال',
+        indextransfer: 'انتقال ایندکس', monthlyreward: 'پاداش ماهانه', monthlyfail: 'خطاهای پاداش ماهانه'
+    };
+    // تابع نمایش بر اساس دسته انتخابی
+    async function renderReportsByType(selectedType) {
+        reportsContainer.innerHTML = '';
+        let typesToShow = typeOrder;
+        if (selectedType && selectedType !== 'all') typesToShow = [selectedType];
+        for (const type of typesToShow) {
+            if (grouped[type] && grouped[type].length > 0) {
+                const h = document.createElement('h3');
+                h.textContent = typeTitles[type] || type;
+                h.style.marginTop = '32px';
+                h.style.color = '#1976d2';
+                h.style.fontWeight = 'bold';
+                h.style.fontSize = '1.15em';
+                reportsContainer.appendChild(h);
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'event-group';
+                groupDiv.dataset.type = type;
+                reportsContainer.appendChild(groupDiv);
+                for (const report of grouped[type]) {
+                    const div = document.createElement('div');
+                    div.className = 'report-sentence';
+                    // جمله را به صورت async بساز
+                    const sentence = await getReportSentence(report);
+                    div.innerHTML = sentence;
+                    groupDiv.appendChild(div);
+                }
+            }
+        }
     }
-}
-
-// فراخوانی هنگام لود صفحه یا اتصال کیف پول:
-window.loadReports = loadReports;
-
-// تابع بررسی اتصال کیف پول
-async function checkConnection() {
-    try {
-        const { provider, address } = await connectWallet();
-        const network = await provider.getNetwork();
-        
-        return {
-            connected: true,
-            address,
-            network: network.name,
-            chainId: network.chainId
-        };
-    } catch (error) {
-        return {
-            connected: false,
-            error: error.message
+    // مقدار اولیه (همه دسته‌ها)
+    await renderReportsByType('all');
+    // لیسنر برای select
+    const select = document.getElementById('event-type-select');
+    if (select) {
+        select.onchange = function() {
+            renderReportsByType(this.value);
         };
     }
-}
+};
 
-// تابع نمایش پیغام خطا در صفحه گزارشات
-function showReportsError(message) {
-    const reportsContainer = document.getElementById('reports-container');
-    if (reportsContainer) {
-            reportsContainer.innerHTML = `
-            <div class="error-message">
-                <p>${message}</p>
-                </div>
-            `;
-            }
-        }
-    
-// تابع راه‌اندازی فیلترها حذف شد - همه گزارشات نمایش داده می‌شوند 
-
-// تبدیل تابع fetchReports به window.fetchReports
-window.fetchReports = async function(address) {
-    try {
-        const { contract, address: userAddress } = await connectWallet();
-        const provider = contract.runner && contract.runner.provider ? contract.runner.provider : contract.provider;
-        const reports = [];
-        const currentBlock = await window.retryRpcOperation(async () => {
-            return await contract.runner.provider.getBlockNumber();
-        });
-        // تعیین بازه جستجو بر اساس نوع دستگاه
-        const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
-        const blockWindow = isMobile ? 15000 : 30000;
-        const fromBlock = Math.max(0, currentBlock - blockWindow);
-        // Activated
-        let activatedEvents = [];
-        try {
-            activatedEvents = await window.safeQueryEvents(contract, contract.filters.Activated(), fromBlock, currentBlock);
-        } catch (e) {
-            console.warn('Failed to fetch Activated events:', e);
-            activatedEvents = [];
-        }
-        activatedEvents.forEach(event => {
-            if (event.args.user.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'registration',
-                    title: 'ثبت‌نام',
-                    amount: formatNumber(event.args.amountLvl || event.args.amountlvl, 18) + ' CPA',
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.user,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // PurchaseKind
-        let purchaseEvents = [];
-        try {
-            purchaseEvents = await window.safeQueryEvents(contract, contract.filters.PurchaseKind(), fromBlock, currentBlock);
-        } catch (e) {
-            console.warn('Failed to fetch PurchaseKind events:', e);
-            purchaseEvents = [];
-        }
-            purchaseEvents.forEach(event => {
-            if (event.args.user.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'purchase',
-                    title: 'خرید با USDC',
-                    amount: formatNumber(event.args.amountLvl || event.args.amountlvl, 18) + ' CPA',
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.user,
-                    logIndex: event.logIndex
-                });
-            }
-            });
-        // TokensBought
-        let buyEvents = [];
-        try {
-            buyEvents = await window.safeQueryEvents(contract, contract.filters.TokensBought(), fromBlock, currentBlock);
-        } catch (e) {}
-            buyEvents.forEach(event => {
-            if (event.args.buyer.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'trading',
-                    title: 'خرید با USDC',
-                    amount: `${formatNumber(event.args.maticAmount, 18)} POL → ${formatNumber(event.args.tokenAmount, 18)} CPA`,
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.buyer,
-                    logIndex: event.logIndex
-                });
-            }
-            });
-        // TokensSold
-        let sellEvents = [];
-        try {
-            sellEvents = await window.safeQueryEvents(contract, contract.filters.TokensSold(), fromBlock, currentBlock);
-        } catch (e) {}
-            sellEvents.forEach(event => {
-            if (event.args.seller.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'trading',
-                    title: 'فروش توکن',
-                    amount: `${formatNumber(event.args.tokenAmount, 18)} CPA → ${formatNumber(event.args.maticAmount, 18)} POL`,
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.seller,
-                    logIndex: event.logIndex
-                });
-            }
-            });
-        // BinaryPointsUpdated
-        let binaryEvents = [];
-        try {
-            binaryEvents = await window.safeQueryEvents(contract, contract.filters.BinaryPointsUpdated(), fromBlock, currentBlock);
-        } catch (e) {}
-            binaryEvents.forEach(event => {
-            if (event.args.user.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'binary',
-                    title: 'به‌روزرسانی امتیاز باینری',
-                    amount: `${formatNumber(event.args.newPoints, 18)} امتیاز (سقف: ${formatNumber(event.args.newCap, 18)})`,
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.user,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // BinaryRewardDistributed
-        let binaryRewardEvents = [];
-        try {
-            binaryRewardEvents = await window.safeQueryEvents(contract, contract.filters.BinaryRewardDistributed(), fromBlock, currentBlock);
-        } catch (e) {}
-        binaryRewardEvents.forEach(event => {
-            if (event.args.claimer.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'binary',
-                    title: 'دریافت پاداش باینری',
-                    amount: `${formatNumber(event.args.claimerReward, 18)} CPA`,
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.claimer,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // TreeStructureUpdated
-        let treeEvents = [];
-        try {
-            treeEvents = await window.safeQueryEvents(contract, contract.filters.TreeStructureUpdated(), fromBlock, currentBlock);
-        } catch (e) {}
-        treeEvents.forEach(event => {
-            if ([event.args.user, event.args.parent, event.args.referrer].map(a=>a.toLowerCase()).includes(userAddress.toLowerCase())) {
-                let posLabel = '';
-                if (event.args.position == 0) posLabel = 'فرزند سمت چپ ثبت شد';
-                else if (event.args.position == 1) posLabel = 'فرزند سمت راست ثبت شد';
-                else posLabel = `موقعیت: ${event.args.position}`;
-                reports.push({
-                    type: 'network',
-                    title: 'تغییر ساختار شبکه',
-                    amount: posLabel,
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.user,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // Transfer
-        let transferEvents = [];
-        try {
-            transferEvents = await contract.queryFilter(contract.filters.Transfer(), fromBlock, currentBlock);
-        } catch (e) {}
-        transferEvents.forEach(event => {
-            if ([event.args.from, event.args.to].map(a=>a.toLowerCase()).includes(userAddress.toLowerCase())) {
-                reports.push({
-                    type: 'transfer',
-                    title: 'انتقال توکن',
-                    amount: `${formatNumber(event.args.value, 18)} CPA`,
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.from === userAddress ? event.args.to : event.args.from,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // Approval
-        let approvalEvents = [];
-        try {
-            approvalEvents = await contract.queryFilter(contract.filters.Approval(), fromBlock, currentBlock);
-        } catch (e) {}
-        approvalEvents.forEach(event => {
-            if ([event.args.owner, event.args.spender].map(a=>a.toLowerCase()).includes(userAddress.toLowerCase())) {
-                reports.push({
-                    type: 'approval',
-                    title: 'تأییدیه انتقال',
-                    amount: `${formatNumber(event.args.value, 18)} CPA`,
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.owner === userAddress ? event.args.spender : event.args.owner,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // DirectMATICReceived
-        let directMaticEvents = [];
-        try {
-            directMaticEvents = await contract.queryFilter(contract.filters.DirectMATICReceived(), fromBlock, currentBlock);
-        } catch (e) {}
-        directMaticEvents.forEach(event => {
-            if (event.args.sender.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'deposit',
-                    title: 'واریز مستقیم MATIC',
-                    amount: `${formatNumber(event.args.amount, 18)} MATIC`,
-                    timestamp: event.blockNumber,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.sender,
-                    logIndex: event.logIndex
-                });
-            }
-            });
-        // MonthlyRewardClaimed
-        let monthlyClaimedEvents = [];
-        try {
-            monthlyClaimedEvents = await window.safeQueryEvents(contract, contract.filters.MonthlyRewardClaimed(), fromBlock, currentBlock);
-        } catch (e) {}
-        monthlyClaimedEvents.forEach(event => {
-            if (event.args.user.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'reward',
-                    title: 'دریافت پاداش ماهانه',
-                    amount: `${formatNumber(event.args.reward, 18)} CPA (${event.args.monthsPassed} ماه)` ,
-                    timestamp: event.args.timestamp ? Number(event.args.timestamp) * 1000 : null,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.user,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // MonthlyRewardFailed
-        let monthlyFailedEvents = [];
-        try {
-            monthlyFailedEvents = await window.safeQueryEvents(contract, contract.filters.MonthlyRewardFailed(), fromBlock, currentBlock);
-        } catch (e) {}
-        monthlyFailedEvents.forEach(event => {
-            if (event.args.user.toLowerCase() === userAddress.toLowerCase()) {
-                reports.push({
-                    type: 'reward',
-                    title: 'عدم موفقیت پاداش ماهانه',
-                    amount: event.args.reason,
-                    timestamp: event.args.timestamp ? Number(event.args.timestamp) * 1000 : null,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.user,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // BinaryPoolUpdated
-        let binaryPoolEvents = [];
-        try {
-            binaryPoolEvents = await window.safeQueryEvents(contract, contract.filters.BinaryPoolUpdated(), fromBlock, currentBlock);
-        } catch (e) {}
-        binaryPoolEvents.forEach(event => {
-            reports.push({
-                type: 'binary',
-                title: 'به‌روزرسانی استخر باینری',
-                amount: `${formatNumber(event.args.addedAmount, 18)} CPA به استخر افزوده شد (سایز جدید: ${formatNumber(event.args.newPoolSize, 18)})`,
-                timestamp: event.args.timestamp ? Number(event.args.timestamp) * 1000 : null,
-                transactionHash: event.transactionHash,
-                blockNumber: event.blockNumber,
-                address: null,
-                logIndex: event.logIndex
-            });
-        });
-        // IndexTransferred
-        let indexTransferredEvents = [];
-        try {
-            indexTransferredEvents = await window.safeQueryEvents(contract, contract.filters.IndexTransferred(), fromBlock, currentBlock);
-        } catch (e) {}
-        indexTransferredEvents.forEach(event => {
-            if ([event.args.previousOwner, event.args.newOwner].map(a=>a.toLowerCase()).includes(userAddress.toLowerCase())) {
-                reports.push({
-                    type: 'transfer',
-                    title: 'انتقال ایندکس',
-                    amount: `از ${shortenAddress(event.args.previousOwner)} به ${shortenAddress(event.args.newOwner)} (ایندکس: ${event.args.index})`,
-                    timestamp: event.args.timestamp ? Number(event.args.timestamp) * 1000 : null,
-                    transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber,
-                    address: event.args.previousOwner === userAddress ? event.args.newOwner : event.args.previousOwner,
-                    logIndex: event.logIndex
-                });
-            }
-        });
-        // After collecting all events into reports array, fetch timestamps for each unique blockNumber
-        const blockNumbers = [...new Set(reports.map(r => r.blockNumber))];
-        const blockTimestamps = {};
-        // گرفتن timestamp هر بلاک به صورت موازی (به جای حلقه for)
-        await Promise.all(blockNumbers.map(async (bn) => {
-            try {
-                const block = await provider.getBlock(bn);
-                blockTimestamps[bn] = block.timestamp;
-            } catch (e) {
-                blockTimestamps[bn] = null;
-            }
-        }));
-        // Assign real timestamp to each report
-        reports.forEach(r => {
-            r.timestamp = blockTimestamps[r.blockNumber] ? blockTimestamps[r.blockNumber] * 1000 : null;
-        });
-        // مرتب‌سازی بر اساس تاریخ (جدیدترین اول)
-        reports.sort((a, b) => b.blockNumber - a.blockNumber);
-        return reports;
-    } catch (e) {
-        console.error('خطا در دریافت گزارشات:', e);
-        return [];
+// جمله فارسی برای هر ایونت
+async function getReportSentence(report) {
+    const time = report.timestamp ? `<span class='report-time'>${formatDate(report.timestamp)}</span>` : '';
+    // نمایش آدرس به صورت ایندکس یا قرارداد یا کوتاه‌شده
+    let addrPromise = '';
+    if (report.address && window.contractConfig && window.contractConfig.contract) {
+        addrPromise = displayAddress(report.address, window.contractConfig.contract, window.contractConfig.CONTRACT_ADDRESS);
+    } else {
+        addrPromise = Promise.resolve(shortenAddress(report.address));
+    }
+    // چون displayAddress async است، باید جمله را async بسازیم
+    // پس getReportSentence باید async شود و در loadReports await شود
+    switch (report.type) {
+        case 'activated': return `${time} شما فعال شدید و ${report.amount} دریافت کردید.`;
+        case 'purchase': return `${time} شما ${report.amount} خریداری کردید.`;
+        case 'tokensbought': return `${time} شما ${report.amount} خریدید.`;
+        case 'tokenssold': return `${time} شما ${report.amount} فروختید.`;
+        case 'binarypoints': return `${time} امتیاز باینری شما به ${report.amount} تغییر یافت.`;
+        case 'binaryreward': return `${time} شما پاداش باینری به مقدار ${report.amount} دریافت کردید.`;
+        case 'binarypool': return `${time} ${report.amount}`;
+        case 'tree': return `${time} ${report.amount}`;
+        case 'transfer': return addrPromise.then(addr => `${time} انتقال توکن انجام شد. آدرس مقابل: <span class='wallet-address'>${addr}</span> مقدار: ${report.amount}`);
+        case 'approval': return addrPromise.then(addr => `${time} شما مجوز انتقال ${report.amount} را صادر کردید. آدرس مقابل: <span class='wallet-address'>${addr}</span>`);
+        case 'indextransfer': return `${time} انتقال ایندکس ${report.amount}`;
+        case 'monthlyreward': return `${time} شما پاداش ماهانه به مقدار ${report.amount} دریافت کردید.`;
+        case 'monthlyfail': return `${time} تلاش برای دریافت پاداش ماهانه ناموفق بود: ${report.amount}`;
+        default: return `${time} ${report.title || 'رویداد'}: ${report.amount}`;
     }
 } 
