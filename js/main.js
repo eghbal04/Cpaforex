@@ -763,29 +763,34 @@ window.showWelcomeRegistrationPrompt = async function() {
         if (hasShownWelcome) return;
         
         // دریافت قیمت ثبت‌نام
-        let registrationPrice = '100';
+        let registrationPrice = null;
         try {
             if (window.contractConfig && window.contractConfig.contract) {
                 const price = await window.getRegPrice(window.contractConfig.contract);
                 registrationPrice = parseFloat(ethers.formatUnits(price, 18)).toFixed(0);
             }
         } catch (e) {
-            console.log('Using default registration price');
+            registrationPrice = null;
         }
         
         // دریافت قیمت فعلی CPA
-        let cpaPriceUSD = '0.000001';
+        let cpaPriceUSD = null;
         try {
             if (window.contractConfig && window.contractConfig.contract) {
                 const price = await window.contractConfig.contract.getTokenPrice();
                 cpaPriceUSD = parseFloat(ethers.formatUnits(price, 18)).toFixed(6);
             }
         } catch (e) {
-            console.log('Using default CPA price');
+            cpaPriceUSD = null;
         }
         
         // محاسبه ارزش دلاری ثبت‌نام
-        const registrationValueUSD = (parseFloat(registrationPrice) * parseFloat(cpaPriceUSD)).toFixed(6);
+        let registrationValueUSD = '';
+        if (registrationPrice && cpaPriceUSD) {
+            registrationValueUSD = (parseFloat(registrationPrice) * parseFloat(cpaPriceUSD)).toFixed(6);
+        } else {
+            registrationValueUSD = 'در حال دریافت...';
+        }
         
         // ایجاد پیام خوشامدگویی
         const welcomeModal = document.createElement('div');
@@ -911,7 +916,7 @@ window.showWelcomeRegistrationPrompt = async function() {
                         font-size: 0.9rem;
                         line-height: 1.4;
                     ">
-                        💡 قیمت فعلی CPA: $${cpaPriceUSD} USDC
+                        💡 قیمت فعلی CPA: $${cpaPriceUSD ? cpaPriceUSD : 'در حال دریافت...'} USDC
                     </div>
                 </div>
                 

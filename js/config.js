@@ -4894,12 +4894,14 @@ window.registerNewUserWithReferrer = async function(referrerAddress, newUserAddr
             } else if (typeof contract.regPrice === 'function') {
                 regPrice = await contract.regPrice();
             } else {
-                // اگر تابع نبود، از مقدار ثابت استفاده کن
-                regPrice = ethers.parseUnits('100', 18);
+                if (statusElement) statusElement.textContent = 'قیمت ثبت‌نام قابل دریافت نیست.';
+                showErrorMessage('REGISTRATION', 'NO_REG_PRICE');
+                return false;
             }
         } catch (e) {
-            console.log('Using default registration price');
-            regPrice = ethers.parseUnits('100', 18);
+            if (statusElement) statusElement.textContent = 'قیمت ثبت‌نام قابل دریافت نیست.';
+            showErrorMessage('REGISTRATION', 'NO_REG_PRICE');
+            return false;
         }
         
         if (userBalance < regPrice) {
