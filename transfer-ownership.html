@@ -75,10 +75,6 @@
         <label for="newOwnerAddress">آدرس مالک جدید</label>
         <input type="text" id="newOwnerAddress" placeholder="مثال: 0x..." autocomplete="off" required>
       </div>
-      <div class="form-group">
-        <label for="regPrice">هزینه ثبت‌نام (CPA)</label>
-        <span id="regPrice" style="display:inline-block;min-width:80px;font-weight:bold;color:#4a148c;">...</span>
-      </div>
       <button type="submit" id="transferOwnershipBtn">انتقال مالکیت</button>
       <div class="status" id="transferOwnershipStatus"></div>
     </form>
@@ -141,22 +137,6 @@
       statusEl.className = 'status';
       transferIndexOwnership(newOwner, statusEl, btn);
     });
-
-    // نمایش قیمت ثبت‌نام از قرارداد
-    async function showRegPrice() {
-      const regPriceEl = document.getElementById('regPrice');
-      if (!window.contractConfig || !window.contractConfig.contract || typeof window.contractConfig.contract.getRegPrice !== 'function') {
-        regPriceEl.textContent = '...';
-        return;
-      }
-      try {
-        const price = await window.contractConfig.contract.getRegPrice();
-        regPriceEl.textContent = ethers.formatUnits(price, 18);
-      } catch (e) {
-        regPriceEl.textContent = 'خطا';
-      }
-    }
-    document.addEventListener('DOMContentLoaded', showRegPrice);
   </script>
   <script src="js/navbar.js"></script>
   <script src="js/main.js"></script>

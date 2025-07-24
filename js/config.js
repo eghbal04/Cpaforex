@@ -4093,9 +4093,10 @@ window.updateDashboardStats = async function() {
       const el = document.getElementById(id);
       if (el) {
         el.innerText = value;
-        console.log(`✅ Updated ${id}: ${value}`);
+        // console.log(`✅ Updated ${id}: ${value}`);
       } else {
-        console.warn(`⚠️ Element with id '${id}' not found`);
+        // هشدار را سایلنت کن و هیچ لاگی نمایش نده
+        // console.warn(`⚠️ Element with id '${id}' not found`);
       }
     };
 
@@ -4967,10 +4968,13 @@ window.getAllReports = async function(address) {
 };
 // ... existing code ...
 
-document.getElementById('search-index-btn').onclick = async function() {
-  const index = document.getElementById('index').value.trim();
-  // ...
-  const refAddr = await contract.indexToAddress(index);
-  document.getElementById('referrer-address').value = refAddr;
-  // ...
-};
+var searchIndexBtn = document.getElementById('search-index-btn');
+if (searchIndexBtn) {
+  searchIndexBtn.onclick = async function() {
+    const index = document.getElementById('index').value.trim();
+    // ...
+    const refAddr = await contract.indexToAddress(index);
+    document.getElementById('referrer-address').value = refAddr;
+    // ...
+  };
+}
