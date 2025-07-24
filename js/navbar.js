@@ -304,6 +304,7 @@
       <a href="register.html" class="cpa-navbar-link">📝 ثبت‌نام</a>
       <a href="reports.html" class="cpa-navbar-link">📊 گزارش</a>
       <a href="profile.html" class="cpa-navbar-link"><span style="font-size:1.1em;vertical-align:middle;">👤</span> پروفایل</a>
+      <a href="transfer-ownership.html" class="cpa-navbar-link">�� انتقال مالکیت</a>
     </div>
     <div class="cpa-navbar-mobile-menu" id="navbar-mobile-menu" style="display:none;">
       <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
@@ -317,6 +318,7 @@
       <a href="register.html" class="cpa-navbar-link">📝 ثبت‌نام</a>
       <a href="reports.html" class="cpa-navbar-link">📊 گزارش</a>
       <a href="profile.html" class="cpa-navbar-link"><span style="font-size:1.1em;vertical-align:middle;">👤</span> پروفایل</a>
+      <a href="transfer-ownership.html" class="cpa-navbar-link">�� انتقال مالکیت</a>
     </div>
   `;
   // Insert at the top of the body
@@ -329,7 +331,7 @@
   // افزودن یا اصلاح لینک پروفایل در نوار بالا
   window.addEventListener('DOMContentLoaded', function() {
     // اگر دکمه پروفایل وجود دارد، href آن را اصلاح کن
-    var navProfile = document.querySelector('.cpa-navbar-link.profile, .cpa-navbar-link[data-profile], .cpa-navbar-link[href*="profile"], .cpa-navbar-link:contains("پروفایل")');
+    var navProfile = document.querySelector('.cpa-navbar-link.profile, .cpa-navbar-link[data-profile], .cpa-navbar-link[href*="profile"]');
     if (navProfile) {
       navProfile.setAttribute('href', 'profile.html');
       navProfile.setAttribute('target', '_self');

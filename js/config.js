@@ -2436,65 +2436,17 @@ async function requestAccountsWithDeduplication() {
 
 async function performWeb3Initialization() {
     try {
-        if (typeof window.ethereum === 'undefined') {
-            throw new Error('MetaMask not detected');
-        }
-        
-        // بررسی شبکه Polygon
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        if (chainId !== '0x89') {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x89' }]
-                });
-            } catch (switchError) {
-                if (switchError.code === 4902) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-               
-				        params: [{
-                            chainId: '0x89',
-                            chainName: 'Polygon',
-                            nativeCurrency: {
-                                name: 'POL',
-                                symbol: 'POL',
-                                decimals: 18
-                            },
-                            rpcUrls: ['https://polygon-rpc.com/'],
-                            blockExplorerUrls: ['https://polygonscan.com/']
-                        }]
-                    });
-                } else {
-                    throw switchError;
-                }
-            }
-        }
-        
-        const provider = new ethers.BrowserProvider(window.ethereum, {
-            name: 'Polygon',
-            chainId: 137
-        });
-        
-        // تنظیم timeout و retry برای provider - فقط اگر connection موجود باشد
-        if (provider.connection) {
-            provider.connection.timeout = 30000; // 30 ثانیه timeout
-        }
-        
+        const provider = new ethers.BrowserProvider(window.ethereum);
         let signer;
-        
-        // بررسی وضعیت اتصال فعلی
         const accounts = await window.ethereum.request({ method: 'eth_accounts' });
         if (accounts && accounts.length > 0) {
             signer = await provider.getSigner();
         } else {
-            // Use deduplicated request for eth_requestAccounts
             try {
                 await requestAccountsWithDeduplication();
                 signer = await provider.getSigner();
             } catch (permissionError) {
                 if (permissionError.code === -32002) {
-                    // Wait for user to approve in another tab/window
                     await new Promise(resolve => {
                         const checkInterval = setInterval(async () => {
                             try {
@@ -2503,18 +2455,13 @@ async function performWeb3Initialization() {
                                     clearInterval(checkInterval);
                                     resolve();
                                 }
-                            } catch (error) {
-                                // ادامه انتظار
-                            }
-                        }, 2000); // افزایش فاصله زمانی
-                        
+                            } catch (error) {}
+                        }, 2000);
                         setTimeout(() => {
                             clearInterval(checkInterval);
                             resolve();
-                        }, 15000); // کاهش زمان انتظار
+                        }, 15000);
                     });
-                    
-                    // تلاش مجدد
                     const retryAccounts = await window.ethereum.request({ method: 'eth_accounts' });
                     if (retryAccounts && retryAccounts.length > 0) {
                         signer = await provider.getSigner();
@@ -2526,13 +2473,12 @@ async function performWeb3Initialization() {
                 }
             }
         }
-        
+
+        // این بخش را اضافه کنید:
         const contract = new ethers.Contract(CONTRACT_ADDRESS, LEVELUP_ABI, signer);
-        
         const address = await signer.getAddress();
-        
         const network = await provider.getNetwork();
-        
+
         const connectionData = {
             provider: provider,
             signer: signer,
@@ -2540,30 +2486,30 @@ async function performWeb3Initialization() {
             address: address,
             initializeWeb3: initializeWeb3
         };
-        
+
         window.contractConfig = {
             ...window.contractConfig,
             ...connectionData
         };
-        
+
         // Cache the connection
         connectionCache = connectionData;
-        
+
         return window.contractConfig;
-        
+
     } catch (error) {
         console.error('خطا در راه‌اندازی Web3:', error);
-        
+
         if (window.contractConfig) {
             window.contractConfig.provider = null;
             window.contractConfig.signer = null;
             window.contractConfig.contract = null;
             window.contractConfig.address = null;
         }
-        
+
         // Clear cache on error
         connectionCache = null;
-        
+
         throw error;
     }
 }
@@ -2627,9 +2573,7 @@ window.contractConfig = {
     initializeWeb3: initializeWeb3
 };
 
-// ===== توابع مرکزی برای استفاده در همه فایل‌ها =====
 
-// Add debounce mechanism for wallet operations
 const debounceTimers = new Map();
 
 function debounce(key, func, delay = 1000) {
@@ -3822,14 +3766,7 @@ window.showPriceHistoryStats = function() {
   }
 })();
 
-// --- Lottery Config ---
-window.LOTTERY_CONFIG = {
-  tokenAddress: CONTRACT_ADDRESS,
-  lotteryAddress: CONTRACT_LOTARY,
-  tokenAbi: LEVELUP_ABI,
-  ticketPrice: 1,
-  maxTicketsPerUser: 5
-};
+
 
 // تابع مدیریت خطاهای RPC
 window.handleRpcError = function(error, operation = 'unknown') {
@@ -4059,9 +3996,6 @@ window.handleWalletConnectionError = function(error) {
         retryDelay: 3000
     };
 };
-
-
-
 
 
 // Event listener برای پاکسازی intervals هنگام خروج از صفحه
@@ -4408,9 +4342,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-
-
-
 // Example for all assignments:
 const elChartLvlUsd = document.getElementById('chart-lvl-usd');
 if (elChartLvlUsd) elChartLvlUsd.textContent = '';
@@ -4418,11 +4349,7 @@ const elChartLvlUsdChange = document.getElementById('chart-lvl-usd-change');
 if (elChartLvlUsdChange) elChartLvlUsdChange.textContent = '';
 const elPriceChartLastUpdate = document.getElementById('price-chart-last-update');
 if (elPriceChartLastUpdate) elChartLvlUsdChange.textContent = '';
-// ... repeat for all similar assignments ...
-// For removed elements, comment out or remove the line:
-// const elRemoved = document.getElementById('removed-id');
-// if (elRemoved) elRemoved.textContent = '';
-// ... existing code ...
+
 
 async function updatePriceChart() {
     try {
@@ -4588,7 +4515,6 @@ if (!window._dashboardIntervalSet) {
 }
 
 
-// ... existing code ...
 
 // تابع global برای دریافت قیمت ثبت‌نام از قرارداد
 window.getRegPrice = async function(contract) {
@@ -4604,11 +4530,10 @@ window.getRegPrice = async function(contract) {
     if (typeof contract.getRegPrice === 'function') {
       return await contract.getRegPrice();
     } else {
-      // fallback value
-      return ethers.parseUnits('100', 18);
+      return undefined;
     }
   } catch (e) {
-    return ethers.parseUnits('100', 18);
+    return undefined;
   }
 };
 // ... existing code ...
@@ -5028,7 +4953,6 @@ window.registerNewUserWithReferrer = async function(referrerAddress, newUserAddr
     }
 };
 
-// ... existing code ...
 
 // تابع مرکزی برای گرفتن همه گزارشات
 window.getAllReports = async function(address) {
