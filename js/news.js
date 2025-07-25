@@ -130,6 +130,58 @@ const localNews = [
     }
 ];
 
+// --- دریافت پروژه‌های Premint (NFT) از RSS ---
+async function fetchPremintRss() {
+    try {
+        const rssUrl = 'https://www.premint.xyz/feed/';
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`);
+        const data = await response.json();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data.contents, 'text/xml');
+        const items = Array.from(xml.querySelectorAll('item'));
+        return items.map((item, idx) => ({
+            id: 'premint-' + idx + '-' + (item.querySelector('guid')?.textContent || item.querySelector('link')?.textContent),
+            title: (item.querySelector('title')?.textContent || 'پروژه Premint جدید'),
+            content: (item.querySelector('description')?.textContent || ''),
+            url: (item.querySelector('link')?.textContent || '#'),
+            image: 'https://via.placeholder.com/300x200/232946/00ff88?text=Premint',
+            category: 'nft',
+            date: new Date(item.querySelector('pubDate')?.textContent || Date.now()),
+            source: 'Premint.xyz',
+            tags: ['NFT', 'Premint', 'FreeMint', 'Airdrop']
+        }));
+    } catch (error) {
+        console.error('خطا در دریافت پروژه‌های Premint:', error);
+        return [];
+    }
+}
+
+// --- دریافت ایردراپ‌ها از RSS (نمونه: airdrops.io) ---
+async function fetchAirdropRss() {
+    try {
+        const rssUrl = 'https://airdrops.io/feed/';
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`);
+        const data = await response.json();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data.contents, 'text/xml');
+        const items = Array.from(xml.querySelectorAll('item'));
+        return items.map((item, idx) => ({
+            id: 'airdrop-' + idx + '-' + (item.querySelector('guid')?.textContent || item.querySelector('link')?.textContent),
+            title: (item.querySelector('title')?.textContent || 'ایردراپ جدید'),
+            content: (item.querySelector('description')?.textContent || ''),
+            url: (item.querySelector('link')?.textContent || '#'),
+            image: 'https://via.placeholder.com/300x200/232946/ff9500?text=Airdrop',
+            category: 'airdrop',
+            date: new Date(item.querySelector('pubDate')?.textContent || Date.now()),
+            source: 'Airdrops.io',
+            tags: ['Airdrop', 'Crypto', 'Token', 'NFT']
+        }));
+    } catch (error) {
+        console.error('خطا در دریافت ایردراپ‌ها:', error);
+        return [];
+    }
+}
+
 // تابع اصلی بارگذاری اخبار
 async function loadNews() {
     try {
@@ -167,6 +219,25 @@ async function loadNews() {
         } catch (error) {
             console.log('خطا در دریافت اخبار فارکس:', error);
             // در صورت خطا، اخبار محلی اضافه نکن - فقط پیام خطا نمایش بده
+        }
+        
+        // --- افزودن پروژه‌های Premint (NFT) ---
+        try {
+            const premintNews = await fetchPremintRss();
+            if (premintNews && premintNews.length > 0) {
+                allNews = [...premintNews, ...allNews];
+            }
+        } catch (error) {
+            console.log('خطا در دریافت Premint:', error);
+        }
+        // --- افزودن ایردراپ‌ها ---
+        try {
+            const airdropNews = await fetchAirdropRss();
+            if (airdropNews && airdropNews.length > 0) {
+                allNews = [...airdropNews, ...allNews];
+            }
+        } catch (error) {
+            console.log('خطا در دریافت Airdrop:', error);
         }
         
         // مرتب‌سازی بر اساس تاریخ
@@ -466,7 +537,9 @@ function getCategoryEmoji(category) {
         'platform': '🏢',
         'education': '📚',
         'events': '🎉',
-        'general': '📰'
+        'general': '📰',
+        'nft': '🎨',
+        'airdrop': '🎁'
     };
     return emojis[category] || '📰';
 }
@@ -480,7 +553,9 @@ function getCategoryName(category) {
         'platform': 'پلتفرم',
         'education': 'آموزش',
         'events': 'رویدادها',
-        'general': 'عمومی'
+        'general': 'عمومی',
+        'nft': 'NFT',
+        'airdrop': 'ایردراپ'
     };
     return names[category] || 'عمومی';
 }

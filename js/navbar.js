@@ -40,8 +40,8 @@
     .cpa-navbar-links {
       display: flex;
       align-items: center;
-      gap: 0;
       justify-content: center;
+      gap: 1.2rem;
       width: 100%;
       padding: 0 1.2rem;
       box-sizing: border-box;
@@ -54,19 +54,21 @@
     .cpa-navbar-link {
       color: #fff;
       text-decoration: none;
-      font-size: 0.92rem;
+      font-size: 1.05rem;
       font-weight: 600;
-      padding: 0.22rem 0.7rem;
+      padding: 0.38rem 1.2rem;
       border: none;
       background: none;
-      transition: color 0.2s;
+      transition: color 0.2s, background 0.2s, box-shadow 0.2s;
       position: relative;
       display: flex;
       align-items: center;
       height: 100%;
-      min-width: 0;
-      flex-shrink: 1;
+      min-width: 110px;
+      flex-shrink: 0;
       justify-content: center;
+      border-radius: 10px;
+      margin: 0 0.1rem;
     }
     .cpa-navbar-link:first-child { margin-right: 0.5rem; }
     .cpa-navbar-link:last-child { margin-left: 0.5rem; }
@@ -75,12 +77,17 @@
       display: inline-block;
       width: 1px;
       height: 1.4em;
-      background: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.18);
       margin-right: 0.1rem;
       margin-left: 0.1rem;
       align-self: center;
     }
-    .cpa-navbar-link:hover { color: #00ff88; }
+    .cpa-navbar-link:hover, .cpa-navbar-link:focus {
+      color: #181c2a;
+      background: linear-gradient(90deg, #00ff88 60%, #a786ff 100%);
+      box-shadow: 0 2px 12px #00ff8840;
+      outline: none;
+    }
     /* Dropdown styles */
     .cpa-navbar-dropdown { position: relative; display: inline-block; }
     .cpa-navbar-dropdown-content {
@@ -130,16 +137,10 @@
       background: rgba(0,255,136,0.13);
       color: #00ff88;
     }
+    .cpa-navbar-hamburger {
+      display: none;
+    }
     @media (max-width: 700px) {
-      .cpa-navbar {
-        flex-direction: row;
-        justify-content: center;
-        padding: 0.2rem 0.1rem;
-        min-height: 44px;
-        backdrop-filter: blur(18px) saturate(180%);
-        -webkit-backdrop-filter: blur(18px) saturate(180%);
-      }
-      .cpa-navbar-links { display: none !important; }
       .cpa-navbar-hamburger {
         display: flex !important;
         position: fixed;
@@ -150,7 +151,17 @@
         margin: 0;
         background: rgba(24,28,42,0.7);
         box-shadow: 0 2px 8px #00ff8840;
+        z-index: 10002;
       }
+      .cpa-navbar {
+        flex-direction: row;
+        justify-content: center;
+        padding: 0.2rem 0.1rem;
+        min-height: 44px;
+        backdrop-filter: blur(18px) saturate(180%);
+        -webkit-backdrop-filter: blur(18px) saturate(180%);
+      }
+      .cpa-navbar-links { display: none !important; }
       .cpa-navbar-mobile-menu {
         display: none;
         flex-direction: column;
@@ -220,6 +231,56 @@
       from { transform: translateY(-40px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+    @media (min-width: 700px) {
+      .cpa-navbar {
+        flex-direction: row;
+        justify-content: center;
+        padding: 0.3rem 2.5vw;
+        min-height: 56px;
+      }
+      .cpa-navbar-links {
+        display: flex !important;
+        gap: 1.2rem;
+        justify-content: center;
+        align-items: center;
+        width: auto;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .cpa-navbar-links {
+        flex-direction: row;
+        gap: 2.5rem;
+      }
+      .cpa-navbar-group {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.2rem;
+        background: none;
+        padding: 0;
+        margin: 0 1.2rem;
+      }
+      .cpa-navbar-group-title {
+        color: #a786ff;
+        font-size: 0.98rem;
+        font-weight: bold;
+        margin-left: 1.1rem;
+        margin-right: 0.5rem;
+        letter-spacing: 0.5px;
+        opacity: 0.85;
+        display: inline-block;
+        min-width: 70px;
+      }
+      .cpa-navbar-actions .cpa-navbar-group-title {
+        color: #00ff88;
+      }
+      .cpa-navbar-link {
+        font-size: 1.05rem;
+        padding: 0.38rem 1.2rem;
+        min-width: 110px;
+        margin: 0 0.1rem;
+      }
+    }
   `;
   document.head.appendChild(style);
 
@@ -228,25 +289,29 @@
   navbar.innerHTML = `
     <button class="cpa-navbar-hamburger" id="navbar-hamburger" aria-label="باز کردن منو">☰</button>
     <div class="cpa-navbar-links">
-      <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
-      <a href="shop.html" class="cpa-navbar-link">آموزشگاه</a>
-      <a href="news.html" class="cpa-navbar-link">اخبار</a>
-      <a href="learning.html" class="cpa-navbar-link">آموزش</a>
-      <a href="professional-tree.html" class="cpa-navbar-link">شبکه</a>
-      <a href="about.html" class="cpa-navbar-link">درباره ما</a>
-      <a href="#" class="cpa-navbar-link" id="navbar-swap-link">🔄 تبدیل ارز</a>
-      <a href="#" class="cpa-navbar-link" id="navbar-transfer-link">💸 ترانسفر</a>
-      <a href="register.html" class="cpa-navbar-link">📝 ثبت‌نام</a>
-      <a href="reports.html" class="cpa-navbar-link">📊 گزارش</a>
-      <a href="profile.html" class="cpa-navbar-link"><span style="font-size:1.1em;vertical-align:middle;">👤</span> پروفایل</a>
-      <a href="transfer-ownership.html" class="cpa-navbar-link">🔑 انتقال مالکیت</a>
+      <div class="cpa-navbar-group cpa-navbar-quick">
+        <span class="cpa-navbar-group-title">دسترسی سریع</span>
+        <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
+        <a href="news.html" class="cpa-navbar-link">اخبار</a>
+        <a href="learning.html" class="cpa-navbar-link">آموزش</a>
+        <a href="professional-tree.html" class="cpa-navbar-link">شبکه</a>
+        <a href="about.html" class="cpa-navbar-link">درباره ما</a>
+      </div>
+      <div class="cpa-navbar-group cpa-navbar-actions">
+        <span class="cpa-navbar-group-title">عملیات</span>
+        <a href="#" class="cpa-navbar-link" id="navbar-swap-link">🔄 تبدیل ارز</a>
+        <a href="#" class="cpa-navbar-link" id="navbar-transfer-link">💸 ترانسفر</a>
+        <a href="register.html" class="cpa-navbar-link">📝 ثبت‌نام</a>
+        <a href="reports.html" class="cpa-navbar-link">📊 گزارش</a>
+        <a href="profile.html" class="cpa-navbar-link"><span style="font-size:1.1em;vertical-align:middle;">👤</span> پروفایل</a>
+        <a href="transfer-ownership.html" class="cpa-navbar-link">🔑 انتقال مالکیت</a>
+      </div>
     </div>
     <div class="cpa-navbar-mobile-menu" id="navbar-mobile-menu" style="display:none;">
       <button class="cpa-navbar-mobile-close" id="navbar-mobile-close" aria-label="بستن منو">✕</button>
       <div class="cpa-navbar-mobile-section">
         <div class="cpa-navbar-section-title">دسترسی سریع</div>
         <a href="index.html#main-dashboard" class="cpa-navbar-link">خانه</a>
-        <a href="shop.html" class="cpa-navbar-link">آموزشگاه</a>
         <a href="news.html" class="cpa-navbar-link">اخبار</a>
         <a href="learning.html" class="cpa-navbar-link">آموزش</a>
         <a href="professional-tree.html" class="cpa-navbar-link">شبکه</a>
