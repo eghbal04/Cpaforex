@@ -253,6 +253,8 @@
           </div>
           <!-- دکمه بروزرسانی حذف شد -->
         </div>
+        
+
       </div>
 
       <!-- Price Chart Section -->
@@ -578,6 +580,37 @@
     </div>
   </div>
 
+  <!-- Network Section -->
+  <div id="main-network" class="page-section expandable-container" style="width:100vw;max-width:none;margin:0;left:0;right:0;padding:0.5rem 0;display:none;">
+    <div class="expand-header">
+      <h2 style="color: #00ff88; margin: 0;">🌐 Network</h2>
+    </div>
+    <div class="expand-content">
+      <div class="network-container" style="max-width: 1200px; margin: 0 auto; padding: 1rem;">
+        <!-- Network Stats -->
+        <div id="network-stats" class="network-user-info-container"></div>
+        
+        <!-- Network Members List -->
+        <div id="network-tree">
+          <div style="color:#00ccff;text-align:center;padding:2rem;">
+            🔄 در حال بارگذاری درخت شبکه...
+            <br><br>
+            <button onclick="window.initializeNetworkTab()" style="
+              background: linear-gradient(135deg, #00ff88, #00cc66);
+              color: #232946;
+              border: none;
+              padding: 0.8rem 1.5rem;
+              border-radius: 8px;
+              font-weight: bold;
+              cursor: pointer;
+              margin-top: 1rem;
+            ">🔄 بارگذاری مجدد</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- نمایش وضعیت اتصال -->
   <div id="connection-status" style="
@@ -591,20 +624,26 @@
     text-align: center;
   "></div>
 
-  <!-- سایر اسکریپت‌ها -->
-  <script src="js/config.js"></script>
+      <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- سایر اسکریپت‌ها -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/price-charts-manager.js"></script>
+    <script src="js/config.js"></script>
   <script src="js/reports.js"></script>
   <script src="js/web3-interactions.js"></script>
   <script src="js/main.js"></script>
   <script src="js/network.js?v=5.7"></script>
+  <script src="js/network-database.js?v=5.8"></script>
   <script src="js/profile.js?v=5.7"></script>
   <script src="js/news.js?v=5.7"></script>
-  <script src="js/shop.js?v=5.7"></script>
   <script src="js/homepage.js?v=5.8"></script>
   <script src="js/price-history-manager.js?v=5.8"></script>
   <script src="js/price-chart.js?v=5.8"></script>
   <script src="js/point-chart.js?v=5.8"></script>
-  
+
   <style>
     /* Fix for chart width issues */
     #price-chart-section {
@@ -721,7 +760,6 @@
       transform: none;
     }
   </style>
-  <script src="js/register.js"></script>
   <script src="js/swap.js?v=5.7"></script>
   
 

@@ -38,19 +38,8 @@
       background: #181c2a;
     }
     .cpa-navbar-links {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1.2rem;
-      width: 100%;
-      padding: 0 1.2rem;
-      box-sizing: border-box;
-      overflow-x: auto;
-      white-space: nowrap;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      display: none !important;
     }
-    .cpa-navbar-links::-webkit-scrollbar { display: none; }
     .cpa-navbar-link {
       color: #fff;
       text-decoration: none;
@@ -138,21 +127,97 @@
       color: #00ff88;
     }
     .cpa-navbar-hamburger {
+      display: flex !important;
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      left: auto;
+      transform: none;
+      margin: 0;
+      background: rgba(24,28,42,0.7);
+      box-shadow: 0 2px 8px #00ff8840;
+      z-index: 10002;
+      border: none;
+      color: #00ff88;
+      font-size: 1.5rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .cpa-navbar-hamburger:hover {
+      background: rgba(0,255,136,0.2);
+      color: #fff;
+    }
+    .cpa-navbar-mobile-menu {
       display: none;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: auto;
+      width: 100vw;
+      min-height: 100vh;
+      background: rgba(35,41,70,0.95);
+      box-shadow: 0 8px 32px #00000033;
+      z-index: 10001;
+      padding: 5.5rem 0.7rem 2.2rem 0.7rem;
+      border-radius: 0 0 18px 18px;
+      animation: slideDownNav 0.3s;
+      overflow-y: auto;
+      max-height: 100vh;
+      align-items: center;
+      direction: rtl;
+      text-align: center;
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+    }
+    .cpa-navbar-mobile-menu .cpa-navbar-link {
+      font-size: 1.18rem;
+      padding: 1.1rem 0.7rem;
+      color: #fff;
+      border-radius: 12px;
+      margin: 0.2rem 0;
+      text-align: center;
+      flex-direction: row-reverse;
+      justify-content: center;
+      border: none;
+      background: none;
+      width: 100%;
+      transition: background 0.2s, color 0.2s;
+    }
+    .cpa-navbar-mobile-menu .cpa-navbar-link:hover {
+      background: rgba(0,255,136,0.13);
+      color: #00ff88;
+    }
+    .cpa-navbar-mobile-menu .cpa-navbar-section-title {
+      font-size: 1.05rem;
+      color: #a786ff;
+      font-weight: bold;
+      margin: 1.2rem 0 0.2rem 0;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    .cpa-navbar-mobile-close {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      font-size: 2.2rem;
+      color: #fff;
+      background: none;
+      border: none;
+      z-index: 10003;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .cpa-navbar-mobile-close:hover {
+      color: #00ff88;
+    }
+    @keyframes slideDownNav {
+      from { transform: translateY(-40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
     @media (max-width: 700px) {
-      .cpa-navbar-hamburger {
-        display: flex !important;
-        position: fixed;
-        top: 16px;
-        right: 16px;
-        left: auto;
-        transform: none;
-        margin: 0;
-        background: rgba(24,28,42,0.7);
-        box-shadow: 0 2px 8px #00ff8840;
-        z-index: 10002;
-      }
       .cpa-navbar {
         flex-direction: row;
         justify-content: center;
@@ -161,75 +226,6 @@
         backdrop-filter: blur(18px) saturate(180%);
         -webkit-backdrop-filter: blur(18px) saturate(180%);
       }
-      .cpa-navbar-links { display: none !important; }
-      .cpa-navbar-mobile-menu {
-        display: none;
-        flex-direction: column;
-        position: fixed;
-        top: 0;
-        right: 0;
-        left: auto;
-        width: 100vw;
-        min-height: 100vh;
-        background: rgba(35,41,70,0.95);
-        box-shadow: 0 8px 32px #00000033;
-        z-index: 10001;
-        padding: 5.5rem 0.7rem 2.2rem 0.7rem;
-        border-radius: 0 0 18px 18px;
-        animation: slideDownNav 0.3s;
-        overflow-y: auto;
-        max-height: 100vh;
-        align-items: center;
-        direction: rtl;
-        text-align: center;
-        backdrop-filter: blur(18px) saturate(180%);
-        -webkit-backdrop-filter: blur(18px) saturate(180%);
-      }
-      .cpa-navbar-mobile-menu .cpa-navbar-link {
-        font-size: 1.18rem;
-        padding: 1.1rem 0.7rem;
-        color: #fff;
-        border-radius: 12px;
-        margin: 0.2rem 0;
-        text-align: center;
-        flex-direction: row-reverse;
-        justify-content: center;
-        border: none;
-        background: none;
-        width: 100%;
-        transition: background 0.2s, color 0.2s;
-      }
-      .cpa-navbar-mobile-menu .cpa-navbar-link:hover {
-        background: rgba(0,255,136,0.13);
-        color: #00ff88;
-      }
-      .cpa-navbar-mobile-menu .cpa-navbar-section-title {
-        font-size: 1.05rem;
-        color: #a786ff;
-        font-weight: bold;
-        margin: 1.2rem 0 0.2rem 0;
-        letter-spacing: 0.5px;
-        text-align: center;
-      }
-      .cpa-navbar-mobile-close {
-        position: absolute;
-        top: 18px;
-        left: 18px;
-        font-size: 2.2rem;
-        color: #fff;
-        background: none;
-        border: none;
-        z-index: 10003;
-        cursor: pointer;
-        transition: color 0.2s;
-      }
-      .cpa-navbar-mobile-close:hover {
-        color: #00ff88;
-      }
-    }
-    @keyframes slideDownNav {
-      from { transform: translateY(-40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
     }
     @media (min-width: 700px) {
       .cpa-navbar {
@@ -238,47 +234,11 @@
         padding: 0.3rem 2.5vw;
         min-height: 56px;
       }
-      .cpa-navbar-links {
-        display: flex !important;
-        gap: 1.2rem;
-        justify-content: center;
-        align-items: center;
-        width: auto;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      .cpa-navbar-links {
-        flex-direction: row;
-        gap: 2.5rem;
-      }
-      .cpa-navbar-group {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 0.2rem;
-        background: none;
-        padding: 0;
-        margin: 0 1.2rem;
-      }
-      .cpa-navbar-group-title {
-        color: #a786ff;
-        font-size: 0.98rem;
-        font-weight: bold;
-        margin-left: 1.1rem;
-        margin-right: 0.5rem;
-        letter-spacing: 0.5px;
-        opacity: 0.85;
-        display: inline-block;
-        min-width: 70px;
-      }
-      .cpa-navbar-actions .cpa-navbar-group-title {
-        color: #00ff88;
-      }
-      .cpa-navbar-link {
-        font-size: 1.05rem;
-        padding: 0.38rem 1.2rem;
-        min-width: 110px;
-        margin: 0 0.1rem;
+      .cpa-navbar-hamburger {
+        top: 20px;
+        right: 20px;
+        font-size: 1.8rem;
+        padding: 0.6rem;
       }
     }
   `;

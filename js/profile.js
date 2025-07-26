@@ -10,7 +10,7 @@ async function loadUserProfileOnce() {
 // تابع انتظار برای اتصال کیف پول
 async function waitForWalletConnection() {
     let attempts = 0;
-    const maxAttempts = 30; // 30 ثانیه
+    const maxAttempts = 15; // کاهش به 15 ثانیه
     
     while (attempts < maxAttempts) {
         try {

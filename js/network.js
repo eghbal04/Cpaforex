@@ -26,11 +26,11 @@ function showUserPopup(address, user) {
       {icon:'✅', label:'امتیاز دریافت‌شده', val:user.binaryPointsClaimed},
       {icon:'🤝', label:'درآمد رفرال', val:user.refclimed ? Math.floor(Number(user.refclimed) / 1e18) : 0},
       {icon:'💰', label:'سپرده کل', val:user.depositedAmount ? Math.floor(Number(user.depositedAmount) / 1e18) : 0},
-      {icon:'🟢', label:'CPA', val:user.lvlBalance},
-      {icon:'🟣', label:'MATIC', val:user.maticBalance},
-      {icon:'💵', label:'USDC', val:user.usdcBalance},
-      {icon:'⬅️', label:'تعداد چپ', val:user.leftCount},
-      {icon:'➡️', label:'تعداد راست', val:user.rightCount}
+      {icon:'🟢', label:'CPA', val:'در حال بارگذاری...'},
+      {icon:'🟣', label:'MATIC', val:'در حال بارگذاری...'},
+      {icon:'💵', label:'USDC', val:'در حال بارگذاری...'},
+      {icon:'⬅️', label:'امتیاز چپ', val:user.leftPoints},
+      {icon:'➡️', label:'امتیاز راست', val:user.rightPoints}
     ];
     const popup = document.createElement('div');
     popup.id = 'user-popup';
@@ -72,30 +72,57 @@ function showUserPopup(address, user) {
         let cpa = '-', usdc = '-', matic = '-';
         try {
             const { contract, provider } = await window.connectWallet();
+            
+            // دریافت موجودی CPA
             if (contract && typeof contract.balanceOf === 'function') {
-                let cpaRaw = await contract.balanceOf(addr);
-                cpa = (typeof ethers !== 'undefined') ? Number(ethers.formatEther(cpaRaw)).toFixed(2) : (Number(cpaRaw)/1e18).toFixed(2);
+                try {
+                    let cpaRaw = await contract.balanceOf(addr);
+                    cpa = (typeof ethers !== 'undefined') ? Number(ethers.formatEther(cpaRaw)).toFixed(2) : (Number(cpaRaw)/1e18).toFixed(2);
+                } catch(e) {
+                    console.warn('خطا در دریافت موجودی CPA:', e);
+                }
             }
-            if (contract && typeof contract.usdcBalanceOf === 'function') {
-                let usdcRaw = await contract.usdcBalanceOf(addr);
-                usdc = (typeof ethers !== 'undefined') ? Number(ethers.formatUnits(usdcRaw,6)).toFixed(2) : (Number(usdcRaw)/1e6).toFixed(2);
+            
+            // دریافت موجودی USDC
+            try {
+                if (typeof USDC_ADDRESS !== 'undefined' && typeof USDC_ABI !== 'undefined') {
+                    const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider);
+                    let usdcRaw = await usdcContract.balanceOf(addr);
+                    usdc = (typeof ethers !== 'undefined') ? Number(ethers.formatUnits(usdcRaw, 6)).toFixed(2) : (Number(usdcRaw)/1e6).toFixed(2);
+                }
+            } catch(e) {
+                console.warn('خطا در دریافت موجودی USDC:', e);
             }
+            
+            // دریافت موجودی MATIC
             if (provider) {
-                let maticRaw = await provider.getBalance(addr);
-                matic = (typeof ethers !== 'undefined') ? Number(ethers.formatEther(maticRaw)).toFixed(3) : (Number(maticRaw)/1e18).toFixed(3);
+                try {
+                    let maticRaw = await provider.getBalance(addr);
+                    matic = (typeof ethers !== 'undefined') ? Number(ethers.formatEther(maticRaw)).toFixed(3) : (Number(maticRaw)/1e18).toFixed(3);
+                } catch(e) {
+                    console.warn('خطا در دریافت موجودی MATIC:', e);
+                }
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error('خطا در دریافت موجودی‌ها:', e);
+        }
         return {cpa, usdc, matic};
     }
 
     (async function() {
         const {cpa, usdc, matic} = await getLiveBalances(address);
-        const cpaEl = document.querySelector('.user-info-list .cpa-balance');
-        const usdcEl = document.querySelector('.user-info-list .usdc-balance');
-        const maticEl = document.querySelector('.user-info-list .matic-balance');
-        if (cpaEl) cpaEl.textContent = cpa;
-        if (usdcEl) usdcEl.textContent = usdc;
-        if (maticEl) maticEl.textContent = matic;
+        // به‌روزرسانی موجودی‌ها در لیست
+        const listItems = document.querySelectorAll('.user-info-list li');
+        listItems.forEach(item => {
+            const text = item.textContent;
+            if (text.includes('🟢 CPA:')) {
+                item.innerHTML = item.innerHTML.replace(/🟢 <b>CPA:<\/b> [^<]*/, `🟢 <b>CPA:</b> ${cpa}`);
+            } else if (text.includes('🟣 MATIC:')) {
+                item.innerHTML = item.innerHTML.replace(/🟣 <b>MATIC:<\/b> [^<]*/, `🟣 <b>MATIC:</b> ${matic}`);
+            } else if (text.includes('💵 USDC:')) {
+                item.innerHTML = item.innerHTML.replace(/💵 <b>USDC:<\/b> [^<]*/, `💵 <b>USDC:</b> ${usdc}`);
+            }
+        });
     })();
 }
 
@@ -191,6 +218,39 @@ async function renderVerticalNodeLazy(index, container, level = 0, autoExpand = 
             showUserPopup(address, user);
         });
         container.appendChild(nodeDiv);
+        
+        // ذخیره گره در دیتابیس
+        if (window.saveNetworkNode) {
+            try {
+                const nodeData = {
+                    index: index.toString(),
+                    address: address,
+                    cpaId: cpaId,
+                    level: level,
+                    hasDirects: hasDirects,
+                    leftActive: leftActive,
+                    rightActive: rightActive,
+                    userData: {
+                        activated: user.activated,
+                        binaryPoints: user.binaryPoints,
+                        binaryPointCap: user.binaryPointCap,
+                        totalMonthlyRewarded: user.totalMonthlyRewarded,
+                        binaryPointsClaimed: user.binaryPointsClaimed,
+                        refclimed: user.refclimed,
+                        depositedAmount: user.depositedAmount,
+                        lvlBalance: 'در حال بارگذاری...',
+                        maticBalance: 'در حال بارگذاری...',
+                        usdcBalance: 'در حال بارگذاری...',
+                        leftPoints: user.leftPoints,
+                        rightPoints: user.rightPoints
+                    }
+                };
+                await window.saveNetworkNode(nodeData);
+            } catch (error) {
+                console.warn('⚠️ خطا در ذخیره گره در دیتابیس:', error);
+            }
+        }
+        
         // div فرزندان (در ابتدا بسته یا باز بر اساس autoExpand)
         if (expandBtn) {
             childrenDiv = document.createElement('div');
@@ -398,6 +458,26 @@ function renderEmptyNodeVertical(index, container, level) {
         renderEmptyNode(index, container);
     };
     container.appendChild(emptyNode);
+    
+    // ذخیره گره خالی در دیتابیس
+    if (window.saveNetworkNode) {
+        try {
+            const nodeData = {
+                index: index.toString(),
+                address: null,
+                cpaId: null,
+                level: level,
+                hasDirects: false,
+                leftActive: false,
+                rightActive: false,
+                isEmpty: true,
+                userData: null
+            };
+            window.saveNetworkNode(nodeData);
+        } catch (error) {
+            console.warn('⚠️ خطا در ذخیره گره خالی در دیتابیس:', error);
+        }
+    }
 }
 // جایگزینی رندر اصلی درخت با مدل عمودی
 window.renderSimpleBinaryTree = async function() {
@@ -422,6 +502,17 @@ window.renderSimpleBinaryTree = async function() {
         }
         // در window.renderSimpleBinaryTree مقدار autoExpand فقط برای ریشه true باشد:
         await renderVerticalNodeLazy(BigInt(user.index), container, 0, true);
+        
+        // ذخیره درخت در دیتابیس بعد از رندر
+        if (window.saveCurrentNetworkTree) {
+            setTimeout(async () => {
+                try {
+                    await window.saveCurrentNetworkTree();
+                } catch (error) {
+                    console.warn('⚠️ خطا در ذخیره درخت در دیتابیس:', error);
+                }
+            }, 2000); // 2 ثانیه صبر کن تا رندر کامل شود
+        }
     } catch (error) {
         console.error('❌ Error rendering binary tree:', error);
         container.innerHTML = `<div style="color:#ff4444;text-align:center;padding:2rem;">❌ خطا در بارگذاری درخت شبکه<br><small style="color:#ccc;">${error.message}</small></div>`;
@@ -433,6 +524,9 @@ window.renderSimpleBinaryTree = async function() {
 if (typeof renderSimpleBinaryTree === 'function') {
     window.renderSimpleBinaryTree = renderSimpleBinaryTree;
 }
+
+// اضافه کردن تابع initializeNetworkTab به window
+// window.initializeNetworkTab = initializeNetworkTab; // این خط حذف شد چون تابع بعداً تعریف می‌شود
 
 // اضافه کردن event listener برای تب network
 document.addEventListener('DOMContentLoaded', function() {

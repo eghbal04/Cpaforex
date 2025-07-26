@@ -65,9 +65,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         set('dashboard-usdc-balance', Number(usdcBalance) / 1e6);
         set('contract-token-balance', Number(tokenBalance) / 1e18);
         set('dashboard-wallets-count', Number(wallets));
-        set('total-points', Math.floor(Number(totalPoints) / 1e18).toLocaleString('en-US'));
+        // set('total-points', Math.floor(Number(totalPoints) / 1e18).toLocaleString('en-US'));
+        // set('total-points', '-');
       } catch (e) {
-        set('total-points', '-');
+        // set('total-points', '-');
       }
     }
 
@@ -111,9 +112,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const totalPointsEl = document.getElementById('total-points');
     if (totalPointsEl && window.contractConfig && window.contractConfig.contract) {
       try {
-        const totalPoints = await window.contractConfig.contract.totalClaimableBinaryPoints();
-        totalPointsEl.textContent = Math.floor(Number(totalPoints) / 1e18).toLocaleString('en-US');
+        // استفاده از تابع totalClaimablePoints برای نمایش کل پوینت‌های باینری
+        const contract = window.contractConfig.contract;
+        const result = await contract.totalClaimablePoints();
+        // استفاده از ethers.formatUnits برای تبدیل صحیح BigInt به عدد
+        const totalPoints = parseInt(ethers.formatUnits(result, 0));
+        
+        totalPointsEl.textContent = totalPoints.toLocaleString('en-US');
+        console.log(`📊 کل پوینت‌های باینری: ${totalPoints.toLocaleString('en-US')}`);
+        
       } catch (e) {
+        console.warn('⚠️ خطا در دریافت پوینت‌های باینری:', e);
         totalPointsEl.textContent = '-';
       }
     }
@@ -640,7 +649,7 @@ window.testLockStatus = async function() {
         
         // Check tab lock status
         const lockedTabs = document.querySelectorAll('.locked-tab');
-        
+        const lockedMenuItems = document.querySelectorAll('.locked-menu-item') || [];
 
         return {
             profile: profile,
@@ -3345,3 +3354,34 @@ window.refreshWalletConnection = async function() {
         throw error;
     }
 };
+
+
+
+
+
+
+
+
+
+// تابع دریافت کل پوینت‌های باینری از قرارداد
+window.getTotalBinaryPoints = async function() {
+    try {
+        if (!window.contractConfig || !window.contractConfig.contract) {
+            console.error('❌ قرارداد متصل نیست');
+            return 0;
+        }
+        
+        const contract = window.contractConfig.contract;
+        const result = await contract.totalClaimablePoints();
+        // استفاده از ethers.formatUnits برای تبدیل صحیح BigInt به عدد
+        const totalPoints = parseInt(ethers.formatUnits(result, 0));
+        
+        console.log(`📊 کل پوینت‌های باینری: ${totalPoints.toLocaleString('en-US')}`);
+        return totalPoints;
+        
+    } catch (error) {
+        console.error('❌ خطا در دریافت پوینت‌های باینری:', error);
+        return 0;
+    }
+};
+

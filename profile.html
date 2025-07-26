@@ -87,6 +87,14 @@
             color: #a786ff;
         }
         .error-message { color: #ff4444; }
+        #copyProfileReferral:hover {
+            background: linear-gradient(90deg,#a786ff,#00ff88) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,255,136,0.3);
+        }
+        #copyProfileReferral:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -106,6 +114,7 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/profile.js"></script>
     <script>
     function formatDateTime(ts) {
         if (!ts || ts == 0) return '-';
@@ -200,6 +209,13 @@
                 <div class="profile-row"><span class="profile-label">کل پاداش ماهانه:</span><span class="profile-value">${user.totalMonthlyRewarded}</span></div>
                 <div class="profile-row"><span class="profile-label">پاداش رفرال:</span><span class="profile-value">${Number(user.refclimed.toString())/1e18|0}</span></div>
                 <div class="profile-row"><span class="profile-label">سپرده:</span><span class="profile-value">${Number(user.depositedAmount.toString())/1e18|0}</span></div>
+                <div class="profile-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                    <span class="profile-label">لینک رفرال:</span>
+                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; background: rgba(167,134,255,0.1); border-radius: 8px; padding: 12px; border: 1px solid #a786ff33;">
+                        <span class="profile-value" id="profile-referral-link" style="flex: 1; word-break: break-all; font-size: 0.9em;">${window.location.origin}/?ref=${address}</span>
+                        <button id="copyProfileReferral" style="background: linear-gradient(90deg,#00ff88,#a786ff); color: #181c2a; border: none; border-radius: 6px; padding: 8px 16px; font-size: 0.9em; cursor: pointer; font-weight: bold; white-space: nowrap; transition: all 0.2s;">کپی</button>
+                    </div>
+                </div>
             `;
             setTimeout(function() {
               const cashbackBtn = document.getElementById('monthly-cashback-btn');
@@ -324,6 +340,11 @@
                 }
               }
             }, 100);
+            
+            // راه‌اندازی دکمه کپی لینک رفرال
+            if (typeof setupReferralCopy === 'function') {
+                setupReferralCopy();
+            }
         } catch (e) {
             content.innerHTML = `<div class="error-message">خطا: ${e.message || e}</div>`;
         }

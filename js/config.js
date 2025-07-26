@@ -2686,9 +2686,9 @@ window.connectWallet = async function() {
                     window.contractConfig.address = null;
                 }
                 
-                // If this is not the last attempt, wait before retrying
+                // کاهش delay retry برای سرعت بیشتر
                 if (attempt < maxRetries) {
-                    await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1))); // Faster retry
                 }
             }
         }
@@ -3847,8 +3847,8 @@ window.retryRpcOperation = async function(operation, maxRetries = 3) {
             }
             
             if (errorType === 'wait') {
-                // Wait longer before retry
-                await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+                // کاهش زمان انتظار قبل از retry
+                await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
                 continue;
             }
             
@@ -3857,8 +3857,8 @@ window.retryRpcOperation = async function(operation, maxRetries = 3) {
                 throw error;
             }
             
-            // Default retry delay
-            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+            // کاهش delay retry برای سرعت بیشتر
+            await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
         }
     }
 };
@@ -4038,7 +4038,7 @@ async function refreshTotalSupply() {
 window.updateDashboardStats = async function() {
   // Prevent multiple simultaneous calls
   if (window._dashboardUpdateInProgress) {
-    console.log('⏳ Dashboard update already in progress, skipping...');
+    console.debug('⏳ Dashboard update already in progress, skipping...');
     return;
   }
   
@@ -4088,15 +4088,13 @@ window.updateDashboardStats = async function() {
       console.error('❌ Basic contract call failed:', e);
     }
 
-    // Helper function to safely update element
+    // Helper function to safely update element (حفظ مقدار قبلی)
     const safeUpdate = (id, value) => {
       const el = document.getElementById(id);
       if (el) {
-        el.innerText = value;
-        // console.log(`✅ Updated ${id}: ${value}`);
-      } else {
-        // هشدار را سایلنت کن و هیچ لاگی نمایش نده
-        // console.warn(`⚠️ Element with id '${id}' not found`);
+        if (value !== undefined && value !== null && value !== 'Error' && value !== 'در دسترس نیست') {
+          el.innerText = value;
+        } // اگر مقدار جدید معتبر نبود، مقدار قبلی را نگه دار
       }
     };
 
@@ -4114,10 +4112,10 @@ window.updateDashboardStats = async function() {
     try {
       console.log('📊 Fetching total supply...');
       
-      // Add timeout protection
+      // افزایش timeout از ۵ ثانیه به ۷ ثانیه
       const totalSupplyPromise = contract.totalSupply();
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Total supply fetch timeout')), 10000)
+        setTimeout(() => reject(new Error('Total supply fetch timeout')), 7000)
       );
       
       const totalSupply = await Promise.race([totalSupplyPromise, timeoutPromise]);
@@ -4132,14 +4130,15 @@ window.updateDashboardStats = async function() {
         code: e.code,
         stack: e.stack
       });
-      safeUpdate('circulating-supply', 'Error');
+      safeUpdate('circulating-supply', 'خطا در دریافت مقدار');
     }
 
     // TOTAL POINTS
     try {
       console.log('🎯 Fetching total points...');
-      const totalPoints = await contract.totalClaimableBinaryPoints();
-      const formattedPoints = parseFloat(ethers.formatUnits(totalPoints, 18)).toLocaleString('en-US', {maximumFractionDigits: 2});
+      const totalPoints = await contract.totalClaimablePoints();
+      // استفاده از ethers.formatUnits برای تبدیل صحیح BigInt به عدد
+      const formattedPoints = parseInt(ethers.formatUnits(totalPoints, 0)).toLocaleString('en-US');
       safeUpdate('total-points', formattedPoints);
       console.log('✅ Total points updated:', formattedPoints);
 
@@ -4329,7 +4328,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, 2000);
   
-  // Set up interval for blockchain info updates (every 30 seconds)
+  // Set up interval for blockchain info updates (every 5 seconds)
   if (!window._blockchainInfoIntervalSet) {
     setInterval(async () => {
       try {
@@ -4337,7 +4336,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (error) {
         console.error('❌ Error in scheduled update:', error);
       }
-    }, 30000); // 30 seconds
+    }, 5000); // 5 seconds
     window._blockchainInfoIntervalSet = true;
   }
 });
@@ -4385,7 +4384,7 @@ async function getContractUSDCBalance() {
 }
 
 // ... existing code ...
-// Returns the raw totalClaimableBinaryPoints value (BigInt)
+// Returns the raw totalClaimablePoints value (BigInt)
 async function getTotalClaimableBinaryPoints() {
   if (typeof ethers === 'undefined') throw new Error('ethers.js not loaded');
   const provider = (window.contractConfig && window.contractConfig.contract && window.contractConfig.contract.provider)
@@ -4395,13 +4394,14 @@ async function getTotalClaimableBinaryPoints() {
       : (window.ethereum ? new ethers.BrowserProvider(window.ethereum) : null);
   if (!provider) throw new Error('No provider');
   const contract = new ethers.Contract(CONTRACT_ADDRESS, LEVELUP_ABI, provider);
-  const pointsRaw = await contract.totalClaimableBinaryPoints();
+  const pointsRaw = await contract.totalClaimablePoints();
   return pointsRaw; // BigInt or string
 }
 // Returns the integer value (no decimals)
 async function getTotalClaimableBinaryPointsInteger() {
   const pointsRaw = await getTotalClaimableBinaryPoints();
-  return (BigInt(pointsRaw) / 10n ** 18n).toString();
+  // استفاده از ethers.formatUnits برای تبدیل صحیح BigInt به عدد
+  return parseInt(ethers.formatUnits(pointsRaw, 0)).toString();
 }
 // ... existing code ...
 
@@ -4444,7 +4444,7 @@ async function updateContractStats() {
     if (!provider) throw new Error('No provider');
     const contract = new ethers.Contract(CONTRACT_ADDRESS, LEVELUP_ABI, provider);
     // Total Points (integer, no decimals)
-    window.contractStats.totalPoints = (await contract.totalClaimableBinaryPoints()).toString();
+    window.contractStats.totalPoints = (await contract.totalClaimablePoints()).toString();
     // USDC Balance (calls helper)
     window.contractStats.usdcBalance = await getContractUSDCBalance();
     // Token Balance (calls helper)
