@@ -5,7 +5,7 @@
   "main": "index.html",
   "scripts": {
     "start": "servor --reload",
-    "dev": "servor --reload --port 3000",
+    "dev": "servor . --reload --port 3000",
     "build": "echo 'Static site - no build required'",
     "test": "echo 'No tests specified'",
     "lint": "echo 'No linter configured'",
